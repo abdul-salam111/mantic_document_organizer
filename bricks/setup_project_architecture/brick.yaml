@@ -1,0 +1,14 @@
+name: setup_project_architecture
+description: >-
+  Scaffolds this template's Clean Architecture + Provider + GetIt +
+  GoRouter setup — including a fixed "auth" example feature — into a
+  brand-new/empty Flutter project. Not a general architecture generator
+  and not parameterized by feature name — for adding further features to
+  a project that already has this structure, use create_feature instead.
+version: 0.2.0
+environment:
+  mason: ">=0.1.0 <0.2.0"
+
+# Deliberately no vars section: this brick always scaffolds the same
+# hardcoded "auth" example, it does not generate an arbitrarily-named
+# feature. See create_feature for that.

@@ -1,0 +1,21 @@
+name: add_page
+description: >-
+  Adds a new page/sub-flow (view + viewmodel + widgets folder, wired into
+  routes and DI) to an existing feature module that already has its own
+  data/domain/presentation — e.g. adding "change_password" alongside
+  auth's existing "signin"/"signup" sub-flows. Does NOT touch the
+  feature's data/domain layer beyond scaffolding a new usecase stub; for a
+  brand-new feature module, use create_feature instead.
+version: 0.1.0
+environment:
+  mason: ">=0.1.0 <0.2.0"
+
+vars:
+  feature_name:
+    type: string
+    description: Which existing feature is this page part of?
+    prompt: Enter the existing feature name (e.g. auth)
+  page_name:
+    type: string
+    description: What is the name of the new page/sub-flow?
+    prompt: Enter the new page name (e.g. change_password)

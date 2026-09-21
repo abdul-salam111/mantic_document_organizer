@@ -1,0 +1,130 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  analyze-and-test:
+    name: Analyze & Test
+    runs-on: ubuntu-latest
+
+    # Off by default — this job is skipped entirely unless a repository
+    # variable named CI_ENABLED is set to "true".
+    #
+    # To turn CI on:  Settings -> Secrets and variables -> Actions ->
+    #                 Variables -> New repository variable
+    #                 name: CI_ENABLED   value: true
+    # To turn CI off: delete that variable (or set it to anything else).
+    # No changes to this file or to any code are needed either way.
+    if: ${{ vars.CI_ENABLED == 'true' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - run: flutter pub get
+
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze
+        run: flutter analyze --fatal-infos
+
+      - name: Test
+        run: flutter test
+
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+
+    # Off by default — independent of the analyze-and-test job above.
+    # This job is skipped entirely unless a repository variable named
+    # BUILD_ENABLED is set to "true".
+    #
+    # To turn builds on:  Settings -> Secrets and variables -> Actions ->
+    #                      Variables -> New repository variable
+    #                      name: BUILD_ENABLED   value: true
+    # To turn builds off: delete that variable (or set it to anything else).
+    # No changes to this file or to any code are needed either way.
+    #
+    # Produces a real Play Store-signed APK if the KEYSTORE_* secrets below
+    # are set, otherwise falls back to the debug signing key (same
+    # fallback as a local build with no android/key.properties) — good
+    # enough to confirm the app builds and to hand out for manual
+    # testing, not for a Play Store release. See SIGNING.md for how to
+    # generate a keystore and set these secrets.
+    if: ${{ vars.BUILD_ENABLED == 'true' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - run: flutter pub get
+
+      # Independent of BUILD_ENABLED — see SIGNING.md. Skipped entirely
+      # (build falls back to debug signing) if KEYSTORE_BASE64 isn't set.
+      - name: Decode keystore and write key.properties
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
+          KEYSTORE_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
+          KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
+        run: |
+          KEYSTORE_PATH="$(pwd)/android/app/release-keystore.jks"
+          echo "$KEYSTORE_BASE64" | base64 -d > "$KEYSTORE_PATH"
+          cat > android/key.properties <<EOF
+          storePassword=$KEYSTORE_STORE_PASSWORD
+          keyPassword=$KEYSTORE_KEY_PASSWORD
+          keyAlias=$KEYSTORE_KEY_ALIAS
+          storeFile=$KEYSTORE_PATH
+          EOF
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      # Belt-and-suspenders: the runner is ephemeral and torn down after
+      # the job anyway, but don't leave the decoded keystore sitting
+      # around for the rest of the job's steps regardless.
+      - name: Clean up decoded keystore
+        if: ${{ always() }}
+        run: rm -f android/app/release-keystore.jks android/key.properties
+
+  build-ios:
+    name: Build iOS
+    runs-on: macos-latest
+
+    # Off by default — same opt-in variable as build-android above, since
+    # both jobs exist to confirm the app actually builds on each platform.
+    # To turn on: Settings -> Secrets and variables -> Actions -> Variables
+    # -> New repository variable -> name: BUILD_ENABLED   value: true
+    if: ${{ vars.BUILD_ENABLED == 'true' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - run: flutter pub get
+
+      # --no-codesign: this only proves the app compiles and CocoaPods
+      # resolves cleanly (dio, flutter_secure_storage, image_picker,
+      # file_picker, google_fonts, etc. all have native iOS pods). Signing
+      # an .ipa for TestFlight/App Store requires an Apple Developer
+      # account and certificates this template doesn't assume you have.
+      - name: Build iOS (no codesign)
+        run: flutter build ios --release --no-codesign

@@ -1,0 +1,25 @@
+name: remove_feature
+description: >-
+  The inverse of create_feature — permanently deletes an entire feature
+  module (lib/features/<name>/, including every page it contains) and
+  removes all of its route_names/route_paths/app_router/
+  injection_container wiring, including wiring added later by add_page for
+  any extra sub-flows. For deleting just one page/sub-flow from a feature
+  that should otherwise stay, use remove_page instead.
+version: 0.1.0
+environment:
+  mason: ">=0.1.0 <0.2.0"
+
+vars:
+  feature_name:
+    type: string
+    description: Which feature should be deleted?
+    prompt: Enter the feature name to delete (e.g. auth)
+  confirm:
+    type: boolean
+    description: >-
+      This permanently deletes the entire feature module and all its
+      routing/DI wiring. This cannot be undone by mason (only by your own
+      version control).
+    default: false
+    prompt: Are you sure you want to permanently delete this entire feature?

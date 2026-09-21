@@ -1,0 +1,7 @@
+name: create_feature
+
+environment:
+  sdk: ">=2.12.0 <4.0.0"
+
+dependencies:
+  mason: ^0.1.0-dev.52

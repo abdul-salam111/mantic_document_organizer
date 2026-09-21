@@ -1,0 +1,10 @@
+name: asset_generator
+description: Generate constants for assets (images and icons) automatically
+version: 0.1.0+1
+
+vars:
+  project_name:
+    type: string
+    description: Your project name
+    default: my_app
+    prompt: What is your project name?

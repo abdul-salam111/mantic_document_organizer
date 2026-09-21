@@ -1,0 +1,15 @@
+name: add_firebase
+description: >-
+  Adds Firebase Authentication as a drop-in alternative to this template's
+  REST-backed auth: a FirebaseAuthHelper + Firebase-specific exception
+  mapping (core/networks), a FirebaseAuthRepositoryImpl implementing the
+  existing IAuthRepository contract, and the pubspec/Gradle/main.dart
+  wiring Firebase itself needs. Not registered as the active IAuthRepository
+  by default — see this brick's console output for the one-line DI swap.
+version: 0.1.0
+environment:
+  mason: ">=0.1.0 <0.2.0"
+
+# Deliberately no vars section: this brick always adds the same fixed
+# Firebase Auth infrastructure, it does not generate an arbitrarily-named
+# feature. See create_feature/add_page for that.

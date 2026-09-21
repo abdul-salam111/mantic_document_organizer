@@ -1,0 +1,17 @@
+bricks:
+  setup_project_architecture:
+    path: "bricks/setup_project_architecture"
+  create_feature:
+    path: "bricks/create_feature"
+  add_page:
+    path: "bricks/add_page"
+  add_firebase:
+    path: "bricks/add_firebase"
+  remove_page:
+    path: "bricks/remove_page"
+  remove_feature:
+    path: "bricks/remove_feature"
+  remove_firebase:
+    path: "bricks/remove_firebase"
+  asset_generator:
+    path: "bricks/asset_generator"

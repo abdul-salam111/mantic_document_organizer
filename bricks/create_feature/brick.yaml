@@ -1,0 +1,10 @@
+name: create_feature
+description: Create a new feature with MVC/MVVM/Clean architecture
+version: 0.2.0
+
+vars:
+  page_name:
+    type: string
+    description: What is the name of your feature?
+    default: profile
+    prompt: Enter feature name (e.g., profile, home, settings)

@@ -1,0 +1,27 @@
+name: remove_page
+description: >-
+  The inverse of add_page — permanently deletes a page/sub-flow (view,
+  viewmodel, widgets folder, usecase stub) from an existing feature, and
+  removes its route_names/route_paths/app_router/injection_container/
+  barrel-export wiring. Does not touch the feature's shared data/domain
+  layer. For deleting an entire feature module, use remove_feature instead.
+version: 0.1.0
+environment:
+  mason: ">=0.1.0 <0.2.0"
+
+vars:
+  feature_name:
+    type: string
+    description: Which existing feature is this page part of?
+    prompt: Enter the existing feature name (e.g. auth)
+  page_name:
+    type: string
+    description: Which page/sub-flow should be deleted?
+    prompt: Enter the page name to delete (e.g. change_password)
+  confirm:
+    type: boolean
+    description: >-
+      This permanently deletes files and removes routing/DI wiring. This
+      cannot be undone by mason (only by your own version control).
+    default: false
+    prompt: Are you sure you want to permanently delete this page?

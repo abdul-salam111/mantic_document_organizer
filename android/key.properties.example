@@ -1,0 +1,14 @@
+# Copy this file to android/key.properties (NOT this .example file) and
+# fill in real values for YOUR keystore. See SIGNING.md at the repo root
+# for how to generate that keystore.
+#
+# android/key.properties is git-ignored (android/.gitignore) — never
+# commit the real one.
+
+storePassword=REPLACE_ME
+keyPassword=REPLACE_ME
+keyAlias=REPLACE_ME
+# Path is relative to the android/ folder, e.g. ../release.keystore.jks
+# if you keep the keystore file at the repo root, or an absolute path if
+# you keep it outside the repo entirely (recommended — see SIGNING.md).
+storeFile=REPLACE_ME

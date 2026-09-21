@@ -1,0 +1,21 @@
+name: remove_firebase
+description: >-
+  The inverse of add_firebase — permanently deletes the Firebase Auth
+  infrastructure it added (FirebaseAuthHelper, the exception mapper,
+  FirebaseAuthRepositoryImpl) and reverts the pubspec/Gradle/main.dart/
+  injection_container.dart wiring. Refuses to run if IAuthRepository is
+  currently registered as FirebaseAuthRepositoryImpl, since that would
+  break the build — switch auth back to AuthRepositoryImpl first.
+version: 0.1.0
+environment:
+  mason: ">=0.1.0 <0.2.0"
+
+vars:
+  confirm:
+    type: boolean
+    description: >-
+      This permanently deletes the Firebase Auth infrastructure and its
+      wiring. This cannot be undone by mason (only by your own version
+      control).
+    default: false
+    prompt: Are you sure you want to permanently remove Firebase Auth?
