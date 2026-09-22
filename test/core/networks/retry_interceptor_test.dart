@@ -6,8 +6,9 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
-import 'package:flutter_template/core/networks/network_manager/retry_interceptor.dart';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mantic_doc_org/core/networks/network_manager/retry_interceptor.dart';
 
 /// A scripted [HttpClientAdapter] that returns the next entry in
 /// [responses] on each call to [fetch] — either a successful

@@ -4,9 +4,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mantic_doc_org/core/theme/theme.dart';
+import 'package:mantic_doc_org/core/widgets/appbar/custom_appbar.dart';
 
-import 'package:flutter_template/core/theme/theme_exports.dart';
-import 'package:flutter_template/core/widgets/widgets_exports.dart';
+
 
 void main() {
   testWidgets('CustomAppBar title color contrasts with its background', (

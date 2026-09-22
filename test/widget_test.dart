@@ -4,12 +4,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mantic_doc_org/core/di/injection_container.dart';
+import 'package:mantic_doc_org/core/theme/theme_controller.dart';
+import 'package:mantic_doc_org/core/widgets/inputs/custom_textfield.dart';
+import 'package:mantic_doc_org/features/auth/presentation/signin/views/signin_page.dart';
+import 'package:mantic_doc_org/main.dart';
 
-import 'package:flutter_template/main.dart';
-import 'package:flutter_template/core/di/di_exports.dart';
-import 'package:flutter_template/core/theme/theme_exports.dart';
-import 'package:flutter_template/core/widgets/widgets_exports.dart';
-import 'package:flutter_template/features/auth/auth_exports.dart';
+
 
 // DioHelper polls connectivity on its own Timer for the lifetime of its
 // registration (see TEMPLATE_REVIEW.txt §2.5) — flutter_test asserts no
