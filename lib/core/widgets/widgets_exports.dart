@@ -1,8 +1,10 @@
 // Barrel export for lib/core/widgets — the shared UI kit (buttons, text
 // fields, app bar, loading states, etc.), plus the packages every screen
-// that uses them typically also needs: iconsax (icons used by the kit) and
-// provider (ChangeNotifierProvider/Consumer for wiring a ViewModel to a page).
+// that uses them typically also needs: iconsax and font_awesome_flutter
+// (icons used by the kit) and provider (ChangeNotifierProvider/Consumer for
+// wiring a ViewModel to a page).
 export 'package:iconsax/iconsax.dart';
+export 'package:font_awesome_flutter/font_awesome_flutter.dart';
 export 'package:provider/provider.dart';
 
 export 'appbar/custom_appbar.dart';

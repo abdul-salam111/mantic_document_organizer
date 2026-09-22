@@ -13,11 +13,47 @@ class AppIcons {
 
   
 
-  static const String icon = 'assets/icons/icon.png';
+  static const String bank = 'assets/icons/bank.png';
 
   
 
-  static const String logo = 'assets/icons/logo.png';
+  static const String businessCard = 'assets/icons/business_card.png';
+
+  
+
+  static const String contracts = 'assets/icons/contracts.jpg';
+
+  
+
+  static const String drivingLicense = 'assets/icons/driving_license.webp';
+
+  
+
+  static const String idcard = 'assets/icons/idcard.jpg';
+
+  
+
+  static const String insurance = 'assets/icons/insurance.webp';
+
+  
+
+  static const String medical = 'assets/icons/medical.png';
+
+  
+
+  static const String passports = 'assets/icons/passports.webp';
+
+  
+
+  static const String power = 'assets/icons/power.png';
+
+  
+
+  static const String products = 'assets/icons/products.png';
+
+  
+
+  static const String tickets = 'assets/icons/tickets.png';
 
 
 }
