@@ -4,10 +4,6 @@ import '../../../core/di/di_exports.dart';
 import '../../../core/theme/theme_exports.dart';
 import '../../../core/utils/utils_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
-// Imports the viewmodel directly rather than navbar_exports.dart — the
-// barrel re-exports NavbarView, which imports every tab feature
-// (including this one), so importing it here would create a home <->
-// navbar import cycle.
 import '../../navbar/viewmodel/navbar_viewmodel.dart';
 import '../viewmodel/home_viewmodel.dart';
 
