@@ -40,7 +40,7 @@ The same shape is used locally (sqflite/SQLite) and on the backend (PostgreSQL) 
 | Table | Fields | Notes |
 | --- | --- | --- |
 | User | id, email, name, auth\_provider, created\_at | Only populated once an account is created; app works with zero rows here |
-| Category | id, name, icon, field\_schema (JSON list of {name, type: text\|date\|number}), is\_custom, created\_at | 13 built-in rows seeded on first launch, plus any user-created ones |
+| Category | id, name, icon, field\_schema (JSON list of {name, type: text\|date\|number}), is\_custom, is\_essential, created\_at | 13 built-in rows seeded on first launch, plus any user-created ones. `is_essential` flags categories that count toward the document-completeness progress indicator (see below) |
 | Document | id, user\_id (nullable until account exists), category\_id (defaults to Uncategorized), title, description, fields (JSON, keyed by field\_schema), tags\[\], is\_favorite, page\_count, pdf\_url, thumbnail\_url, created\_at, deleted\_at (soft delete) | Core entity |
 | Page | id, document\_id, image\_url, order, filter\_applied | One row per scanned/imported page |
 | Tag | id, user\_id, name | Free-form, many-to-many with Document via `tags[]` |
@@ -59,13 +59,13 @@ Bottom tabs: **Home, All Docs, Favorites, Profile**, with a centered raised "+" 
 | Screen | Purpose |
 | --- | --- |
 | Splash | Brief load, straight to Home — no auth gate |
-| Home | Categories as a 2-column grid (icon, name, file count) ending in Uncategorized + a "New Category" tile; Recent documents strip; search bar |
+| Home | Search bar, with a document-completeness progress bar directly beneath it when essential documents are missing (hidden once complete); categories as a 2-column grid (icon, name, file count) ending in Uncategorized + a "New Category" tile; Recent documents strip |
 | New Category | Name input, icon picker (8+ options), optional custom field builder (Add field → name + type: Text/Date/Number, removable) |
 | All Docs | Flat grid of every document across categories |
 | Favorites | Hearted documents; tap the heart to unfavorite in place |
-| Profile (not signed in) | Local-only status, "Set up backup" CTA, storage used, link to Trash, app version |
+| Profile (not signed in) | Document-completeness progress bar when essential documents are missing (hidden once complete); local-only status, "Set up backup" CTA, storage used, link to Trash, app version |
 | Set up backup | Continue with Google, or name + email form |
-| Profile (signed in) | Avatar/initials, name, email, sync status, Edit profile, Sync now, Storage, Trash, Log out |
+| Profile (signed in) | Document-completeness progress bar when essential documents are missing (hidden once complete); avatar/initials, name, email, sync status, Edit profile, Sync now, Storage, Trash, Log out |
 | Add a document (source picker) | Bottom-sheet overlay: Take Photo / Choose from Gallery / Cancel |
 | Camera / Scan | Live edge-detection viewfinder, capture, running page count, Done |
 | Review | Captured page preview, filter chips (Color/Grayscale/B&W), page filmstrip (select/delete), Retake/Next |
@@ -74,6 +74,15 @@ Bottom tabs: **Home, All Docs, Favorites, Profile**, with a centered raised "+" 
 | Category view (Folder) | Grid of documents in one category, add-to-category button |
 | Search | Search input + results (title/category/date), opened from Home's search bar, not a tab |
 | Trash | Restore / Delete forever, 30-day auto-purge, opened from Profile, not a tab |
+
+## Document completeness progress bar
+
+A small set of built-in categories are flagged `is_essential` (e.g. government ID, proof of address — exact set TBD, see Open questions). The app tracks how many of those essential categories have at least one non-deleted Document, and surfaces this as a progress bar (e.g. "3 of 5 important documents added") in two places:
+
+- **Home**, directly under the search bar.
+- **Profile**, near the top, in both the signed-in and not-signed-in states.
+
+The bar is purely a local aggregation over the existing sqflite tables (same pattern as the Phase 3 document health dashboard) — no network or account required, and it's identical for signed-in and not-signed-in users. It's hidden entirely once every essential category has at least one document; it never blocks any other action. Tapping it surfaces which essential categories are still missing (e.g. a bottom sheet or checklist) and lets the user jump straight into Add a document for one of them, category pre-selected.
 
 ## Phase 1 implementation
 
@@ -161,5 +170,7 @@ Most of Phase 1 can actually run without hitting these at all — the backend on
 - **On-device classifier (Phase 2):** starts as keyword rules; whether/when to upgrade to a trained model is a later decision based on how well rules perform in practice.
 - **Custom category field types:** currently Text/Date/Number only — whether to add more types (e.g. dropdown/select) is open.
 - **Google Drive backup quota:** backups count against the user's own 15GB free Drive quota, not ours — the app should surface a clear message if their Drive is full rather than failing silently.
+- **Essential category set (document-completeness progress bar):** which of the 13 built-in categories are flagged `is_essential` isn't decided yet — assumed to be a fixed product-defined subset (not user-configurable) until decided otherwise.
+- **Document-completeness "done" definition:** assumed to be "at least one non-deleted Document in the category," regardless of whether its fields (e.g. an expiry date) are filled in or current — whether an expired/incomplete essential document should still count as "done" is open.
 
 This document should be updated as these decisions are made, so it stays the accurate source of truth for implementation.

@@ -46,36 +46,43 @@ class MainBottomNavbar extends StatelessWidget {
                 ],
               ),
               child: Row(
-                mainAxisAlignment: .spaceAround,
                 children: [
-                  _NavItem(
-                    icon: Iconsax.home,
-                    activeIcon: Iconsax.home5,
-                    label: 'Home',
-                    isActive: selectedIndex == 0,
-                    onTap: () => onTabSelected(0),
+                  Expanded(
+                    child: _NavItem(
+                      icon: Iconsax.home,
+                      activeIcon: Iconsax.home5,
+                      label: 'Home',
+                      isActive: selectedIndex == 0,
+                      onTap: () => onTabSelected(0),
+                    ),
                   ),
-                  _NavItem(
-                    icon: Iconsax.search_normal,
-                    activeIcon: Iconsax.search_normal,
-                    label: 'Search',
-                    isActive: selectedIndex == 1,
-                    onTap: () => onTabSelected(1),
+                  Expanded(
+                    child: _NavItem(
+                      icon: Iconsax.search_normal,
+                      activeIcon: Iconsax.search_normal,
+                      label: 'Search',
+                      isActive: selectedIndex == 1,
+                      onTap: () => onTabSelected(1),
+                    ),
                   ),
                   const SizedBox(width: _buttonSize),
-                  _NavItem(
-                    icon: Iconsax.heart,
-                    activeIcon: Iconsax.heart5,
-                    label: 'Favorites',
-                    isActive: selectedIndex == 2,
-                    onTap: () => onTabSelected(2),
+                  Expanded(
+                    child: _NavItem(
+                      icon: Iconsax.heart,
+                      activeIcon: Iconsax.heart5,
+                      label: 'Favorites',
+                      isActive: selectedIndex == 2,
+                      onTap: () => onTabSelected(2),
+                    ),
                   ),
-                  _NavItem(
-                    icon: Iconsax.profile_circle,
-                    activeIcon: Iconsax.profile_circle5,
-                    label: 'Profile',
-                    isActive: selectedIndex == 3,
-                    onTap: () => onTabSelected(3),
+                  Expanded(
+                    child: _NavItem(
+                      icon: Iconsax.setting_2,
+                      activeIcon: Iconsax.setting_25,
+                      label: 'Settings',
+                      isActive: selectedIndex == 3,
+                      onTap: () => onTabSelected(3),
+                    ),
                   ),
                 ],
               ),

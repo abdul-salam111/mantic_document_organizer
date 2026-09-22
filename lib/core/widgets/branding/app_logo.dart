@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
-
-import '../../constants/app_icons.dart';
+import '../../constants/app_images.dart';
 
 class AppLogo extends StatelessWidget {
   final double height;
@@ -15,7 +13,7 @@ class AppLogo extends StatelessWidget {
       height: height,
       width: width,
       decoration: BoxDecoration(
-        image: DecorationImage(image: AssetImage(AppIcons.logo)),
+        image: DecorationImage(image: AssetImage(AppImages.appLogo)),
       ),
     );
   }

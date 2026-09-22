@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
       child: Consumer<ThemeController>(
         builder: (context, themeController, _) {
           return MaterialApp.router(
-            title: 'Provider and Clean MVVM Structure',
+            title: 'Mantic Doc Org',
             theme: AppThemes.lightTheme,
             darkTheme: AppThemes.darkTheme,
             themeMode: themeController.themeMode,

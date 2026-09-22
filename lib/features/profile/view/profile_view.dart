@@ -14,7 +14,7 @@ class ProfileView extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => sl<ProfileViewModel>(),
       child: Scaffold(
-        appBar: const CustomAppBar(title: 'Profile'),
+        appBar: const CustomAppBar(title: 'Settings'),
         body: Padding(
           padding: .all(24),
           child: Column(
