@@ -8,27 +8,33 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 class CategoryItem {
   final String name;
   final FaIconData icon;
-  final int fileCount;
+  final int? fileCount;
 
-  const CategoryItem({
-    required this.name,
-    required this.icon,
-    required this.fileCount,
-  });
+  const CategoryItem({required this.name, required this.icon, this.fileCount});
 }
 
 class HomeViewModel extends ChangeNotifier {
-  final List<CategoryItem> categories = const [
+  bool isGridView = true;
+
+  void setGridView(bool gridView) {
+    if (isGridView == gridView) return;
+    isGridView = gridView;
+    notifyListeners();
+  }
+
+  /// Sorted alphabetically regardless of source order below, so the
+  /// display order stays correct as categories are added/renamed.
+  List<CategoryItem> get categories =>
+      List<CategoryItem>.of(_categories)
+        ..sort((a, b) => a.name.compareTo(b.name));
+
+  static const List<CategoryItem> _categories = [
     CategoryItem(
       name: 'Bank',
       icon: FontAwesomeIcons.buildingColumns,
       fileCount: 4,
     ),
-    CategoryItem(
-      name: 'Business Card',
-      icon: FontAwesomeIcons.addressCard,
-      fileCount: 2,
-    ),
+    CategoryItem(name: 'Business Card', icon: FontAwesomeIcons.addressCard),
     CategoryItem(
       name: 'Contracts',
       icon: FontAwesomeIcons.fileContract,
@@ -37,34 +43,30 @@ class HomeViewModel extends ChangeNotifier {
     CategoryItem(
       name: 'Driving License',
       icon: FontAwesomeIcons.idCardClip,
-      fileCount: 1,
     ),
-    CategoryItem(name: 'ID Card', icon: FontAwesomeIcons.idCard, fileCount: 3),
+    CategoryItem(name: 'Education', icon: FontAwesomeIcons.graduationCap),
     CategoryItem(
-      name: 'Insurance',
-      icon: FontAwesomeIcons.shieldHalved,
-      fileCount: 2,
+      name: 'Electricity/Gas',
+      icon: FontAwesomeIcons.boltLightning,
     ),
+    CategoryItem(name: 'ID Card', icon: FontAwesomeIcons.idCard),
+    CategoryItem(name: 'Insurance', icon: FontAwesomeIcons.shieldHalved),
+    CategoryItem(name: 'Invoices', icon: FontAwesomeIcons.fileInvoice),
     CategoryItem(
       name: 'Medical',
       icon: FontAwesomeIcons.stethoscope,
       fileCount: 5,
     ),
-    CategoryItem(
-      name: 'Passports',
-      icon: FontAwesomeIcons.passport,
-      fileCount: 1,
-    ),
-    CategoryItem(
-      name: 'Power',
-      icon: FontAwesomeIcons.boltLightning,
-      fileCount: 3,
-    ),
+    CategoryItem(name: 'Passports', icon: FontAwesomeIcons.passport),
     CategoryItem(
       name: 'Products',
       icon: FontAwesomeIcons.boxesStacked,
       fileCount: 7,
     ),
-    CategoryItem(name: 'Tickets', icon: FontAwesomeIcons.ticket, fileCount: 2),
+    CategoryItem(
+      name: 'Tax Documents',
+      icon: FontAwesomeIcons.fileInvoiceDollar,
+    ),
+    CategoryItem(name: 'Tickets', icon: FontAwesomeIcons.ticket),
   ];
 }
