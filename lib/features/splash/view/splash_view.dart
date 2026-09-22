@@ -12,6 +12,8 @@ class SplashView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
+     
+      lazy: false,
       create: (_) => sl<SplashViewModel>()..resolveNextRoute(),
       child: Scaffold(
         body: Container(
