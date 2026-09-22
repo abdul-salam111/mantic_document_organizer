@@ -13,7 +13,6 @@ class HomeView extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => sl<HomeViewModel>(),
       child: Scaffold(
-        appBar: const CustomAppBar(title: 'Home'),
         body: Consumer<HomeViewModel>(
           builder: (context, vm, _) {
             return Center(

@@ -125,9 +125,9 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
 
             border: borderWith(widget.borderColor ?? context.border),
             enabledBorder: borderWith(widget.borderColor ?? context.border),
-            focusedBorder: borderWith(context.primary, width: 2),
-            errorBorder: borderWith(context.error),
-            focusedErrorBorder: borderWith(context.error, width: 2),
+            focusedBorder: borderWith(context.primaryAccent, width: 2),
+            errorBorder: borderWith(context.errorAccent),
+            focusedErrorBorder: borderWith(context.errorAccent, width: 2),
 
             // Suffix icon for password visibility toggle
             suffixIcon: widget.obscureText

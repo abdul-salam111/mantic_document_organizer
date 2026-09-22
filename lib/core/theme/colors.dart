@@ -15,12 +15,23 @@ class AppColors {
   static const Color primaryDark = Color(0xFF4850E4);
   static const Color primaryLight = Color(0xFF9398EF);
 
+  /// Dark-theme-tuned primary accent. [primary] itself stays the same
+  /// value across both themes because it's always paired with white
+  /// foreground content (AppBar, filled buttons) — brightening it would
+  /// hurt that white-on-primary contrast. This tone is for the opposite
+  /// case: a small accent (focused input border, active nav icon) sitting
+  /// directly on a dark surface, where [primary] alone only measures
+  /// ~4.3:1 against the new near-black background — acceptable but tight.
+  /// This measures ~6.9:1 in the same spot.
+  static const Color primaryOnDark = Color(0xFF4FA3E3);
+
   /// Secondary brand color - Accents, highlights
   static const Color secondary = Color(0xFFDED2FA);
   static const Color secondaryDark = Color(0xFFC5B5E8);
   static const Color secondaryLight = Color(0xFFEDE7FC);
 
   /// Tertiary brand color - Alternative accents
+  /// 
   static const Color tertiary = Color(0xFF3927AD);
   static const Color tertiaryDark = Color(0xFF2A1C7B);
   static const Color tertiaryLight = Color(0xFF5B47C9);
@@ -59,6 +70,12 @@ class AppColors {
   static const Color errorDark = Color(0xFF8B1912);
   static const Color errorLight = Color(0xFFD4342A);
 
+  /// Dark-theme-tuned error accent — [error] measures only ~2.6:1 against
+  /// the near-black dark background (it was tuned for use on white), which
+  /// fails even the 3:1 minimum for UI text. This measures ~5.1:1 in the
+  /// same spot.
+  static const Color errorOnDark = Color(0xFFE5544A);
+
   /// Warning - Caution, alerts
   static const Color warning = Color(0xFFFFC542);
   static const Color warningDark = Color(0xFFE5A91C);
@@ -77,15 +94,18 @@ class AppColors {
   // ============================================
 
   static const Color backgroundLight = white;
-  static const Color backgroundDark = black;
+  /// Material's canonical dark base rather than pure black — pure black
+  /// gives elevated surfaces no headroom to read as "lighter" against it,
+  /// and reads harsher than intended on OLED screens.
+  static const Color backgroundDark = Color(0xFF121212);
 
   /// Surface colors for cards, sheets
   static const Color surfaceLight = grey50;
-  static const Color surfaceDark = grey800;
+  static const Color surfaceDark = Color(0xFF1C1C1E);
 
   /// Elevated surfaces
   static const Color surfaceElevatedLight = white;
-  static const Color surfaceElevatedDark = grey700;
+  static const Color surfaceElevatedDark = Color(0xFF2C2C2E);
 
   // ============================================
   // TEXT COLORS
@@ -107,11 +127,15 @@ class AppColors {
 
   static const Color border = grey200;
   static const Color borderLight = grey200;
-  static const Color borderDark = grey700;
+  /// A step lighter than [surfaceElevatedDark] so a border is actually
+  /// visible on an elevated surface — it used to equal grey700, the same
+  /// value as the elevated surface itself, making borders on cards/sheets
+  /// invisible.
+  static const Color borderDark = Color(0xFF3A3A3D);
 
   static const Color divider = grey200;
   static const Color dividerLight = grey200;
-  static const Color dividerDark = grey700;
+  static const Color dividerDark = Color(0xFF3A3A3D);
 
   // ============================================
   // OVERLAY COLORS
@@ -136,9 +160,12 @@ class AppColors {
   static const Color badgeSale = error;
   static const Color badgeFeatured = primary;
 
-  /// Shadows
+  /// Shadows. A black shadow barely reads against a near-black background
+  /// no matter its opacity — elevation in dark mode should mostly come
+  /// from the surface/surfaceElevated step, not the shadow. This is
+  /// nudged up from 20% mainly so it still contributes a little definition.
   static const Color shadow = Color(0x1A000000); // 10% black
-  static const Color shadowDark = Color(0x33000000); // 20% black
+  static const Color shadowDark = Color(0x4D000000); // 30% black
 
   /// Transparent
   static const Color transparent = Colors.transparent;

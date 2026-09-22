@@ -7,11 +7,83 @@ that aren't obvious from the code alone.
 ## What this project is
 
 A Flutter Clean Architecture + Provider + GetIt + go_router starter
-template. It is not itself an app — `lib/features/auth` is the one
-concrete example feature, everything else gets scaffolded per-project via
-Mason bricks (see below). If you're asked to "add a feature" or "add a
-page," check first whether a brick already does it — don't hand-write
-what a brick would generate.
+template, now being built out into a concrete app — **Mantic Document
+Organizer** — see "Product spec" below for what that app actually is.
+`lib/features/auth` was the template's original example feature;
+`home`/`navbar`/`search`/`favorites`/`profile`/`add_document` are the
+app-specific features built on top of it so far. Mason bricks (see
+below) still scaffold new features/pages the same way they always did.
+If you're asked to "add a feature" or "add a page," check first whether
+a brick already does it — don't hand-write what a brick would generate.
+
+## Product spec — Mantic Document Organizer
+
+This repo is no longer just the generic template — it's being built into
+**Mantic Document Organizer**, a document-scanning/organizing app. The
+full technical spec lives in `Mantic Document Organizer — Technical
+Implementation Spec.md` at the repo root — read it before any feature
+work beyond small fixes; this section only summarizes the parts most
+likely to affect how you write code here.
+
+**Architecture**: offline-first for all core functionality,
+online-enhanced only for AI features (Phase 3+). sqflite/SQLite is the
+on-device source of truth for everything in Phase 1-2 — reads/writes
+never need the network. A FastAPI + PostgreSQL backend exists only for
+two opt-in things: account backup/sync (Google Drive-backed) and AI
+feature calls (Anthropic API). **No part of the core app should ever
+gate on a signed-in user.**
+
+**Data model** (mirrored in sqflite locally and Postgres on the
+backend): `User`, `Category` (13 built-in + custom, JSON
+`field_schema`), `Document` (core entity — category, JSON `fields`,
+tags, favorite, soft-delete via `deleted_at`), `Page`, `Tag`, `Todo`.
+Phase 2 adds `ocr_text` + `detected_dates` to Document; Phase 3 adds
+`embedding`; Phase 4 adds `Vault`/`VaultMember`/`VoiceNote`.
+
+**Navigation**: bottom tabs are **Home, All Docs, Favorites, Profile**,
+with a centered raised "+" button for adding a document. Search is
+**not a tab** — it's opened from Home's search bar. Trash is opened
+from Profile, not a tab. Splash goes straight to Home with no auth
+gate; Profile has a distinct "not signed in" state (local-only status,
+"Set up backup" CTA) vs. "signed in" state.
+
+**Phases**: 1 (local-only capture/categorize/organize, sqflite,
+optional Google-backed backup) → 2 (on-device OCR, auto-categorization,
+deadline detection — still fully offline) → 3 (AI search/summaries/
+clustering — call-time online, everything else stays unaffected without
+a connection) → 4 (shared vaults, voice notes, full sync with conflict
+resolution).
+
+### Known mismatches with the current scaffold (as of 2026-09-22)
+
+The template/brick machinery below was built before this spec existed
+and hasn't been reconciled with it yet:
+
+- **State management**: the spec proposes Riverpod or Bloc; every
+  feature built in this repo so far (auth, home, search, favorites,
+  profile, add_document, navbar) uses **Provider** (`ChangeNotifier` +
+  GetIt), per the template's own convention documented below.
+  Unresolved — follow Provider for consistency with existing code until
+  this is explicitly decided otherwise.
+- **Navbar tabs**: currently **Home, Search, Favorites, Profile** (see
+  `lib/features/navbar/`) — the spec calls for **Home, All Docs,
+  Favorites, Profile**, with Search moved into Home's own search bar
+  instead of being a tab.
+- **Auth gating**: the `auth` feature (signin/signup) currently sits in
+  front of everything — `RoutePaths.initialRoute` was pointed at `home`
+  as a dev convenience (see git history), but the *intended* production
+  flow per the spec is Splash → Home directly, with sign-in only ever
+  reached opt-in via Profile's "Set up backup" flow, never as a gate.
+- **Local database**: no sqflite integration exists yet —
+  `Document`/`Category`/`Page`/`Tag`/`Todo` aren't modeled locally at
+  all. Everything built so far (search/favorites/add_document) talks to
+  the placeholder REST `ApiEndPoints` instead, which doesn't match the
+  offline-first design — those datasources will need to become
+  sqflite-backed repositories instead once this is tackled.
+
+Don't treat the existing scaffold as ground truth over the spec when
+they conflict — flag it and ask rather than silently extending the
+mismatched pattern further.
 
 ## Architecture rules
 

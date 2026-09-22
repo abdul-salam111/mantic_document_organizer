@@ -108,7 +108,7 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isActive ? context.primary : context.textSecondary;
+    final color = isActive ? context.primaryAccent : context.textSecondary;
     return InkWell(
       onTap: onTap,
       customBorder: const CircleBorder(),

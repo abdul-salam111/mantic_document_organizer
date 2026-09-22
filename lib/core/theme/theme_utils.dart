@@ -41,6 +41,15 @@ extension AppColorExtension on BuildContext {
   Color get primaryDark => AppColors.primaryDark;
   Color get primaryLight => AppColors.primaryLight;
 
+  /// [primary], but swapped for a brighter, dark-tuned tone in dark mode.
+  /// Use this — not [primary] — for a small accent that sits directly on
+  /// a background/surface color (a focused input border, an active nav
+  /// icon). Keep using [primary] as-is anywhere it's paired with white
+  /// foreground content (AppBar fill, filled buttons) — brightening it
+  /// there would hurt that white-on-primary contrast instead of helping.
+  Color get primaryAccent =>
+      isDark ? AppColors.primaryOnDark : AppColors.primary;
+
   Color get secondary => AppColors.secondary;
   Color get secondaryDark => AppColors.secondaryDark;
   Color get secondaryLight => AppColors.secondaryLight;
@@ -55,6 +64,11 @@ extension AppColorExtension on BuildContext {
   Color get warning => AppColors.warning;
   Color get info => AppColors.info;
   Color get critical => AppColors.critical;
+
+  /// [error], but swapped for a brighter, dark-tuned tone in dark mode —
+  /// same reasoning as [primaryAccent]. Use this for error text/icons/
+  /// borders sitting directly on a background/surface color.
+  Color get errorAccent => isDark ? AppColors.errorOnDark : AppColors.error;
 
   // Background (theme-aware)
   Color get background =>

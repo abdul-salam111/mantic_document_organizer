@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import 'core/di/di_exports.dart';
 import 'routes/routes_exports.dart';
 import 'core/theme/theme_exports.dart';
@@ -18,7 +17,6 @@ void main() {
       FlutterError.onError = (FlutterErrorDetails details) {
         FlutterError.presentError(details);
       };
-
 
       // Errors from outside the Flutter framework (e.g. platform channel
       // callbacks, isolate errors)

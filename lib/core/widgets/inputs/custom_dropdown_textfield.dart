@@ -101,19 +101,19 @@ class _SearchableDropdownState extends State<SearchableDropdown> {
             // Focused border - uses brand color
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: context.primary, width: 2),
+              borderSide: BorderSide(color: context.primaryAccent, width: 2),
             ),
 
             // Error border
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: context.error),
+              borderSide: BorderSide(color: context.errorAccent),
             ),
 
             // Focused error border
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: context.error, width: 2),
+              borderSide: BorderSide(color: context.errorAccent, width: 2),
             ),
           ),
         ),
@@ -169,7 +169,7 @@ class _SearchableDropdownState extends State<SearchableDropdown> {
                           item,
                           style: context.bodyMedium.copyWith(
                             color: isSelected
-                                ? context.primary
+                                ? context.primaryAccent
                                 : context.textPrimary,
                             fontWeight: isSelected
                                 ? FontWeight.w600
@@ -179,7 +179,7 @@ class _SearchableDropdownState extends State<SearchableDropdown> {
                         trailing: isSelected
                             ? Icon(
                                 Icons.check,
-                                color: context.primary,
+                                color: context.primaryAccent,
                                 size: 20,
                               )
                             : null,

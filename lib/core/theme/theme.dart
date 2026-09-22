@@ -208,8 +208,8 @@ class AppThemes {
 
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.primary,
-        side: BorderSide(color: AppColors.primary),
+        foregroundColor: AppColors.primaryOnDark,
+        side: BorderSide(color: AppColors.primaryOnDark),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
@@ -217,14 +217,14 @@ class AppThemes {
 
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: AppColors.primary,
+        foregroundColor: AppColors.primaryOnDark,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
     ),
 
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: AppColors.grey800,
+      fillColor: AppColors.surfaceElevatedDark,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
         borderSide: BorderSide(color: AppColors.borderDark),
@@ -235,11 +235,11 @@ class AppThemes {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: AppColors.primary, width: 2),
+        borderSide: BorderSide(color: AppColors.primaryOnDark, width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: AppColors.error),
+        borderSide: BorderSide(color: AppColors.errorOnDark),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     ),
@@ -258,7 +258,7 @@ class AppThemes {
 
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: AppColors.surfaceElevatedDark,
-      selectedItemColor: AppColors.primary,
+      selectedItemColor: AppColors.primaryOnDark,
       unselectedItemColor: AppColors.textSecondaryDark,
       type: BottomNavigationBarType.fixed,
       elevation: 8,

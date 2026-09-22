@@ -62,7 +62,7 @@ class CustomSearchField extends StatelessWidget {
         // Focused border - uses brand color
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: context.primary, width: 2),
+          borderSide: BorderSide(color: context.primaryAccent, width: 2),
         ),
       ),
     );
