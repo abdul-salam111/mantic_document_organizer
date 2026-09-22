@@ -24,7 +24,7 @@ class MainBottomNavbar extends StatelessWidget {
     return SafeArea(
       top: false,
       child: SizedBox(
-        height: _barHeight + _buttonSize / 2,
+        height: _barHeight,
         child: Stack(
           clipBehavior: Clip.none,
           alignment: .bottomCenter,
@@ -88,7 +88,7 @@ class MainBottomNavbar extends StatelessWidget {
               ),
             ),
             Positioned(
-              top: 0,
+             bottom:30,
               child: _AddButton(size: _buttonSize, onPressed: onAddPressed),
             ),
           ],

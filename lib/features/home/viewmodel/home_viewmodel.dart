@@ -13,6 +13,22 @@ class CategoryItem {
   const CategoryItem({required this.name, required this.icon, this.fileCount});
 }
 
+/// Presentational-only for now, same as [CategoryItem] — standing in for
+/// what will eventually be the most-recently-added/edited Document rows.
+class RecentFileItem {
+  final String name;
+  final String category;
+  final FaIconData icon;
+  final String timeLabel;
+
+  const RecentFileItem({
+    required this.name,
+    required this.category,
+    required this.icon,
+    required this.timeLabel,
+  });
+}
+
 class HomeViewModel extends ChangeNotifier {
   bool isGridView = true;
 
@@ -27,6 +43,45 @@ class HomeViewModel extends ChangeNotifier {
   List<CategoryItem> get categories =>
       List<CategoryItem>.of(_categories)
         ..sort((a, b) => a.name.compareTo(b.name));
+
+  final List<RecentFileItem> recentFiles = const [
+    RecentFileItem(
+      name: 'Electricity Bill - Sept',
+      category: 'Electricity/Gas',
+      icon: FontAwesomeIcons.boltLightning,
+      timeLabel: '2h ago',
+    ),
+    RecentFileItem(
+      name: 'Passport Scan',
+      category: 'Passports',
+      icon: FontAwesomeIcons.passport,
+      timeLabel: '5h ago',
+    ),
+    RecentFileItem(
+      name: 'Insurance Policy',
+      category: 'Insurance',
+      icon: FontAwesomeIcons.shieldHalved,
+      timeLabel: 'Yesterday',
+    ),
+    RecentFileItem(
+      name: 'Bank Statement',
+      category: 'Bank',
+      icon: FontAwesomeIcons.buildingColumns,
+      timeLabel: '2d ago',
+    ),
+    RecentFileItem(
+      name: 'Lease Agreement',
+      category: 'Contracts',
+      icon: FontAwesomeIcons.fileContract,
+      timeLabel: '3d ago',
+    ),
+    RecentFileItem(
+      name: 'Lab Report',
+      category: 'Medical',
+      icon: FontAwesomeIcons.stethoscope,
+      timeLabel: '4d ago',
+    ),
+  ];
 
   static const List<CategoryItem> _categories = [
     CategoryItem(

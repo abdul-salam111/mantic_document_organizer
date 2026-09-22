@@ -4,6 +4,11 @@ import '../../../core/di/di_exports.dart';
 import '../../../core/theme/theme_exports.dart';
 import '../../../core/utils/utils_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
+// Imports the viewmodel directly rather than navbar_exports.dart — the
+// barrel re-exports NavbarView, which imports every tab feature
+// (including this one), so importing it here would create a home <->
+// navbar import cycle.
+import '../../navbar/viewmodel/navbar_viewmodel.dart';
 import '../viewmodel/home_viewmodel.dart';
 
 class HomeView extends StatelessWidget {
@@ -62,7 +67,47 @@ class HomeView extends StatelessWidget {
                           ),
                           heightBox(20),
                           const CustomSearchField(hintText: 'Search documents'),
-                          heightBox(28),
+                          heightBox(14),
+                          Row(
+                            children: [
+                              Text(
+                                'Recent Files',
+                                style: context.titleMedium.copyWith(
+                                  fontWeight: .w700,
+                                ),
+                              ),
+                              const Spacer(),
+                              InkWell(
+                                borderRadius: .circular(6),
+                                // Index 1 = Search, per NavbarView's _tabs order.
+                                onTap: () =>
+                                    context.read<NavbarViewModel>().selectTab(
+                                      1,
+                                    ),
+                                child: Text(
+                                  'See all',
+                                  style: context.labelLarge.copyWith(
+                                    color: context.primary,
+                                    fontWeight: .w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          heightBox(7),
+                          SizedBox(
+                            height: 140,
+                            child: ListView.separated(
+                              scrollDirection: .horizontal,
+                              clipBehavior: Clip.none,
+                              itemCount: vm.recentFiles.length,
+                              separatorBuilder: (context, index) =>
+                                  widthBox(12),
+                              itemBuilder: (context, index) =>
+                                  _RecentFileCard(file: vm.recentFiles[index]),
+                            ),
+                          ),
+                          heightBox(20),
                           Row(
                             children: [
                               Text(
@@ -90,30 +135,9 @@ class HomeView extends StatelessWidget {
                     ),
                   ),
                   SliverPadding(
-                    padding: .symmetric(horizontal: 10),
+                    padding: const .fromLTRB(10, 6, 10, 0),
                     sliver: SliverToBoxAdapter(
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        switchInCurve: Curves.easeOut,
-                        switchOutCurve: Curves.easeIn,
-                        transitionBuilder: (child, animation) =>
-                            FadeTransition(
-                              opacity: animation,
-                              child: SizeTransition(
-                                sizeFactor: animation,
-                                child: child,
-                              ),
-                            ),
-                        child: vm.isGridView
-                            ? _CategoryGrid(
-                                key: const ValueKey('grid'),
-                                vm: vm,
-                              )
-                            : _CategoryList(
-                                key: const ValueKey('list'),
-                                vm: vm,
-                              ),
-                      ),
+                      child: _CategorySection(vm: vm),
                     ),
                   ),
                   const SliverToBoxAdapter(child: SizedBox(height: 24)),
@@ -131,37 +155,158 @@ Widget _categoryTileAt(
   HomeViewModel vm,
   int index, {
   required bool isGridView,
+  required Animation<double> reveal,
 }) {
+  final Widget tile;
   if (index < vm.categories.length) {
     final category = vm.categories[index];
-    return _CategoryTile(
+    tile = _CategoryTile(
       name: category.name,
       fileCount: category.fileCount,
       icon: category.icon,
       isGridView: isGridView,
       colorKey: category.name,
     );
-  }
-  if (index == vm.categories.length) {
-    return _CategoryTile(
+  } else if (index == vm.categories.length) {
+    tile = _CategoryTile(
       name: 'Uncategorized',
       fileCount: 0,
       icon: FontAwesomeIcons.folder,
       isGridView: isGridView,
     );
+  } else {
+    tile = _CategoryTile(
+      name: 'New Category',
+      icon: FontAwesomeIcons.circlePlus,
+      isAddNew: true,
+      isGridView: isGridView,
+    );
   }
-  return _CategoryTile(
-    name: 'New Category',
-    icon: FontAwesomeIcons.circlePlus,
-    isAddNew: true,
-    isGridView: isGridView,
-  );
+  return _StaggeredEntry(animation: reveal, index: index, child: tile);
+}
+
+/// Fades + slides one grid/list item in, with its start time offset by
+/// [index] so items reveal one after another instead of all at once. Capped
+/// at [_maxStaggeredItems] so a long category list doesn't push the last
+/// tile's start time out unreasonably far.
+class _StaggeredEntry extends StatelessWidget {
+  final Animation<double> animation;
+  final int index;
+  final Widget child;
+
+  const _StaggeredEntry({
+    required this.animation,
+    required this.index,
+    required this.child,
+  });
+
+  static const int _maxStaggeredItems = 12;
+  static const double _staggerWindow = 0.5;
+
+  @override
+  Widget build(BuildContext context) {
+    final step = index.clamp(0, _maxStaggeredItems) / _maxStaggeredItems;
+    final start = step * _staggerWindow;
+    final end = start + (1 - _staggerWindow);
+    final itemAnimation = CurvedAnimation(
+      parent: animation,
+      curve: Interval(start, end, curve: Curves.easeOut),
+    );
+    return FadeTransition(
+      opacity: itemAnimation,
+      child: SlideTransition(
+        position:
+            Tween<Offset>(
+              begin: const Offset(0, 0.08),
+              end: Offset.zero,
+            ).animate(itemAnimation),
+        child: child,
+      ),
+    );
+  }
+}
+
+class _CategorySection extends StatefulWidget {
+  final HomeViewModel vm;
+
+  const _CategorySection({required this.vm});
+
+  @override
+  State<_CategorySection> createState() => _CategorySectionState();
+}
+
+/// Grid and list are structurally different layouts (3-column tiles vs.
+/// full-width rows), so cross-fading them in place like a plain
+/// [AnimatedSwitcher] briefly overlaps two mismatched layouts and reads as
+/// a jarring jumble rather than a smooth transition. Instead this fades the
+/// current layout fully out first, swaps the child only once invisible,
+/// then fades the new layout in — while [AnimatedSize] eases the container
+/// height between the two throughout, so the rest of the scroll view
+/// settles smoothly too instead of jumping.
+class _CategorySectionState extends State<_CategorySection>
+    with TickerProviderStateMixin {
+  late final AnimationController _fadeController;
+  late final AnimationController _revealController;
+  late bool _isGridView;
+
+  @override
+  void initState() {
+    super.initState();
+    _isGridView = widget.vm.isGridView;
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 160),
+      value: 1,
+    );
+    _revealController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 450),
+      value: 1,
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant _CategorySection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.vm.isGridView != _isGridView) {
+      _fadeController.reverse().then((_) {
+        if (!mounted) return;
+        setState(() => _isGridView = widget.vm.isGridView);
+        _fadeController.value = 1;
+        _revealController.forward(from: 0);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    _revealController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOut,
+      alignment: .topCenter,
+      clipBehavior: .none,
+      child: FadeTransition(
+        opacity: _fadeController,
+        child: _isGridView
+            ? _CategoryGrid(vm: widget.vm, reveal: _revealController)
+            : _CategoryList(vm: widget.vm, reveal: _revealController),
+      ),
+    );
+  }
 }
 
 class _CategoryGrid extends StatelessWidget {
   final HomeViewModel vm;
+  final Animation<double> reveal;
 
-  const _CategoryGrid({super.key, required this.vm});
+  const _CategoryGrid({required this.vm, required this.reveal});
 
   @override
   Widget build(BuildContext context) {
@@ -176,15 +321,16 @@ class _CategoryGrid extends StatelessWidget {
       ),
       itemCount: vm.categories.length + 2,
       itemBuilder: (context, index) =>
-          _categoryTileAt(vm, index, isGridView: true),
+          _categoryTileAt(vm, index, isGridView: true, reveal: reveal),
     );
   }
 }
 
 class _CategoryList extends StatelessWidget {
   final HomeViewModel vm;
+  final Animation<double> reveal;
 
-  const _CategoryList({super.key, required this.vm});
+  const _CategoryList({required this.vm, required this.reveal});
 
   @override
   Widget build(BuildContext context) {
@@ -194,7 +340,7 @@ class _CategoryList extends StatelessWidget {
       itemCount: vm.categories.length + 2,
       separatorBuilder: (context, index) => heightBox(10),
       itemBuilder: (context, index) =>
-          _categoryTileAt(vm, index, isGridView: false),
+          _categoryTileAt(vm, index, isGridView: false, reveal: reveal),
     );
   }
 }
@@ -229,6 +375,65 @@ Color _categoryIconColor(BuildContext context, String categoryName) {
       return context.warning;
     default:
       return context.info;
+  }
+}
+
+class _RecentFileCard extends StatelessWidget {
+  final RecentFileItem file;
+
+  const _RecentFileCard({required this.file});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _categoryIconColor(context, file.category);
+    return InkWell(
+      borderRadius: .circular(14),
+      onTap: () => AppToastsUtils.info('${file.name} — coming soon'),
+      child: Container(
+        width: 110,
+        padding: .all(9),
+        decoration: BoxDecoration(
+          color: context.surfaceElevated,
+          borderRadius: .circular(13),
+          boxShadow: [
+            BoxShadow(
+              color: context.shadow,
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: .start,
+          children: [
+            Container(
+              height: 66,
+              width: double.infinity,
+              alignment: .center,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: .circular(9),
+              ),
+              child: FaIcon(file.icon, size: 26, color: color),
+            ),
+            heightBox(10),
+            Text(
+              file.name,
+              maxLines: 1,
+              overflow: .ellipsis,
+              style: context.bodySmall.copyWith(fontWeight: .w600),
+            ),
+            heightBox(2),
+            Text(
+              '${file.category} • ${file.timeLabel}',
+              maxLines: 1,
+              overflow: .ellipsis,
+              style: context.labelSmall.copyWith(color: context.textSecondary),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -351,9 +556,12 @@ class _CategoryTile extends StatelessWidget {
     );
   }
 
+  static const double _listTileHeight = 68;
+
   Widget _buildList(BuildContext context) {
     return Container(
-      padding: .symmetric(horizontal: 14, vertical: 16),
+      height: _listTileHeight,
+      padding: .symmetric(horizontal: 14),
       decoration: BoxDecoration(
         color: isAddNew ? context.transparent : context.surfaceElevated,
         borderRadius: .circular(12),
@@ -376,6 +584,7 @@ class _CategoryTile extends StatelessWidget {
           widthBox(14),
           Expanded(
             child: Column(
+              mainAxisAlignment: .center,
               crossAxisAlignment: .start,
               children: [
                 Text(
