@@ -1,4 +1,3 @@
 // Barrel export for lib/core/services — import this to get
-// SessionController and SplashServices.
+// SessionController.
 export 'session_manager.dart';
-export 'splash_services.dart';

@@ -35,6 +35,7 @@ class StorageKeys {
   static const String token = "token";
   static const String userId = 'userId';
   static const String userDetails = 'userDetails';
+  static const String hasSeenOnboarding = 'hasSeenOnboarding';
 }
 
 
@@ -45,5 +46,9 @@ extension LocalStorageGetters on LocalStorage {
 
   Future<String?> get userToken async {
     return await readValues(StorageKeys.token);
+  }
+
+  Future<bool> get hasSeenOnboarding async {
+    return (await readValues(StorageKeys.hasSeenOnboarding)) == 'true';
   }
 }

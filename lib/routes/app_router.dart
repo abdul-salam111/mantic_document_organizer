@@ -8,6 +8,8 @@ import '../core/widgets/widgets_exports.dart';
 import '../features/auth/auth_exports.dart';
 import '../features/add_document/add_document_exports.dart';
 import '../features/navbar/navbar_exports.dart';
+import '../features/onboarding/onboarding_exports.dart';
+import '../features/splash/splash_exports.dart';
 // GENERATED_IMPORTS_START
 
 // GENERATED_IMPORTS_END
@@ -71,6 +73,16 @@ class AppRoutes {
         path: RoutePaths.addDocument,
         name: RouteNames.addDocument,
         builder: (context, state) => const AddDocumentView(),
+      ),
+      GoRoute(
+        path: RoutePaths.onboarding,
+        name: RouteNames.onboarding,
+        builder: (context, state) => const OnboardingView(),
+      ),
+      GoRoute(
+        path: RoutePaths.splash,
+        name: RouteNames.splash,
+        builder: (context, state) => const SplashView(),
       ),
 
       // GENERATED_ROUTES_START

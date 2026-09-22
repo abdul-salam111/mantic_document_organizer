@@ -10,6 +10,8 @@ import '../../features/favorites/favorites_exports.dart';
 import '../../features/profile/profile_exports.dart';
 import '../../features/add_document/add_document_exports.dart';
 import '../../features/navbar/navbar_exports.dart';
+import '../../features/onboarding/onboarding_exports.dart';
+import '../../features/splash/splash_exports.dart';
 // GENERATED_IMPORTS_START
 
 // GENERATED_IMPORTS_END
@@ -26,6 +28,8 @@ Future<void> setupLocator() async {
   await profileDependencies();
   await addDocumentDependencies();
   await navbarDependencies();
+  await onboardingDependencies();
+  await splashDependencies();
   // GENERATED_SETUP_CALLS_START
 
   // GENERATED_SETUP_CALLS_END
@@ -151,6 +155,16 @@ Future<void> addDocumentDependencies() async {
 /// Navbar Feature Dependencies
 Future<void> navbarDependencies() async {
   sl.registerFactory<NavbarViewModel>(() => NavbarViewModel());
+}
+
+/// Onboarding Feature Dependencies
+Future<void> onboardingDependencies() async {
+  sl.registerFactory<OnboardingViewModel>(() => OnboardingViewModel());
+}
+
+/// Splash Feature Dependencies
+Future<void> splashDependencies() async {
+  sl.registerFactory<SplashViewModel>(() => SplashViewModel());
 }
 
 // GENERATED_DEPENDENCIES_END
