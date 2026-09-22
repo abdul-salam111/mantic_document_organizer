@@ -21,7 +21,7 @@ class HomeView extends StatelessWidget {
               return CustomScrollView(
                 slivers: [
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(10, 20, 10, 8),
+                    padding: const .fromLTRB(10, 20, 10, 8),
                     sliver: SliverToBoxAdapter(
                       child: Column(
                         crossAxisAlignment: .start,
@@ -76,10 +76,9 @@ class HomeView extends StatelessWidget {
                               InkWell(
                                 borderRadius: .circular(6),
                                 // Index 1 = Search, per NavbarView's _tabs order.
-                                onTap: () =>
-                                    context.read<NavbarViewModel>().selectTab(
-                                      1,
-                                    ),
+                                onTap: () => context
+                                    .read<NavbarViewModel>()
+                                    .selectTab(1),
                                 child: Text(
                                   'See all',
                                   style: context.labelLarge.copyWith(
@@ -132,9 +131,7 @@ class HomeView extends StatelessWidget {
                   ),
                   SliverPadding(
                     padding: const .fromLTRB(10, 6, 10, 0),
-                    sliver: SliverToBoxAdapter(
-                      child: _CategorySection(vm: vm),
-                    ),
+                    sliver: SliverToBoxAdapter(child: _CategorySection(vm: vm)),
                   ),
                   const SliverToBoxAdapter(child: SizedBox(height: 24)),
                 ],
@@ -211,11 +208,10 @@ class _StaggeredEntry extends StatelessWidget {
     return FadeTransition(
       opacity: itemAnimation,
       child: SlideTransition(
-        position:
-            Tween<Offset>(
-              begin: const Offset(0, 0.08),
-              end: Offset.zero,
-            ).animate(itemAnimation),
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.08),
+          end: Offset.zero,
+        ).animate(itemAnimation),
         child: child,
       ),
     );
@@ -231,14 +227,6 @@ class _CategorySection extends StatefulWidget {
   State<_CategorySection> createState() => _CategorySectionState();
 }
 
-/// Grid and list are structurally different layouts (3-column tiles vs.
-/// full-width rows), so cross-fading them in place like a plain
-/// [AnimatedSwitcher] briefly overlaps two mismatched layouts and reads as
-/// a jarring jumble rather than a smooth transition. Instead this fades the
-/// current layout fully out first, swaps the child only once invisible,
-/// then fades the new layout in — while [AnimatedSize] eases the container
-/// height between the two throughout, so the rest of the scroll view
-/// settles smoothly too instead of jumping.
 class _CategorySectionState extends State<_CategorySection>
     with TickerProviderStateMixin {
   late final AnimationController _fadeController;
@@ -341,13 +329,6 @@ class _CategoryList extends StatelessWidget {
   }
 }
 
-/// Each category's icon color is picked to match what it represents,
-/// grouped by theme rather than assigned arbitrarily: government ID
-/// documents share blue, money-related documents share green, Medical
-/// gets red (the one place "danger" red actually reads correctly — a
-/// medical cross), legal/protection documents share purple, and
-/// energy/billing shares amber. Anything left over falls back to a
-/// neutral info blue.
 Color _categoryIconColor(BuildContext context, String categoryName) {
   switch (categoryName) {
     case 'Driving License':
@@ -526,11 +507,7 @@ class _CategoryTile extends StatelessWidget {
           child: Column(
             mainAxisAlignment: .center,
             children: [
-              FaIcon(
-                icon,
-                size: 22,
-                color: _iconColor(context),
-              ),
+              FaIcon(icon, size: 22, color: _iconColor(context)),
               heightBox(6),
               Text(
                 name,
@@ -561,9 +538,7 @@ class _CategoryTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: isAddNew ? context.transparent : context.surfaceElevated,
         borderRadius: .circular(12),
-        border: isAddNew
-            ? Border.all(color: context.border, width: 1.5)
-            : null,
+        border: isAddNew ? Border.all(color: context.border, width: 1.5) : null,
         boxShadow: isAddNew
             ? null
             : [
@@ -602,11 +577,7 @@ class _CategoryTile extends StatelessWidget {
             ),
           ),
           widthBox(8),
-          Icon(
-            Iconsax.arrow_right_3,
-            size: 16,
-            color: context.textSecondary,
-          ),
+          Icon(Iconsax.arrow_right_3, size: 16, color: context.textSecondary),
         ],
       ),
     );
