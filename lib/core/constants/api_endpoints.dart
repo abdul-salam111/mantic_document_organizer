@@ -7,4 +7,7 @@ class ApiEndPoints {
   static const baseUrl = "https://api.example.com/v1/";
   static const String loginByUid = "${baseUrl}auth/login";
   static const String signupUser = "${baseUrl}auth/signup";
+  static const String search = "${baseUrl}search";
+  static const String favorites = "${baseUrl}favorites";
+  static const String addDocument = "${baseUrl}documents";
 }

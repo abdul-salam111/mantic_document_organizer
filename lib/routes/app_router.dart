@@ -6,6 +6,8 @@ import 'route_paths.dart';
 import '../core/theme/theme_exports.dart';
 import '../core/widgets/widgets_exports.dart';
 import '../features/auth/auth_exports.dart';
+import '../features/add_document/add_document_exports.dart';
+import '../features/navbar/navbar_exports.dart';
 // GENERATED_IMPORTS_START
 
 // GENERATED_IMPORTS_END
@@ -59,6 +61,16 @@ class AppRoutes {
         path: RoutePaths.signup,
         name: RouteNames.signup,
         builder: (context, state) => const SignupPage(),
+      ),
+      GoRoute(
+        path: RoutePaths.home,
+        name: RouteNames.home,
+        builder: (context, state) => const NavbarView(),
+      ),
+      GoRoute(
+        path: RoutePaths.addDocument,
+        name: RouteNames.addDocument,
+        builder: (context, state) => const AddDocumentView(),
       ),
 
       // GENERATED_ROUTES_START

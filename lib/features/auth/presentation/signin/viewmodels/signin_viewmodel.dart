@@ -23,7 +23,7 @@ class SigninViewModel extends ChangeNotifier with UseCaseExecutor {
         _user = user;
         await SessionController.instance.saveUserInStorage(user);
         await SessionController.instance.loadUserFromStorage();
-        AppNavigator.goNamed(RouteNames.signin);
+        AppNavigator.goNamed(RouteNames.home);
       },
     );
   }
