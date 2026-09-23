@@ -11,6 +11,7 @@ import '../../../core/widgets/widgets_exports.dart';
 // barrel re-exports NavbarView, which imports every tab feature
 // (including this one), so importing it here would create an import cycle.
 import '../../navbar/viewmodel/navbar_viewmodel.dart';
+import '../../../routes/routes_exports.dart';
 import '../viewmodel/settings_viewmodel.dart';
 
 class SettingsView extends StatelessWidget {
@@ -152,11 +153,7 @@ class SettingsView extends StatelessWidget {
                 _SettingsRow(
                   icon: Iconsax.add_square,
                   label: AppLocalizations.of(context).addCategory,
-                  onTap: () => AppToastsUtils.info(
-                    AppLocalizations.of(
-                      context,
-                    ).comingSoonToast(AppLocalizations.of(context).addCategory),
-                  ),
+                  onTap: () => AppNavigator.pushNamed(RouteNames.addCategory),
                 ),
                 _SettingsRow(
                   icon: Iconsax.category,

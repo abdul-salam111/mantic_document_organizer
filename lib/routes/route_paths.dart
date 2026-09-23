@@ -11,6 +11,7 @@ class RoutePaths {
   static const String onboarding = "/onboarding";
   static const String settings = "/settings";
   static const String profile = "/profile";
+  static const String addCategory = "/add-category";
 
   // GENERATED_ROUTE_PATHS_START
 

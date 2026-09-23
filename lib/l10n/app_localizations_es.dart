@@ -149,6 +149,41 @@ class AppLocalizationsEs extends AppLocalizations {
   String get manageCategories => 'Administrar categorías';
 
   @override
+  String get categoryNameLabel => 'Nombre de la categoría';
+
+  @override
+  String get categoryNameHint => 'p. ej. Extractos bancarios';
+
+  @override
+  String get categoryNameRequired => 'El nombre de la categoría es obligatorio';
+
+  @override
+  String get categoryNameTaken => 'Esta categoría ya existe';
+
+  @override
+  String get chooseIcon => 'Elige un ícono';
+
+  @override
+  String get searchIcons => 'Buscar íconos';
+
+  @override
+  String get noIconsFound => 'No se encontraron íconos';
+
+  @override
+  String get chooseColor => 'Elige un color';
+
+  @override
+  String get create => 'Crear';
+
+  @override
+  String get done => 'Listo';
+
+  @override
+  String categoryCreatedToast(String name) {
+    return 'Categoría \"$name\" creada';
+  }
+
+  @override
   String get security => 'Seguridad';
 
   @override

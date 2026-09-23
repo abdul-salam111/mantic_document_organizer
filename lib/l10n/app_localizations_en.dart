@@ -148,6 +148,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manageCategories => 'Manage Categories';
 
   @override
+  String get categoryNameLabel => 'Category Name';
+
+  @override
+  String get categoryNameHint => 'e.g. Bank Statements';
+
+  @override
+  String get categoryNameRequired => 'Category name is required';
+
+  @override
+  String get categoryNameTaken => 'This category already exists';
+
+  @override
+  String get chooseIcon => 'Choose an Icon';
+
+  @override
+  String get searchIcons => 'Search icons';
+
+  @override
+  String get noIconsFound => 'No icons found';
+
+  @override
+  String get chooseColor => 'Choose a Color';
+
+  @override
+  String get create => 'Create';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String categoryCreatedToast(String name) {
+    return '\"$name\" category created';
+  }
+
+  @override
   String get security => 'Security';
 
   @override

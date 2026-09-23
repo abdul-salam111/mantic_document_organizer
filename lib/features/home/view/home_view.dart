@@ -167,6 +167,7 @@ Widget _categoryTileAt(
       icon: category.icon,
       isGridView: isGridView,
       colorKey: category.name,
+      color: category.color,
     );
   } else if (index == vm.categories.length) {
     tile = _CategoryTile(
@@ -470,6 +471,7 @@ class _CategoryTile extends StatelessWidget {
   final bool isAddNew;
   final bool isGridView;
   final String? colorKey;
+  final Color? color;
 
   const _CategoryTile({
     required this.name,
@@ -478,10 +480,12 @@ class _CategoryTile extends StatelessWidget {
     this.isAddNew = false,
     this.isGridView = true,
     this.colorKey,
+    this.color,
   });
 
   Color _iconColor(BuildContext context) {
     if (isAddNew) return context.primaryAccent;
+    if (color != null) return color!;
     if (colorKey == null) return context.textSecondary;
     return _categoryIconColor(context, colorKey!);
   }
@@ -492,9 +496,13 @@ class _CategoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: .circular(10),
-      onTap: () => AppToastsUtils.info(
-        AppLocalizations.of(context).comingSoonToast(name),
-      ),
+      onTap: () {
+        if (isAddNew) {
+          AppNavigator.pushNamed(RouteNames.addCategory);
+          return;
+        }
+        AppToastsUtils.info(AppLocalizations.of(context).comingSoonToast(name));
+      },
       child: isGridView ? _buildGrid(context) : _buildList(context),
     );
   }

@@ -149,6 +149,41 @@ class AppLocalizationsFr extends AppLocalizations {
   String get manageCategories => 'Gérer les catégories';
 
   @override
+  String get categoryNameLabel => 'Nom de la catégorie';
+
+  @override
+  String get categoryNameHint => 'p. ex. Relevés bancaires';
+
+  @override
+  String get categoryNameRequired => 'Le nom de la catégorie est requis';
+
+  @override
+  String get categoryNameTaken => 'Cette catégorie existe déjà';
+
+  @override
+  String get chooseIcon => 'Choisir une icône';
+
+  @override
+  String get searchIcons => 'Rechercher des icônes';
+
+  @override
+  String get noIconsFound => 'Aucune icône trouvée';
+
+  @override
+  String get chooseColor => 'Choisir une couleur';
+
+  @override
+  String get create => 'Créer';
+
+  @override
+  String get done => 'Terminé';
+
+  @override
+  String categoryCreatedToast(String name) {
+    return 'Catégorie « $name » créée';
+  }
+
+  @override
   String get security => 'Sécurité';
 
   @override

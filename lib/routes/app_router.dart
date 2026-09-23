@@ -7,6 +7,7 @@ import '../core/localization/localization_exports.dart';
 import '../core/theme/theme_exports.dart';
 import '../core/widgets/widgets_exports.dart';
 import '../features/auth/auth_exports.dart';
+import '../features/add_category/add_category_exports.dart';
 import '../features/add_document/add_document_exports.dart';
 import '../features/navbar/navbar_exports.dart';
 import '../features/onboarding/onboarding_exports.dart';
@@ -97,6 +98,11 @@ class AppRoutes {
         path: RoutePaths.profile,
         name: RouteNames.profile,
         builder: (context, state) => const ProfileView(),
+      ),
+      GoRoute(
+        path: RoutePaths.addCategory,
+        name: RouteNames.addCategory,
+        builder: (context, state) => const AddCategoryView(),
       ),
 
       // GENERATED_ROUTES_START

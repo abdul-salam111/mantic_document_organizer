@@ -348,6 +348,72 @@ abstract class AppLocalizations {
   /// **'Manage Categories'**
   String get manageCategories;
 
+  /// New Category screen text field label
+  ///
+  /// In en, this message translates to:
+  /// **'Category Name'**
+  String get categoryNameLabel;
+
+  /// New Category screen text field placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Bank Statements'**
+  String get categoryNameHint;
+
+  /// New Category screen validation message
+  ///
+  /// In en, this message translates to:
+  /// **'Category name is required'**
+  String get categoryNameRequired;
+
+  /// New Category screen validation message when the name is a duplicate
+  ///
+  /// In en, this message translates to:
+  /// **'This category already exists'**
+  String get categoryNameTaken;
+
+  /// New Category screen section heading
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an Icon'**
+  String get chooseIcon;
+
+  /// Icon picker sheet search field placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Search icons'**
+  String get searchIcons;
+
+  /// Icon picker sheet empty search result
+  ///
+  /// In en, this message translates to:
+  /// **'No icons found'**
+  String get noIconsFound;
+
+  /// New Category screen section heading
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a Color'**
+  String get chooseColor;
+
+  /// New Category screen submit button
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get create;
+
+  /// Generic confirm button, e.g. closing the color picker dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// Success toast shown after creating a category
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" category created'**
+  String categoryCreatedToast(String name);
+
   /// Settings section heading
   ///
   /// In en, this message translates to:

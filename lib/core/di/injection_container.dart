@@ -6,6 +6,7 @@ import '../networks/networks_exports.dart';
 import '../security/security_exports.dart';
 import '../theme/theme_exports.dart';
 import '../../features/auth/auth_exports.dart';
+import '../../features/add_category/add_category_exports.dart';
 import '../../features/home/home_exports.dart';
 import '../../features/search/search_exports.dart';
 import '../../features/favorites/favorites_exports.dart';
@@ -35,6 +36,7 @@ Future<void> setupLocator() async {
   await onboardingDependencies();
   await splashDependencies();
   await settingsDependencies();
+  await addCategoryDependencies();
   // GENERATED_SETUP_CALLS_START
 
   // GENERATED_SETUP_CALLS_END
@@ -82,7 +84,8 @@ Future<void> authDependencies() async {
 
 /// Home Feature Dependencies
 Future<void> homeDependencies() async {
-  sl.registerFactory<HomeViewModel>(() => HomeViewModel());
+  sl.registerLazySingleton<CategoryLocalStore>(() => CategoryLocalStore());
+  sl.registerFactory<HomeViewModel>(() => HomeViewModel(categoryStore: sl()));
 }
 
 /// Search Feature Dependencies
@@ -177,6 +180,13 @@ Future<void> splashDependencies() async {
 /// Settings Feature Dependencies
 Future<void> settingsDependencies() async {
   sl.registerFactory<SettingsViewModel>(() => SettingsViewModel());
+}
+
+/// Add Category Feature Dependencies
+Future<void> addCategoryDependencies() async {
+  sl.registerFactory<AddCategoryViewModel>(
+    () => AddCategoryViewModel(categoryStore: sl()),
+  );
 }
 
 // GENERATED_DEPENDENCIES_END

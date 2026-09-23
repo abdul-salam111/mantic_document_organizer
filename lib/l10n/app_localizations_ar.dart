@@ -147,6 +147,41 @@ class AppLocalizationsAr extends AppLocalizations {
   String get manageCategories => 'إدارة الفئات';
 
   @override
+  String get categoryNameLabel => 'اسم الفئة';
+
+  @override
+  String get categoryNameHint => 'مثال: كشوف الحساب البنكي';
+
+  @override
+  String get categoryNameRequired => 'اسم الفئة مطلوب';
+
+  @override
+  String get categoryNameTaken => 'هذه الفئة موجودة بالفعل';
+
+  @override
+  String get chooseIcon => 'اختر أيقونة';
+
+  @override
+  String get searchIcons => 'ابحث عن الأيقونات';
+
+  @override
+  String get noIconsFound => 'لم يتم العثور على أيقونات';
+
+  @override
+  String get chooseColor => 'اختر لونًا';
+
+  @override
+  String get create => 'إنشاء';
+
+  @override
+  String get done => 'تم';
+
+  @override
+  String categoryCreatedToast(String name) {
+    return 'تم إنشاء فئة \"$name\"';
+  }
+
+  @override
   String get security => 'الأمان';
 
   @override

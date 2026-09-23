@@ -7,6 +7,7 @@ class RouteNames {
   static const String splash = "splash";
   static const String settings = "settings";
   static const String profile = "profile";
+  static const String addCategory = "addCategory";
 
   // GENERATED_ROUTE_NAMES_START
 
