@@ -11,6 +11,7 @@ import '../../features/profile/profile_exports.dart';
 import '../../features/add_document/add_document_exports.dart';
 import '../../features/navbar/navbar_exports.dart';
 import '../../features/onboarding/onboarding_exports.dart';
+import '../../features/settings/settings_exports.dart';
 import '../../features/splash/splash_exports.dart';
 // GENERATED_IMPORTS_START
 
@@ -30,6 +31,7 @@ Future<void> setupLocator() async {
   await navbarDependencies();
   await onboardingDependencies();
   await splashDependencies();
+  await settingsDependencies();
   // GENERATED_SETUP_CALLS_START
 
   // GENERATED_SETUP_CALLS_END
@@ -165,6 +167,11 @@ Future<void> onboardingDependencies() async {
 /// Splash Feature Dependencies
 Future<void> splashDependencies() async {
   sl.registerFactory<SplashViewModel>(() => SplashViewModel());
+}
+
+/// Settings Feature Dependencies
+Future<void> settingsDependencies() async {
+  sl.registerFactory<SettingsViewModel>(() => SettingsViewModel());
 }
 
 // GENERATED_DEPENDENCIES_END

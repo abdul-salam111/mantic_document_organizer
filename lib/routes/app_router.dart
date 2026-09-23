@@ -9,6 +9,7 @@ import '../features/auth/auth_exports.dart';
 import '../features/add_document/add_document_exports.dart';
 import '../features/navbar/navbar_exports.dart';
 import '../features/onboarding/onboarding_exports.dart';
+import '../features/settings/settings_exports.dart';
 import '../features/splash/splash_exports.dart';
 // GENERATED_IMPORTS_START
 
@@ -84,6 +85,11 @@ class AppRoutes {
         name: RouteNames.splash,
         builder: (context, state) => const SplashView(),
       ),
+      GoRoute(
+        path: RoutePaths.settings,
+        name: RouteNames.settings,
+        builder: (context, state) => const SettingsView(),
+      ),
 
       // GENERATED_ROUTES_START
       // GENERATED_ROUTES_END
@@ -123,7 +129,7 @@ class _RouteErrorPage extends StatelessWidget {
                 const SizedBox(height: 24),
                 CustomButton(
                   text: 'Go back',
-                  onPressed: () => context.goNamed(RouteNames.signin),
+                  onPressed: () => context.goNamed(RouteNames.home),
                 ),
               ],
             ),

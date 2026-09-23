@@ -5,6 +5,7 @@ class RouteNames {
   static const String addDocument = "addDocument";
   static const String onboarding = "onboarding";
   static const String splash = "splash";
+  static const String settings = "settings";
 
   // GENERATED_ROUTE_NAMES_START
 

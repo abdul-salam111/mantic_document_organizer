@@ -58,9 +58,9 @@ class MainBottomNavbar extends StatelessWidget {
                   ),
                   Expanded(
                     child: _NavItem(
-                      icon: Iconsax.search_normal,
-                      activeIcon: Iconsax.search_normal,
-                      label: 'Search',
+                      icon: Iconsax.document,
+                      activeIcon: Iconsax.document5,
+                      label: 'All Docs',
                       isActive: selectedIndex == 1,
                       onTap: () => onTabSelected(1),
                     ),
@@ -77,9 +77,9 @@ class MainBottomNavbar extends StatelessWidget {
                   ),
                   Expanded(
                     child: _NavItem(
-                      icon: Iconsax.setting_2,
-                      activeIcon: Iconsax.setting_25,
-                      label: 'Settings',
+                      icon: Iconsax.profile_circle,
+                      activeIcon: Iconsax.profile_circle5,
+                      label: 'Profile',
                       isActive: selectedIndex == 3,
                       onTap: () => onTabSelected(3),
                     ),
@@ -88,7 +88,7 @@ class MainBottomNavbar extends StatelessWidget {
               ),
             ),
             Positioned(
-             bottom:30,
+              bottom: 30,
               child: _AddButton(size: _buttonSize, onPressed: onAddPressed),
             ),
           ],
@@ -168,7 +168,11 @@ class _AddButton extends StatelessWidget {
               gradient: LinearGradient(
                 begin: .topLeft,
                 end: .bottomRight,
-                colors: [context.primaryLight, context.primary, context.primaryDark],
+                colors: [
+                  context.primaryLight,
+                  context.primary,
+                  context.primaryDark,
+                ],
               ),
               boxShadow: [
                 BoxShadow(

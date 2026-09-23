@@ -4,6 +4,11 @@ import '../../../core/di/di_exports.dart';
 import '../../../core/theme/theme_exports.dart';
 import '../../../core/utils/utils_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
+// Imports the viewmodel directly rather than navbar_exports.dart — the
+// barrel re-exports NavbarView, which imports every tab feature
+// (including this one), so importing it here would create an import cycle.
+import '../../navbar/viewmodel/navbar_viewmodel.dart';
+import '../../../routes/routes_exports.dart';
 import '../viewmodel/profile_viewmodel.dart';
 
 class ProfileView extends StatelessWidget {
@@ -14,42 +19,168 @@ class ProfileView extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => sl<ProfileViewModel>(),
       child: Scaffold(
-        appBar: const CustomAppBar(title: 'Settings'),
-        body: Padding(
-          padding: .all(24),
-          child: Column(
-            crossAxisAlignment: .start,
-            children: [
-              Text('Appearance', style: context.titleMedium),
-              heightBox(12),
-              Consumer<ThemeController>(
-                builder: (context, themeController, _) {
-                  return SegmentedButton<ThemeMode>(
-                    segments: const [
-                      ButtonSegment(
-                        value: ThemeMode.system,
-                        label: Text('Auto'),
-                        icon: Icon(Iconsax.autobrightness),
-                      ),
-                      ButtonSegment(
-                        value: ThemeMode.light,
-                        label: Text('Light'),
-                        icon: Icon(Iconsax.sun_1),
-                      ),
-                      ButtonSegment(
-                        value: ThemeMode.dark,
-                        label: Text('Dark'),
-                        icon: Icon(Iconsax.moon),
-                      ),
-                    ],
-                    selected: {themeController.themeMode},
-                    onSelectionChanged: (selection) =>
-                        themeController.setTheme(selection.first),
-                  );
-                },
-              ),
-            ],
+        appBar: CustomAppBar(
+          title: 'Profile',
+          onBackPressed: () => context.read<NavbarViewModel>().selectTab(0),
+        ),
+        body: SafeArea(
+          child: Consumer<ProfileViewModel>(
+            builder: (context, vm, _) {
+              return ListView(
+                padding: const .all(16),
+                children: [
+                  _ProfileHeaderCard(vm: vm),
+                  heightBox(24),
+                  _ProfileMenuTile(
+                    icon: Iconsax.setting_2,
+                    label: 'Settings',
+                    onTap: () => AppNavigator.pushNamed(RouteNames.settings),
+                  ),
+                  heightBox(10),
+                  _ProfileMenuTile(
+                    icon: Iconsax.trash,
+                    label: 'Trash',
+                    onTap: () => AppToastsUtils.info('Trash — coming soon'),
+                  ),
+                  if (vm.isSignedIn) ...[
+                    heightBox(10),
+                    _ProfileMenuTile(
+                      icon: Iconsax.logout,
+                      label: 'Sign Out',
+                      isDestructive: true,
+                      onTap: vm.signOut,
+                    ),
+                  ],
+                ],
+              );
+            },
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileHeaderCard extends StatelessWidget {
+  final ProfileViewModel vm;
+
+  const _ProfileHeaderCard({required this.vm});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const .all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: .topLeft,
+          end: .bottomRight,
+          colors: [
+            context.primaryDark,
+            context.primary,
+            context.primaryLight,
+          ],
+        ),
+        borderRadius: .circular(18),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            alignment: .center,
+            decoration: BoxDecoration(
+              shape: .circle,
+              color: context.white.withValues(alpha: 0.15),
+            ),
+            child: Icon(Iconsax.user, size: 30, color: context.white),
+          ),
+          heightBox(12),
+          Text(
+            vm.isSignedIn ? (vm.userName ?? 'Account') : 'Guest',
+            style: context.titleMedium.copyWith(
+              color: context.white,
+              fontWeight: .bold,
+            ),
+          ),
+          heightBox(4),
+          Text(
+            vm.isSignedIn
+                ? (vm.userEmail ?? '')
+                : 'Local-only — your documents stay on this device',
+            textAlign: .center,
+            style: context.labelSmall.copyWith(
+              color: context.white.withValues(alpha: 0.85),
+            ),
+          ),
+          if (!vm.isSignedIn) ...[
+            heightBox(16),
+            CustomButton(
+              text: 'Set up backup',
+              backgroundColor: context.white,
+              textColor: context.primary,
+              radius: 12,
+              onPressed: () => AppNavigator.pushNamed(RouteNames.signin),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileMenuTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool isDestructive;
+
+  const _ProfileMenuTile({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.isDestructive = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isDestructive ? context.errorAccent : context.textPrimary;
+    return InkWell(
+      borderRadius: .circular(12),
+      onTap: onTap,
+      child: Container(
+        padding: const .symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: context.surfaceElevated,
+          borderRadius: .circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: context.shadow,
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: color),
+            widthBox(14),
+            Expanded(
+              child: Text(
+                label,
+                style: context.bodyMedium.copyWith(
+                  fontWeight: .w600,
+                  color: color,
+                ),
+              ),
+            ),
+            if (!isDestructive)
+              Icon(
+                Iconsax.arrow_right_3,
+                size: 16,
+                color: context.textSecondary,
+              ),
+          ],
         ),
       ),
     );

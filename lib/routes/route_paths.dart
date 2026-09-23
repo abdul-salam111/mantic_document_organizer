@@ -9,6 +9,7 @@ class RoutePaths {
   static const String home = "/home";
   static const String addDocument = "/add-document";
   static const String onboarding = "/onboarding";
+  static const String settings = "/settings";
 
   // GENERATED_ROUTE_PATHS_START
 

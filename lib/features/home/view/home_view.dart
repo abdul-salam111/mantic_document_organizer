@@ -55,9 +55,11 @@ class HomeView extends StatelessWidget {
                                   color: context.textPrimary,
                                   size: 20,
                                 ),
-                                onPressed: () => AppToastsUtils.info(
-                                  'Profile — coming soon',
-                                ),
+                                // Index 3 = Profile, per NavbarView's
+                                // _tabs order.
+                                onPressed: () => context
+                                    .read<NavbarViewModel>()
+                                    .selectTab(3),
                               ),
                             ],
                           ),

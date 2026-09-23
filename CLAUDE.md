@@ -65,15 +65,14 @@ and hasn't been reconciled with it yet:
   GetIt), per the template's own convention documented below.
   Unresolved — follow Provider for consistency with existing code until
   this is explicitly decided otherwise.
-- **Navbar tabs**: currently **Home, Search, Favorites, Profile** (see
-  `lib/features/navbar/`) — the spec calls for **Home, All Docs,
-  Favorites, Profile**, with Search moved into Home's own search bar
-  instead of being a tab.
-- **Auth gating**: the `auth` feature (signin/signup) currently sits in
-  front of everything — `RoutePaths.initialRoute` was pointed at `home`
-  as a dev convenience (see git history), but the *intended* production
-  flow per the spec is Splash → Home directly, with sign-in only ever
-  reached opt-in via Profile's "Set up backup" flow, never as a gate.
+- **Navbar tabs**: now **Home, All Docs, Favorites, Profile** (see
+  `lib/features/navbar/`), matching the spec's tab naming — but the
+  `search` feature folder/classes (`SearchView`/`SearchViewModel`, under
+  `lib/features/search/`) are unrenamed, and that tab still has its own
+  embedded search field rather than Search being fully absorbed into
+  Home's own search bar as the spec describes. `SearchView` now also
+  shows category tabs (`SearchViewModel.categoryTabs`) for browsing
+  by category within "All Docs".
 - **Local database**: no sqflite integration exists yet —
   `Document`/`Category`/`Page`/`Tag`/`Todo` aren't modeled locally at
   all. Everything built so far (search/favorites/add_document) talks to
