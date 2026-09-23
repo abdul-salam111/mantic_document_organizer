@@ -35,9 +35,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navFavorites => 'المفضلة';
 
   @override
-  String get navProfile => 'الملف الشخصي';
-
-  @override
   String get homeSearchHint => 'ابحث عن المستندات';
 
   @override
@@ -142,6 +139,53 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get language => 'اللغة';
+
+  @override
+  String get addCategory => 'إضافة فئة';
+
+  @override
+  String get manageCategories => 'إدارة الفئات';
+
+  @override
+  String get security => 'الأمان';
+
+  @override
+  String get biometricUnlock => 'فتح القفل بالبصمة';
+
+  @override
+  String get biometricUnlockSubtitle => 'يتطلب بصمتك أو وجهك لفتح التطبيق';
+
+  @override
+  String get biometricUnavailable =>
+      'المصادقة البيومترية غير مُعدّة على هذا الجهاز';
+
+  @override
+  String get biometricAuthFailed => 'فشلت المصادقة';
+
+  @override
+  String get biometricPromptReason => 'صادِق للمتابعة';
+
+  @override
+  String get support => 'الدعم';
+
+  @override
+  String get rateApp => 'قيّم التطبيق';
+
+  @override
+  String get shareApp => 'مشاركة التطبيق';
+
+  @override
+  String get shareAppMessage =>
+      'تعرّف على Mantic Document Organizer — امسح مستنداتك ضوئيًا، نظّمها، واعثر على أي مستند مهم خلال ثوانٍ.';
+
+  @override
+  String get appLocked => 'التطبيق مُقفل';
+
+  @override
+  String get unlockToContinue => 'صادِق للمتابعة';
+
+  @override
+  String get unlock => 'فتح القفل';
 
   @override
   String get addDocumentTitle => 'إضافة مستند';

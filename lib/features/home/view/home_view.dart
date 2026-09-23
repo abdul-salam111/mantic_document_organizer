@@ -5,6 +5,7 @@ import '../../../core/localization/localization_exports.dart';
 import '../../../core/theme/theme_exports.dart';
 import '../../../core/utils/utils_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
+import '../../../routes/routes_exports.dart';
 import '../../navbar/viewmodel/navbar_viewmodel.dart';
 import '../viewmodel/home_viewmodel.dart';
 
@@ -58,11 +59,8 @@ class HomeView extends StatelessWidget {
                                   color: context.textPrimary,
                                   size: 20,
                                 ),
-                                // Index 3 = Profile, per NavbarView's
-                                // _tabs order.
-                                onPressed: () => context
-                                    .read<NavbarViewModel>()
-                                    .selectTab(3),
+                                onPressed: () =>
+                                    AppNavigator.pushNamed(RouteNames.profile),
                               ),
                             ],
                           ),

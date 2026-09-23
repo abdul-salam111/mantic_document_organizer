@@ -150,12 +150,6 @@ abstract class AppLocalizations {
   /// **'Favorites'**
   String get navFavorites;
 
-  /// Bottom nav tab label
-  ///
-  /// In en, this message translates to:
-  /// **'Profile'**
-  String get navProfile;
-
   /// Home screen search field placeholder
   ///
   /// In en, this message translates to:
@@ -341,6 +335,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Language'**
   String get language;
+
+  /// Settings menu entry
+  ///
+  /// In en, this message translates to:
+  /// **'Add Category'**
+  String get addCategory;
+
+  /// Settings menu entry
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Categories'**
+  String get manageCategories;
+
+  /// Settings section heading
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get security;
+
+  /// Settings toggle label for biometric app lock
+  ///
+  /// In en, this message translates to:
+  /// **'Fingerprint Unlock'**
+  String get biometricUnlock;
+
+  /// Settings toggle subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Require your fingerprint or face to open the app'**
+  String get biometricUnlockSubtitle;
+
+  /// Toast shown when the device has no usable biometrics
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric authentication isn\'t set up on this device'**
+  String get biometricUnavailable;
+
+  /// Toast shown when a biometric prompt fails or is cancelled
+  ///
+  /// In en, this message translates to:
+  /// **'Authentication failed'**
+  String get biometricAuthFailed;
+
+  /// Reason string shown inside the OS biometric prompt
+  ///
+  /// In en, this message translates to:
+  /// **'Authenticate to continue'**
+  String get biometricPromptReason;
+
+  /// Settings section heading
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get support;
+
+  /// Settings menu entry
+  ///
+  /// In en, this message translates to:
+  /// **'Rate App'**
+  String get rateApp;
+
+  /// Settings menu entry
+  ///
+  /// In en, this message translates to:
+  /// **'Share App'**
+  String get shareApp;
+
+  /// Text passed to the OS share sheet from Share App
+  ///
+  /// In en, this message translates to:
+  /// **'Check out Mantic Document Organizer — scan, organize, and find every important document in seconds.'**
+  String get shareAppMessage;
+
+  /// Lock screen title
+  ///
+  /// In en, this message translates to:
+  /// **'App Locked'**
+  String get appLocked;
+
+  /// Lock screen subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Authenticate to continue'**
+  String get unlockToContinue;
+
+  /// Lock screen button label
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get unlock;
 
   /// Add Document screen title
   ///

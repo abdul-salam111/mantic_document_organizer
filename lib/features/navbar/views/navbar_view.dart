@@ -6,8 +6,8 @@ import '../../../core/widgets/widgets_exports.dart';
 import '../../../routes/routes_exports.dart';
 import '../../favorites/favorites_exports.dart';
 import '../../home/home_exports.dart';
-import '../../profile/profile_exports.dart';
 import '../../search/search_exports.dart';
+import '../../settings/settings_exports.dart';
 import '../viewmodel/navbar_viewmodel.dart';
 import 'widgets/main_bottom_navbar.dart';
 
@@ -18,7 +18,7 @@ class NavbarView extends StatelessWidget {
     HomeView(),
     SearchView(),
     FavoritesView(),
-    ProfileView(),
+    SettingsView(),
   ];
 
   @override

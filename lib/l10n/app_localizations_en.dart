@@ -35,9 +35,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navFavorites => 'Favorites';
 
   @override
-  String get navProfile => 'Profile';
-
-  @override
   String get homeSearchHint => 'Search documents';
 
   @override
@@ -143,6 +140,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get language => 'Language';
+
+  @override
+  String get addCategory => 'Add Category';
+
+  @override
+  String get manageCategories => 'Manage Categories';
+
+  @override
+  String get security => 'Security';
+
+  @override
+  String get biometricUnlock => 'Fingerprint Unlock';
+
+  @override
+  String get biometricUnlockSubtitle =>
+      'Require your fingerprint or face to open the app';
+
+  @override
+  String get biometricUnavailable =>
+      'Biometric authentication isn\'t set up on this device';
+
+  @override
+  String get biometricAuthFailed => 'Authentication failed';
+
+  @override
+  String get biometricPromptReason => 'Authenticate to continue';
+
+  @override
+  String get support => 'Support';
+
+  @override
+  String get rateApp => 'Rate App';
+
+  @override
+  String get shareApp => 'Share App';
+
+  @override
+  String get shareAppMessage =>
+      'Check out Mantic Document Organizer — scan, organize, and find every important document in seconds.';
+
+  @override
+  String get appLocked => 'App Locked';
+
+  @override
+  String get unlockToContinue => 'Authenticate to continue';
+
+  @override
+  String get unlock => 'Unlock';
 
   @override
   String get addDocumentTitle => 'Add Document';

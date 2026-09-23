@@ -5,10 +5,6 @@ import '../../../core/localization/localization_exports.dart';
 import '../../../core/theme/theme_exports.dart';
 import '../../../core/utils/utils_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
-// Imports the viewmodel directly rather than navbar_exports.dart — the
-// barrel re-exports NavbarView, which imports every tab feature
-// (including this one), so importing it here would create an import cycle.
-import '../../navbar/viewmodel/navbar_viewmodel.dart';
 import '../../../routes/routes_exports.dart';
 import '../viewmodel/profile_viewmodel.dart';
 
@@ -20,10 +16,7 @@ class ProfileView extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => sl<ProfileViewModel>(),
       child: Scaffold(
-        appBar: CustomAppBar(
-          title: AppLocalizations.of(context).profileTitle,
-          onBackPressed: () => context.read<NavbarViewModel>().selectTab(0),
-        ),
+        appBar: CustomAppBar(title: AppLocalizations.of(context).profileTitle),
         body: SafeArea(
           child: Consumer<ProfileViewModel>(
             builder: (context, vm, _) {

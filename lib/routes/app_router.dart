@@ -10,8 +10,10 @@ import '../features/auth/auth_exports.dart';
 import '../features/add_document/add_document_exports.dart';
 import '../features/navbar/navbar_exports.dart';
 import '../features/onboarding/onboarding_exports.dart';
+import '../features/profile/profile_exports.dart';
 import '../features/settings/settings_exports.dart';
 import '../features/splash/splash_exports.dart';
+
 // GENERATED_IMPORTS_START
 
 // GENERATED_IMPORTS_END
@@ -90,6 +92,11 @@ class AppRoutes {
         path: RoutePaths.settings,
         name: RouteNames.settings,
         builder: (context, state) => const SettingsView(),
+      ),
+      GoRoute(
+        path: RoutePaths.profile,
+        name: RouteNames.profile,
+        builder: (context, state) => const ProfileView(),
       ),
 
       // GENERATED_ROUTES_START

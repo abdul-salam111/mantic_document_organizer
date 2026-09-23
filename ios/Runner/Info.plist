@@ -57,6 +57,10 @@
 <key>NSPhotoLibraryAddUsageDescription</key>
 <string>This app needs permission to save photos.</string>
 
+<!-- Face ID Access -->
+<key>NSFaceIDUsageDescription</key>
+<string>This app uses Face ID to unlock the app when biometric lock is enabled.</string>
+
 <!-- iOS blocks plain http:// (non-HTTPS) traffic by default. This scopes
      an exception to local-dev-only hosts so the app can reach a backend
      running on your own machine before you've set up HTTPS for it.

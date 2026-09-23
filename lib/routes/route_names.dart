@@ -6,6 +6,7 @@ class RouteNames {
   static const String onboarding = "onboarding";
   static const String splash = "splash";
   static const String settings = "settings";
+  static const String profile = "profile";
 
   // GENERATED_ROUTE_NAMES_START
 

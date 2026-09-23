@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/di/di_exports.dart';
 import 'core/localization/localization_exports.dart';
+import 'core/security/security_exports.dart';
 import 'routes/routes_exports.dart';
 import 'core/theme/theme_exports.dart';
 
@@ -29,6 +30,7 @@ void main() {
       await setupLocator();
       await sl<ThemeController>().loadTheme();
       await sl<LocaleController>().loadLocale();
+      await sl<SecurityController>().loadSecurity();
       runApp(const MyApp());
     },
     // Errors from uncaught async code (e.g. a Future that's never
@@ -55,6 +57,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<LocaleController>.value(
           value: sl<LocaleController>(),
         ),
+        ChangeNotifierProvider<SecurityController>.value(
+          value: sl<SecurityController>(),
+        ),
       ],
       child: Consumer2<ThemeController, LocaleController>(
         builder: (context, themeController, localeController, _) {
@@ -68,6 +73,8 @@ class MyApp extends StatelessWidget {
             supportedLocales: AppLocalizations.supportedLocales,
             routerConfig: AppRoutes.router,
             debugShowCheckedModeBanner: false,
+            builder: (context, child) =>
+                AppLockGate(child: child ?? const SizedBox.shrink()),
           );
         },
       ),

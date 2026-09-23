@@ -36,9 +36,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navFavorites => 'Favoris';
 
   @override
-  String get navProfile => 'Profil';
-
-  @override
   String get homeSearchHint => 'Rechercher des documents';
 
   @override
@@ -144,6 +141,54 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get language => 'Langue';
+
+  @override
+  String get addCategory => 'Ajouter une catégorie';
+
+  @override
+  String get manageCategories => 'Gérer les catégories';
+
+  @override
+  String get security => 'Sécurité';
+
+  @override
+  String get biometricUnlock => 'Déverrouillage par empreinte';
+
+  @override
+  String get biometricUnlockSubtitle =>
+      'Exiger votre empreinte ou votre visage pour ouvrir l\'application';
+
+  @override
+  String get biometricUnavailable =>
+      'L\'authentification biométrique n\'est pas configurée sur cet appareil';
+
+  @override
+  String get biometricAuthFailed => 'Échec de l\'authentification';
+
+  @override
+  String get biometricPromptReason => 'Authentifiez-vous pour continuer';
+
+  @override
+  String get support => 'Assistance';
+
+  @override
+  String get rateApp => 'Évaluer l\'application';
+
+  @override
+  String get shareApp => 'Partager l\'application';
+
+  @override
+  String get shareAppMessage =>
+      'Découvrez Mantic Document Organizer : numérisez, organisez et retrouvez chaque document important en quelques secondes.';
+
+  @override
+  String get appLocked => 'Application verrouillée';
+
+  @override
+  String get unlockToContinue => 'Authentifiez-vous pour continuer';
+
+  @override
+  String get unlock => 'Déverrouiller';
 
   @override
   String get addDocumentTitle => 'Ajouter un document';

@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 
 import '../localization/localization_exports.dart';
 import '../networks/networks_exports.dart';
+import '../security/security_exports.dart';
 import '../theme/theme_exports.dart';
 import '../../features/auth/auth_exports.dart';
 import '../../features/home/home_exports.dart';
@@ -47,6 +48,7 @@ Future<void> coreDependencies() async {
   );
   sl.registerLazySingleton(() => ThemeController());
   sl.registerLazySingleton(() => LocaleController());
+  sl.registerLazySingleton(() => SecurityController());
 }
 
 /// Auth Feature Dependencies
