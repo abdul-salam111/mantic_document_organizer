@@ -1,12 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
+import '../../features/categories/add_category/viewmodel/add_category_viewmodel.dart';
 import '../localization/localization_exports.dart';
 import '../networks/networks_exports.dart';
 import '../security/security_exports.dart';
 import '../theme/theme_exports.dart';
 import '../../features/auth/auth_exports.dart';
-import '../../features/add_category/add_category_exports.dart';
+
 import '../../features/home/home_exports.dart';
 import '../../features/manage_categories/manage_categories_exports.dart';
 import '../../features/search/search_exports.dart';
@@ -87,7 +88,10 @@ Future<void> authDependencies() async {
 /// Home Feature Dependencies
 Future<void> homeDependencies() async {
   sl.registerLazySingleton<CategoryLocalStore>(() => CategoryLocalStore());
-  sl.registerFactory<HomeViewModel>(() => HomeViewModel(categoryStore: sl()));
+  sl.registerLazySingleton<DocumentLocalStore>(() => DocumentLocalStore());
+  sl.registerFactory<HomeViewModel>(
+    () => HomeViewModel(categoryStore: sl(), documentStore: sl()),
+  );
 }
 
 /// Search Feature Dependencies
@@ -142,6 +146,12 @@ Future<void> profileDependencies() async {
 }
 
 /// Add Document Feature Dependencies
+///
+/// The DataSource/Repository/UseCase below are the original brick-
+/// scaffolded REST plumbing (unused for now — see CLAUDE.md's "Known
+/// mismatches" section) and stay registered/untouched for whenever a
+/// real sqflite repository replaces them; AddDocumentViewModel itself
+/// writes straight into the shared local stores instead.
 Future<void> addDocumentDependencies() async {
   // DataSource
   sl.registerLazySingleton<IRemoteAddDocumentDataSource>(
@@ -160,7 +170,7 @@ Future<void> addDocumentDependencies() async {
 
   // ViewModel
   sl.registerFactory<AddDocumentViewModel>(
-    () => AddDocumentViewModel(addDocumentUsecase: sl()),
+    () => AddDocumentViewModel(categoryStore: sl(), documentStore: sl()),
   );
 }
 

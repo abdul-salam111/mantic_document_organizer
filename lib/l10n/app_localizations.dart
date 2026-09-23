@@ -153,7 +153,7 @@ abstract class AppLocalizations {
   /// Home screen search field placeholder
   ///
   /// In en, this message translates to:
-  /// **'Search documents'**
+  /// **'Search categories and documents'**
   String get homeSearchHint;
 
   /// Home screen section heading
@@ -588,11 +588,83 @@ abstract class AppLocalizations {
   /// **'Add Document'**
   String get addDocumentTitle;
 
-  /// Add Document empty state title
+  /// Add Document screen text field label
   ///
   /// In en, this message translates to:
-  /// **'Add a document'**
-  String get addADocument;
+  /// **'Title'**
+  String get documentTitleLabel;
+
+  /// Add Document screen text field placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Passport Scan'**
+  String get documentTitleHint;
+
+  /// Add Document screen validation message
+  ///
+  /// In en, this message translates to:
+  /// **'Title is required'**
+  String get documentTitleRequired;
+
+  /// Add Document screen category picker caption
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get categoryLabel;
+
+  /// Add Document screen category picker sheet heading
+  ///
+  /// In en, this message translates to:
+  /// **'Select Category'**
+  String get selectCategory;
+
+  /// Add Document screen text field label
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get tags;
+
+  /// Add Document screen text field placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Add a tag'**
+  String get tagsHint;
+
+  /// Add Document screen toggle row label
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as Favorite'**
+  String get markAsFavorite;
+
+  /// Add Document screen section heading
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments'**
+  String get attachments;
+
+  /// Add Document screen attachment source button label
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get camera;
+
+  /// Add Document screen attachment source button label
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get gallery;
+
+  /// Add Document screen attachment source button label
+  ///
+  /// In en, this message translates to:
+  /// **'Files'**
+  String get files;
+
+  /// Success toast shown after saving a document
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" added'**
+  String documentCreatedToast(String name);
 
   /// Generic placeholder subtitle for an unbuilt screen
   ///

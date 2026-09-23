@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
-import '../../../core/theme/theme_exports.dart';
-import '../../home/home_exports.dart';
+import '../../../../core/theme/theme_exports.dart';
+import '../../../home/home_exports.dart';
 
 /// No real category data layer exists yet (see CLAUDE.md's "Known
 /// mismatches" section), so [submit] writes straight into the shared

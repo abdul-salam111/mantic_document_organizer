@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/categories/add_category/view/add_category_view.dart';
 import 'route_names.dart';
 import 'route_paths.dart';
 import '../core/localization/localization_exports.dart';
 import '../core/theme/theme_exports.dart';
 import '../core/widgets/widgets_exports.dart';
 import '../features/auth/auth_exports.dart';
-import '../features/add_category/add_category_exports.dart';
+
 import '../features/add_document/add_document_exports.dart';
 import '../features/home/home_exports.dart';
 import '../features/manage_categories/manage_categories_exports.dart';

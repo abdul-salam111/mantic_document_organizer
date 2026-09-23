@@ -4,9 +4,7 @@ import '../models/request_models/add_document_params.dart';
 import '../models/response_models/add_document_response.dart';
 
 abstract interface class IRemoteAddDocumentDataSource {
-  Future<AddDocumentResponse> addDocument({
-    required AddDocumentParams params,
-  });
+  Future<AddDocumentResponse> addDocument({required AddDocumentParams params});
 }
 
 class RemoteAddDocumentDataSourceImpl extends BaseRemoteDatasource

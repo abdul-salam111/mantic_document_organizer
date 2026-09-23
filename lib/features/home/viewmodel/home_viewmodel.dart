@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../../../core/utils/utils_exports.dart';
+
 /// Presentational-only for now — no categories feature/local DB exists
 /// yet (see CLAUDE.md's "Known mismatches" section), so this is dummy
 /// data standing in for what will eventually be a real sqflite-backed
@@ -35,6 +37,46 @@ class RecentFileItem {
     required this.icon,
     required this.timeLabel,
   });
+}
+
+/// Presentation-only for now, same reasoning as [CategoryItem] — a
+/// document created via the add_document feature, standing in for a real
+/// sqflite-backed Document row (see CLAUDE.md's "Known mismatches").
+class DocumentItem {
+  final String title;
+  final String category;
+  final FaIconData icon;
+  final List<String> tags;
+  final bool isFavorite;
+  final List<String> filePaths;
+  final DateTime createdAt;
+
+  const DocumentItem({
+    required this.title,
+    required this.category,
+    required this.icon,
+    required this.createdAt,
+    this.tags = const [],
+    this.isFavorite = false,
+    this.filePaths = const [],
+  });
+}
+
+/// Single shared in-memory stand-in for the local Document table (see
+/// CLAUDE.md's "Known mismatches" section) — registered as a lazy
+/// singleton so a document added from the add_document feature actually
+/// shows up in Home's Recent Files strip instead of vanishing once that
+/// screen is popped.
+class DocumentLocalStore extends ChangeNotifier {
+  final List<DocumentItem> _documents = [];
+
+  /// Newest first.
+  List<DocumentItem> get documents => List.unmodifiable(_documents);
+
+  void addDocument(DocumentItem document) {
+    _documents.insert(0, document);
+    notifyListeners();
+  }
 }
 
 /// Single shared in-memory stand-in for the local Category table (see
@@ -125,10 +167,15 @@ class CategoryLocalStore extends ChangeNotifier {
 
 class HomeViewModel extends ChangeNotifier {
   final CategoryLocalStore _categoryStore;
+  final DocumentLocalStore _documentStore;
 
-  HomeViewModel({required CategoryLocalStore categoryStore})
-    : _categoryStore = categoryStore {
+  HomeViewModel({
+    required CategoryLocalStore categoryStore,
+    required DocumentLocalStore documentStore,
+  }) : _categoryStore = categoryStore,
+       _documentStore = documentStore {
     _categoryStore.addListener(notifyListeners);
+    _documentStore.addListener(notifyListeners);
   }
 
   bool isGridView = true;
@@ -145,7 +192,20 @@ class HomeViewModel extends ChangeNotifier {
       List<CategoryItem>.of(_categoryStore.categories)
         ..sort((a, b) => a.name.compareTo(b.name));
 
-  final List<RecentFileItem> recentFiles = const [
+  /// Newly created documents (newest first) ahead of the static dummy
+  /// list, so Add Document's output is immediately visible here.
+  List<RecentFileItem> get recentFiles => [
+    for (final doc in _documentStore.documents)
+      RecentFileItem(
+        name: doc.title,
+        category: doc.category,
+        icon: doc.icon,
+        timeLabel: doc.createdAt.timeAgo,
+      ),
+    ..._staticRecentFiles,
+  ];
+
+  static const List<RecentFileItem> _staticRecentFiles = [
     RecentFileItem(
       name: 'Electricity Bill - Sept',
       category: 'Electricity/Gas',
@@ -187,6 +247,7 @@ class HomeViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _categoryStore.removeListener(notifyListeners);
+    _documentStore.removeListener(notifyListeners);
     super.dispose();
   }
 }

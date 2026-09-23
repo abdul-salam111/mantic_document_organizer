@@ -35,7 +35,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navFavorites => 'المفضلة';
 
   @override
-  String get homeSearchHint => 'ابحث عن المستندات';
+  String get homeSearchHint => 'ابحث عن الفئات والمستندات';
 
   @override
   String get recentFiles => 'الملفات الأخيرة';
@@ -301,7 +301,45 @@ class AppLocalizationsAr extends AppLocalizations {
   String get addDocumentTitle => 'إضافة مستند';
 
   @override
-  String get addADocument => 'إضافة مستند';
+  String get documentTitleLabel => 'العنوان';
+
+  @override
+  String get documentTitleHint => 'مثال: مسح جواز السفر';
+
+  @override
+  String get documentTitleRequired => 'العنوان مطلوب';
+
+  @override
+  String get categoryLabel => 'الفئة';
+
+  @override
+  String get selectCategory => 'اختر الفئة';
+
+  @override
+  String get tags => 'الوسوم';
+
+  @override
+  String get tagsHint => 'أضف وسمًا';
+
+  @override
+  String get markAsFavorite => 'وضع علامة كمفضلة';
+
+  @override
+  String get attachments => 'المرفقات';
+
+  @override
+  String get camera => 'الكاميرا';
+
+  @override
+  String get gallery => 'المعرض';
+
+  @override
+  String get files => 'الملفات';
+
+  @override
+  String documentCreatedToast(String name) {
+    return 'تمت إضافة \"$name\"';
+  }
 
   @override
   String get comingSoon => 'قريبًا';

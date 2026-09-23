@@ -36,7 +36,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navFavorites => 'Favoritos';
 
   @override
-  String get homeSearchHint => 'Buscar documentos';
+  String get homeSearchHint => 'Buscar categorías y documentos';
 
   @override
   String get recentFiles => 'Archivos recientes';
@@ -304,7 +304,45 @@ class AppLocalizationsEs extends AppLocalizations {
   String get addDocumentTitle => 'Agregar documento';
 
   @override
-  String get addADocument => 'Agregar un documento';
+  String get documentTitleLabel => 'Título';
+
+  @override
+  String get documentTitleHint => 'p. ej. Escaneo de pasaporte';
+
+  @override
+  String get documentTitleRequired => 'El título es obligatorio';
+
+  @override
+  String get categoryLabel => 'Categoría';
+
+  @override
+  String get selectCategory => 'Seleccionar categoría';
+
+  @override
+  String get tags => 'Etiquetas';
+
+  @override
+  String get tagsHint => 'Agrega una etiqueta';
+
+  @override
+  String get markAsFavorite => 'Marcar como favorito';
+
+  @override
+  String get attachments => 'Adjuntos';
+
+  @override
+  String get camera => 'Cámara';
+
+  @override
+  String get gallery => 'Galería';
+
+  @override
+  String get files => 'Archivos';
+
+  @override
+  String documentCreatedToast(String name) {
+    return '\"$name\" agregado';
+  }
 
   @override
   String get comingSoon => 'Próximamente';

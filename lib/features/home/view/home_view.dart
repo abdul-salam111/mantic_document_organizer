@@ -98,7 +98,7 @@ class HomeView extends StatelessWidget {
                           ),
                           heightBox(7),
                           SizedBox(
-                            height: 140,
+                            height: 74,
                             child: ListView.separated(
                               scrollDirection: .horizontal,
                               clipBehavior: Clip.none,
@@ -386,7 +386,7 @@ class _RecentFileCard extends StatelessWidget {
         AppLocalizations.of(context).comingSoonToast(file.name),
       ),
       child: Container(
-        width: 110,
+        width: 210,
         padding: .all(9),
         decoration: BoxDecoration(
           color: context.surfaceElevated,
@@ -399,32 +399,41 @@ class _RecentFileCard extends StatelessWidget {
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: .start,
+        child: Row(
           children: [
             Container(
-              height: 66,
-              width: double.infinity,
+              height: 52,
+              width: 52,
               alignment: .center,
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.12),
                 borderRadius: .circular(9),
               ),
-              child: FaIcon(file.icon, size: 26, color: color),
+              child: FaIcon(file.icon, size: 22, color: color),
             ),
-            heightBox(10),
-            Text(
-              file.name,
-              maxLines: 1,
-              overflow: .ellipsis,
-              style: context.bodySmall.copyWith(fontWeight: .w600),
-            ),
-            heightBox(2),
-            Text(
-              '${file.category} • ${file.timeLabel}',
-              maxLines: 1,
-              overflow: .ellipsis,
-              style: context.labelSmall.copyWith(color: context.textSecondary),
+            widthBox(10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: .start,
+                mainAxisAlignment: .center,
+                children: [
+                  Text(
+                    file.name,
+                    maxLines: 1,
+                    overflow: .ellipsis,
+                    style: context.bodySmall.copyWith(fontWeight: .w600),
+                  ),
+                  heightBox(2),
+                  Text(
+                    '${file.category} • ${file.timeLabel}',
+                    maxLines: 1,
+                    overflow: .ellipsis,
+                    style: context.labelSmall.copyWith(
+                      color: context.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
