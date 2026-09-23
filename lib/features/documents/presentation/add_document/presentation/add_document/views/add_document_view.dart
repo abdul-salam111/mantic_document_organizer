@@ -29,7 +29,7 @@ class AddDocumentView extends StatelessWidget {
               return Form(
                 key: vm.formKey,
                 child: ListView(
-                  padding: const .all(20),
+                  padding: const .symmetric(horizontal: 14, vertical: 20),
                   children: [
                     _AttachmentSection(vm: vm),
                     heightBox(24),
