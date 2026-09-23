@@ -147,6 +147,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get manageCategories => 'إدارة الفئات';
 
   @override
+  String get searchCategories => 'ابحث عن الفئات';
+
+  @override
+  String get noCategoriesFound => 'لم يتم العثور على فئات';
+
+  @override
   String get categoryNameLabel => 'اسم الفئة';
 
   @override
@@ -179,6 +185,66 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String categoryCreatedToast(String name) {
     return 'تم إنشاء فئة \"$name\"';
+  }
+
+  @override
+  String get editCategory => 'تعديل الفئة';
+
+  @override
+  String get save => 'حفظ';
+
+  @override
+  String categoryUpdatedToast(String name) {
+    return 'تم تحديث فئة \"$name\"';
+  }
+
+  @override
+  String get deleteCategory => 'حذف الفئة';
+
+  @override
+  String deleteCategoryConfirm(String name) {
+    return 'حذف \"$name\"؟ لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String get delete => 'حذف';
+
+  @override
+  String categoryDeletedToast(String name) {
+    return 'تم حذف فئة \"$name\"';
+  }
+
+  @override
+  String selectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تحديد $count',
+      one: 'تم تحديد $count',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteCategoriesConfirm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'حذف $count فئات؟ لا يمكن التراجع عن هذا الإجراء.',
+      one: 'حذف هذه الفئة؟ لا يمكن التراجع عن هذا الإجراء.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String categoriesDeletedToast(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم حذف $count فئات',
+      one: 'تم حذف الفئة',
+    );
+    return '$_temp0';
   }
 
   @override

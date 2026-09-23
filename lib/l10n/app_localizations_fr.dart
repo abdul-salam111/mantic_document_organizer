@@ -149,6 +149,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get manageCategories => 'Gérer les catégories';
 
   @override
+  String get searchCategories => 'Rechercher des catégories';
+
+  @override
+  String get noCategoriesFound => 'Aucune catégorie trouvée';
+
+  @override
   String get categoryNameLabel => 'Nom de la catégorie';
 
   @override
@@ -181,6 +187,66 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String categoryCreatedToast(String name) {
     return 'Catégorie « $name » créée';
+  }
+
+  @override
+  String get editCategory => 'Modifier la catégorie';
+
+  @override
+  String get save => 'Enregistrer';
+
+  @override
+  String categoryUpdatedToast(String name) {
+    return 'Catégorie « $name » mise à jour';
+  }
+
+  @override
+  String get deleteCategory => 'Supprimer la catégorie';
+
+  @override
+  String deleteCategoryConfirm(String name) {
+    return 'Supprimer « $name » ? Cette action est irréversible.';
+  }
+
+  @override
+  String get delete => 'Supprimer';
+
+  @override
+  String categoryDeletedToast(String name) {
+    return 'Catégorie « $name » supprimée';
+  }
+
+  @override
+  String selectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sélectionnées',
+      one: '$count sélectionnée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteCategoriesConfirm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Supprimer $count catégories ? Cette action est irréversible.',
+      one: 'Supprimer cette catégorie ? Cette action est irréversible.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String categoriesDeletedToast(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count catégories supprimées',
+      one: 'Catégorie supprimée',
+    );
+    return '$_temp0';
   }
 
   @override

@@ -7,18 +7,34 @@ import '../../../core/theme/theme_exports.dart';
 import '../../../core/utils/utils_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
 import '../../../routes/routes_exports.dart';
+import '../../home/home_exports.dart';
 import '../viewmodel/add_category_viewmodel.dart';
 import 'widgets/icon_catalog.dart';
 
+/// Also used as the manage_categories feature's edit screen — pass
+/// [category] to prefill the form and switch into edit mode.
 class AddCategoryView extends StatelessWidget {
-  const AddCategoryView({super.key});
+  final CategoryItem? category;
+
+  const AddCategoryView({super.key, this.category});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => sl<AddCategoryViewModel>(),
+      create: (context) {
+        final vm = sl<AddCategoryViewModel>();
+        final editing = category;
+        if (editing != null) {
+          vm.startEditing(editing, categoryIconColor(context, editing.name));
+        }
+        return vm;
+      },
       child: Scaffold(
-        appBar: CustomAppBar(title: AppLocalizations.of(context).newCategory),
+        appBar: CustomAppBar(
+          title: category == null
+              ? AppLocalizations.of(context).newCategory
+              : AppLocalizations.of(context).editCategory,
+        ),
         body: SafeArea(
           child: Consumer<AddCategoryViewModel>(
             builder: (context, vm, _) {
@@ -90,14 +106,17 @@ class AddCategoryView extends StatelessWidget {
                     ),
                     heightBox(32),
                     CustomButton(
-                      text: AppLocalizations.of(context).create,
+                      text: vm.isEditing
+                          ? AppLocalizations.of(context).save
+                          : AppLocalizations.of(context).create,
                       // Writes into the shared CategoryLocalStore (see
                       // AddCategoryViewModel) — no real category data layer
                       // exists yet (CLAUDE.md's "Known mismatches"), so this
                       // is local-only, but it does persist for the session.
                       onPressed: () {
                         if (!vm.formKey.currentState!.validate()) return;
-                        vm.createCategory();
+                        final wasEditing = vm.isEditing;
+                        vm.submit();
                         // Compute the message (needs this route's context)
                         // and pop *before* showing the toast — another_flushbar
                         // pushes its toast as its own Navigator route, so
@@ -105,9 +124,14 @@ class AddCategoryView extends StatelessWidget {
                         // push corrupts the navigator's route lifecycle.
                         // AppToastsUtils resolves its own context from the
                         // root navigator key, so it's safe to call after pop.
-                        final message = AppLocalizations.of(
-                          context,
-                        ).categoryCreatedToast(vm.nameController.text.trim());
+                        final name = vm.nameController.text.trim();
+                        final message = wasEditing
+                            ? AppLocalizations.of(
+                                context,
+                              ).categoryUpdatedToast(name)
+                            : AppLocalizations.of(
+                                context,
+                              ).categoryCreatedToast(name);
                         AppNavigator.pop();
                         AppToastsUtils.success(message);
                       },
@@ -440,8 +464,16 @@ class _ColorPickerDialogState extends State<_ColorPickerDialog> {
 
   @override
   Widget build(BuildContext context) {
+    // AlertDialog's default insets/content padding otherwise squeeze
+    // ColorPicker's default 300px width down further, making the hue
+    // slider tiny — shrink both paddings and size the picker to what's
+    // actually left so the slider gets real room to use.
+    final pickerWidth = (context.screenWidth - 72).clamp(260.0, 420.0);
+
     return AlertDialog(
       backgroundColor: context.surfaceElevated,
+      insetPadding: const .symmetric(horizontal: 16, vertical: 24),
+      contentPadding: const .fromLTRB(20, 16, 20, 8),
       title: Text(
         AppLocalizations.of(context).chooseColor,
         style: context.titleMedium,
@@ -454,6 +486,8 @@ class _ColorPickerDialogState extends State<_ColorPickerDialog> {
           displayThumbColor: true,
           paletteType: PaletteType.hsvWithHue,
           pickerAreaHeightPercent: 0.7,
+          colorPickerWidth: pickerWidth,
+          labelTypes: const [],
         ),
       ),
       actions: [

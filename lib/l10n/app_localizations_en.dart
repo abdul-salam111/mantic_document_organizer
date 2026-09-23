@@ -148,6 +148,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manageCategories => 'Manage Categories';
 
   @override
+  String get searchCategories => 'Search categories';
+
+  @override
+  String get noCategoriesFound => 'No categories found';
+
+  @override
   String get categoryNameLabel => 'Category Name';
 
   @override
@@ -180,6 +186,66 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String categoryCreatedToast(String name) {
     return '\"$name\" category created';
+  }
+
+  @override
+  String get editCategory => 'Edit Category';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String categoryUpdatedToast(String name) {
+    return '\"$name\" category updated';
+  }
+
+  @override
+  String get deleteCategory => 'Delete Category';
+
+  @override
+  String deleteCategoryConfirm(String name) {
+    return 'Delete \"$name\"? This can\'t be undone.';
+  }
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String categoryDeletedToast(String name) {
+    return '\"$name\" category deleted';
+  }
+
+  @override
+  String selectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count selected',
+      one: '$count selected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteCategoriesConfirm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Delete $count categories? This can\'t be undone.',
+      one: 'Delete this category? This can\'t be undone.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String categoriesDeletedToast(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count categories deleted',
+      one: 'Category deleted',
+    );
+    return '$_temp0';
   }
 
   @override

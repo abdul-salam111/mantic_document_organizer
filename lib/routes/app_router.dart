@@ -9,6 +9,8 @@ import '../core/widgets/widgets_exports.dart';
 import '../features/auth/auth_exports.dart';
 import '../features/add_category/add_category_exports.dart';
 import '../features/add_document/add_document_exports.dart';
+import '../features/home/home_exports.dart';
+import '../features/manage_categories/manage_categories_exports.dart';
 import '../features/navbar/navbar_exports.dart';
 import '../features/onboarding/onboarding_exports.dart';
 import '../features/profile/profile_exports.dart';
@@ -102,7 +104,13 @@ class AppRoutes {
       GoRoute(
         path: RoutePaths.addCategory,
         name: RouteNames.addCategory,
-        builder: (context, state) => const AddCategoryView(),
+        builder: (context, state) =>
+            AddCategoryView(category: state.extra as CategoryItem?),
+      ),
+      GoRoute(
+        path: RoutePaths.manageCategories,
+        name: RouteNames.manageCategories,
+        builder: (context, state) => const ManageCategoriesView(),
       ),
 
       // GENERATED_ROUTES_START

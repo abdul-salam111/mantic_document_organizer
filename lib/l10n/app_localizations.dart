@@ -348,6 +348,18 @@ abstract class AppLocalizations {
   /// **'Manage Categories'**
   String get manageCategories;
 
+  /// manage_categories search field placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Search categories'**
+  String get searchCategories;
+
+  /// manage_categories empty search result
+  ///
+  /// In en, this message translates to:
+  /// **'No categories found'**
+  String get noCategoriesFound;
+
   /// New Category screen text field label
   ///
   /// In en, this message translates to:
@@ -413,6 +425,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'\"{name}\" category created'**
   String categoryCreatedToast(String name);
+
+  /// Edit Category screen title / manage_categories row edit button tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Category'**
+  String get editCategory;
+
+  /// Edit Category screen submit button
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// Success toast shown after editing a category
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" category updated'**
+  String categoryUpdatedToast(String name);
+
+  /// manage_categories row delete button tooltip / confirm dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Category'**
+  String get deleteCategory;
+
+  /// Confirm dialog body shown before deleting a category
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"? This can\'t be undone.'**
+  String deleteCategoryConfirm(String name);
+
+  /// Destructive confirm dialog action button
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// Success toast shown after deleting a category
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" category deleted'**
+  String categoryDeletedToast(String name);
+
+  /// manage_categories multi-select app bar title
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} selected} other{{count} selected}}'**
+  String selectedCount(int count);
+
+  /// Confirm dialog body shown before bulk-deleting selected categories
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Delete this category? This can\'t be undone.} other{Delete {count} categories? This can\'t be undone.}}'**
+  String deleteCategoriesConfirm(int count);
+
+  /// Success toast shown after bulk-deleting selected categories
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Category deleted} other{{count} categories deleted}}'**
+  String categoriesDeletedToast(int count);
 
   /// Settings section heading
   ///

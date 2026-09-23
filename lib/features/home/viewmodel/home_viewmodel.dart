@@ -6,7 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 /// data standing in for what will eventually be a real sqflite-backed
 /// Category list. [color] is only ever set by custom categories created
 /// via the add_category feature — built-ins keep deriving their color
-/// from `_categoryIconColor` in home_view.dart.
+/// from `categoryIconColor` in home_view.dart.
 class CategoryItem {
   final String name;
   final FaIconData icon;
@@ -90,13 +90,35 @@ class CategoryLocalStore extends ChangeNotifier {
 
   List<CategoryItem> get categories => List.unmodifiable(_categories);
 
-  bool exists(String name) {
+  bool exists(String name, {String? excluding}) {
     final normalized = name.trim().toLowerCase();
-    return _categories.any((c) => c.name.toLowerCase() == normalized);
+    return _categories.any(
+      (c) => c.name.toLowerCase() == normalized && c.name != excluding,
+    );
   }
 
   void addCategory(CategoryItem category) {
     _categories.add(category);
+    notifyListeners();
+  }
+
+  void updateCategory(String originalName, CategoryItem updated) {
+    final index = _categories.indexWhere((c) => c.name == originalName);
+    if (index == -1) return;
+    _categories[index] = updated;
+    notifyListeners();
+  }
+
+  void removeCategory(String name) {
+    _categories.removeWhere((c) => c.name == name);
+    notifyListeners();
+  }
+
+  /// Bulk variant of [removeCategory] — one notification instead of one
+  /// per item, for manage_categories' multi-select delete.
+  void removeCategories(Iterable<String> names) {
+    final nameSet = names.toSet();
+    _categories.removeWhere((c) => nameSet.contains(c.name));
     notifyListeners();
   }
 }

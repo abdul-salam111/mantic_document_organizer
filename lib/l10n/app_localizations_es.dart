@@ -149,6 +149,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get manageCategories => 'Administrar categorías';
 
   @override
+  String get searchCategories => 'Buscar categorías';
+
+  @override
+  String get noCategoriesFound => 'No se encontraron categorías';
+
+  @override
   String get categoryNameLabel => 'Nombre de la categoría';
 
   @override
@@ -181,6 +187,66 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String categoryCreatedToast(String name) {
     return 'Categoría \"$name\" creada';
+  }
+
+  @override
+  String get editCategory => 'Editar categoría';
+
+  @override
+  String get save => 'Guardar';
+
+  @override
+  String categoryUpdatedToast(String name) {
+    return 'Categoría \"$name\" actualizada';
+  }
+
+  @override
+  String get deleteCategory => 'Eliminar categoría';
+
+  @override
+  String deleteCategoryConfirm(String name) {
+    return '¿Eliminar \"$name\"? Esta acción no se puede deshacer.';
+  }
+
+  @override
+  String get delete => 'Eliminar';
+
+  @override
+  String categoryDeletedToast(String name) {
+    return 'Categoría \"$name\" eliminada';
+  }
+
+  @override
+  String selectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count seleccionadas',
+      one: '$count seleccionada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteCategoriesConfirm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '¿Eliminar $count categorías? Esta acción no se puede deshacer.',
+      one: '¿Eliminar esta categoría? Esta acción no se puede deshacer.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String categoriesDeletedToast(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count categorías eliminadas',
+      one: 'Categoría eliminada',
+    );
+    return '$_temp0';
   }
 
   @override

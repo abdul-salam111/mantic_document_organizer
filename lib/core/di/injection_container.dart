@@ -8,6 +8,7 @@ import '../theme/theme_exports.dart';
 import '../../features/auth/auth_exports.dart';
 import '../../features/add_category/add_category_exports.dart';
 import '../../features/home/home_exports.dart';
+import '../../features/manage_categories/manage_categories_exports.dart';
 import '../../features/search/search_exports.dart';
 import '../../features/favorites/favorites_exports.dart';
 import '../../features/profile/profile_exports.dart';
@@ -37,6 +38,7 @@ Future<void> setupLocator() async {
   await splashDependencies();
   await settingsDependencies();
   await addCategoryDependencies();
+  await manageCategoriesDependencies();
   // GENERATED_SETUP_CALLS_START
 
   // GENERATED_SETUP_CALLS_END
@@ -186,6 +188,13 @@ Future<void> settingsDependencies() async {
 Future<void> addCategoryDependencies() async {
   sl.registerFactory<AddCategoryViewModel>(
     () => AddCategoryViewModel(categoryStore: sl()),
+  );
+}
+
+/// Manage Categories Feature Dependencies
+Future<void> manageCategoriesDependencies() async {
+  sl.registerFactory<ManageCategoriesViewModel>(
+    () => ManageCategoriesViewModel(categoryStore: sl()),
   );
 }
 

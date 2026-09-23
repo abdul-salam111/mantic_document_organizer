@@ -12,6 +12,7 @@ class RoutePaths {
   static const String settings = "/settings";
   static const String profile = "/profile";
   static const String addCategory = "/add-category";
+  static const String manageCategories = "/manage-categories";
 
   // GENERATED_ROUTE_PATHS_START
 

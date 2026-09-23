@@ -158,11 +158,8 @@ class SettingsView extends StatelessWidget {
                 _SettingsRow(
                   icon: Iconsax.category,
                   label: AppLocalizations.of(context).manageCategories,
-                  onTap: () => AppToastsUtils.info(
-                    AppLocalizations.of(context).comingSoonToast(
-                      AppLocalizations.of(context).manageCategories,
-                    ),
-                  ),
+                  onTap: () =>
+                      AppNavigator.pushNamed(RouteNames.manageCategories),
                 ),
               ],
             ),

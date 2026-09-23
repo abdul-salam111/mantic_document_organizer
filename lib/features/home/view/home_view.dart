@@ -343,7 +343,10 @@ class _CategoryList extends StatelessWidget {
   }
 }
 
-Color _categoryIconColor(BuildContext context, String categoryName) {
+/// Public (not `_`-prefixed) since manage_categories also needs it to
+/// preview a built-in category's implied color when its [CategoryItem]
+/// carries no explicit [CategoryItem.color] of its own.
+Color categoryIconColor(BuildContext context, String categoryName) {
   switch (categoryName) {
     case 'Driving License':
     case 'ID Card':
@@ -376,7 +379,7 @@ class _RecentFileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _categoryIconColor(context, file.category);
+    final color = categoryIconColor(context, file.category);
     return InkWell(
       borderRadius: .circular(14),
       onTap: () => AppToastsUtils.info(
@@ -487,7 +490,7 @@ class _CategoryTile extends StatelessWidget {
     if (isAddNew) return context.primaryAccent;
     if (color != null) return color!;
     if (colorKey == null) return context.textSecondary;
-    return _categoryIconColor(context, colorKey!);
+    return categoryIconColor(context, colorKey!);
   }
 
   bool get _showBadge => fileCount != null && fileCount! > 0;

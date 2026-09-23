@@ -102,6 +102,10 @@
   "@addCategory": {"description": "Settings menu entry"},
   "manageCategories": "Manage Categories",
   "@manageCategories": {"description": "Settings menu entry"},
+  "searchCategories": "Search categories",
+  "@searchCategories": {"description": "manage_categories search field placeholder"},
+  "noCategoriesFound": "No categories found",
+  "@noCategoriesFound": {"description": "manage_categories empty search result"},
   "categoryNameLabel": "Category Name",
   "@categoryNameLabel": {"description": "New Category screen text field label"},
   "categoryNameHint": "e.g. Bank Statements",
@@ -126,6 +130,44 @@
   "@categoryCreatedToast": {
     "description": "Success toast shown after creating a category",
     "placeholders": {"name": {"type": "String"}}
+  },
+  "editCategory": "Edit Category",
+  "@editCategory": {"description": "Edit Category screen title / manage_categories row edit button tooltip"},
+  "save": "Save",
+  "@save": {"description": "Edit Category screen submit button"},
+  "categoryUpdatedToast": "\"{name}\" category updated",
+  "@categoryUpdatedToast": {
+    "description": "Success toast shown after editing a category",
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "deleteCategory": "Delete Category",
+  "@deleteCategory": {"description": "manage_categories row delete button tooltip / confirm dialog title"},
+  "deleteCategoryConfirm": "Delete \"{name}\"? This can't be undone.",
+  "@deleteCategoryConfirm": {
+    "description": "Confirm dialog body shown before deleting a category",
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "delete": "Delete",
+  "@delete": {"description": "Destructive confirm dialog action button"},
+  "categoryDeletedToast": "\"{name}\" category deleted",
+  "@categoryDeletedToast": {
+    "description": "Success toast shown after deleting a category",
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "selectedCount": "{count, plural, one{{count} selected} other{{count} selected}}",
+  "@selectedCount": {
+    "description": "manage_categories multi-select app bar title",
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "deleteCategoriesConfirm": "{count, plural, one{Delete this category? This can't be undone.} other{Delete {count} categories? This can't be undone.}}",
+  "@deleteCategoriesConfirm": {
+    "description": "Confirm dialog body shown before bulk-deleting selected categories",
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "categoriesDeletedToast": "{count, plural, one{Category deleted} other{{count} categories deleted}}",
+  "@categoriesDeletedToast": {
+    "description": "Success toast shown after bulk-deleting selected categories",
+    "placeholders": {"count": {"type": "int"}}
   },
   "security": "Security",
   "@security": {"description": "Settings section heading"},
