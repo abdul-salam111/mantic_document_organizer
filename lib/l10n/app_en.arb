@@ -220,6 +220,15 @@
   "@tagsHint": {"description": "Add Document screen text field placeholder"},
   "markAsFavorite": "Mark as Favorite",
   "@markAsFavorite": {"description": "Add Document screen toggle row label"},
+  "documentExpirable": "This Document Expires",
+  "@documentExpirable": {"description": "Add Document screen toggle row label"},
+  "expiresOn": "Expires on {date}",
+  "@expiresOn": {
+    "description": "Add Document screen expiry toggle subtitle showing the picked date/time",
+    "placeholders": {"date": {"type": "String"}}
+  },
+  "tapToSetExpiryDate": "Tap to set the expiry date and time",
+  "@tapToSetExpiryDate": {"description": "Add Document screen expiry toggle subtitle hint before a date is picked"},
   "attachments": "Attachments",
   "@attachments": {"description": "Add Document screen section heading"},
   "camera": "Camera",

@@ -23,7 +23,7 @@ void main() {
 
       // Errors from outside the Flutter framework (e.g. platform channel
       // callbacks, isolate errors)
-      
+
       PlatformDispatcher.instance.onError = (error, stack) {
         _reportError(error, stack);
         return true; // handled — don't crash the app
@@ -75,13 +75,6 @@ class MyApp extends StatelessWidget {
             supportedLocales: AppLocalizations.supportedLocales,
             routerConfig: AppRoutes.router,
             debugShowCheckedModeBanner: false,
-            // Fallback status bar contrast for any screen without its own
-            // AppBar (e.g. HomeView) — those otherwise inherit whatever
-            // overlay style the previous screen left behind, which can
-            // leave the status bar icons invisible against the new
-            // background. Screens that do have a CustomAppBar still win
-            // here since Material's AppBar nests its own AnnotatedRegion
-            // underneath this one.
             builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
               value: SystemUiOverlayStyle(
                 statusBarColor: Colors.transparent,

@@ -328,6 +328,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get markAsFavorite => 'Marcar como favorito';
 
   @override
+  String get documentExpirable => 'Este documento caduca';
+
+  @override
+  String expiresOn(String date) {
+    return 'Caduca el $date';
+  }
+
+  @override
+  String get tapToSetExpiryDate =>
+      'Toca para establecer la fecha y hora de caducidad';
+
+  @override
   String get attachments => 'Adjuntos';
 
   @override

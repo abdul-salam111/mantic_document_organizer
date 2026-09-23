@@ -50,6 +50,8 @@ class DocumentItem {
   final bool isFavorite;
   final List<String> filePaths;
   final DateTime createdAt;
+  final bool isExpirable;
+  final DateTime? expiryDate;
 
   const DocumentItem({
     required this.title,
@@ -59,6 +61,8 @@ class DocumentItem {
     this.tags = const [],
     this.isFavorite = false,
     this.filePaths = const [],
+    this.isExpirable = false,
+    this.expiryDate,
   });
 }
 

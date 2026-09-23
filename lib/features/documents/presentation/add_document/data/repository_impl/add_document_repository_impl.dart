@@ -1,4 +1,4 @@
-import '../../../../core/shared/shared_exports.dart';
+import '../../../../../../core/shared/shared_exports.dart';
 import '../datasources/remote_add_document_datasource.dart';
 import '../models/request_models/add_document_params.dart';
 import '../../domain/entities/add_document_entity.dart';

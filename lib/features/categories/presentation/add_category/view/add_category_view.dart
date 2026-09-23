@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import '../../../../core/di/di_exports.dart';
-import '../../../../core/theme/theme_utils.dart';
-import '../../../../core/utils/utils_exports.dart';
-import '../../../../core/widgets/widgets_exports.dart';
-import '../../../../l10n/app_localizations.dart';
-import '../../../../routes/routes_exports.dart';
-import '../../../home/home_exports.dart';
+import '../../../../../core/di/di_exports.dart';
+import '../../../../../core/theme/theme_utils.dart';
+import '../../../../../core/utils/utils_exports.dart';
+import '../../../../../core/widgets/widgets_exports.dart';
+import '../../../../../l10n/app_localizations.dart';
+import '../../../../../routes/routes_exports.dart';
+import '../../../../home/home_exports.dart';
 import '../viewmodel/add_category_viewmodel.dart';
 import 'widgets/icon_catalog.dart';
 

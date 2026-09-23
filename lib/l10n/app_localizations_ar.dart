@@ -325,6 +325,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get markAsFavorite => 'وضع علامة كمفضلة';
 
   @override
+  String get documentExpirable => 'هذا المستند قابل لانتهاء الصلاحية';
+
+  @override
+  String expiresOn(String date) {
+    return 'تنتهي الصلاحية في $date';
+  }
+
+  @override
+  String get tapToSetExpiryDate => 'اضغط لتحديد تاريخ ووقت انتهاء الصلاحية';
+
+  @override
   String get attachments => 'المرفقات';
 
   @override

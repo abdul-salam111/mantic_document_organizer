@@ -636,6 +636,24 @@ abstract class AppLocalizations {
   /// **'Mark as Favorite'**
   String get markAsFavorite;
 
+  /// Add Document screen toggle row label
+  ///
+  /// In en, this message translates to:
+  /// **'This Document Expires'**
+  String get documentExpirable;
+
+  /// Add Document screen expiry toggle subtitle showing the picked date/time
+  ///
+  /// In en, this message translates to:
+  /// **'Expires on {date}'**
+  String expiresOn(String date);
+
+  /// Add Document screen expiry toggle subtitle hint before a date is picked
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to set the expiry date and time'**
+  String get tapToSetExpiryDate;
+
   /// Add Document screen section heading
   ///
   /// In en, this message translates to:

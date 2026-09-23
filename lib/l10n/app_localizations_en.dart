@@ -327,6 +327,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get markAsFavorite => 'Mark as Favorite';
 
   @override
+  String get documentExpirable => 'This Document Expires';
+
+  @override
+  String expiresOn(String date) {
+    return 'Expires on $date';
+  }
+
+  @override
+  String get tapToSetExpiryDate => 'Tap to set the expiry date and time';
+
+  @override
   String get attachments => 'Attachments';
 
   @override

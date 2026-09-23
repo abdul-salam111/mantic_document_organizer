@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
-import '../../features/categories/add_category/viewmodel/add_category_viewmodel.dart';
+import '../../features/categories/presentation/add_category/viewmodel/add_category_viewmodel.dart';
 import '../localization/localization_exports.dart';
 import '../networks/networks_exports.dart';
 import '../security/security_exports.dart';
@@ -9,11 +9,11 @@ import '../theme/theme_exports.dart';
 import '../../features/auth/auth_exports.dart';
 
 import '../../features/home/home_exports.dart';
-import '../../features/manage_categories/manage_categories_exports.dart';
+import '../../features/categories/presentation/manage_categories/manage_categories_exports.dart';
 import '../../features/search/search_exports.dart';
 import '../../features/favorites/favorites_exports.dart';
 import '../../features/profile/profile_exports.dart';
-import '../../features/add_document/add_document_exports.dart';
+import '../../features/documents/presentation/add_document/add_document_exports.dart';
 import '../../features/navbar/navbar_exports.dart';
 import '../../features/onboarding/onboarding_exports.dart';
 import '../../features/settings/settings_exports.dart';

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../../home/home_exports.dart';
+import '../../../../../../home/home_exports.dart';
 
 enum AttachmentType { image, file }
 
@@ -73,6 +73,28 @@ class AddDocumentViewModel extends ChangeNotifier {
 
   void toggleFavorite() {
     _isFavorite = !_isFavorite;
+    notifyListeners();
+  }
+
+  bool _isExpirable = false;
+  bool get isExpirable => _isExpirable;
+
+  DateTime? _expiryDate;
+  DateTime? get expiryDate => _expiryDate;
+
+  /// Turning expirable off clears any previously picked date so a stale
+  /// expiry can't linger if it's switched back on later without a
+  /// re-pick. Turning it on is driven from the view, which opens the
+  /// date/time picker and calls [setExpiryDate] with the result.
+  void setExpirable(bool value) {
+    if (_isExpirable == value) return;
+    _isExpirable = value;
+    if (!value) _expiryDate = null;
+    notifyListeners();
+  }
+
+  void setExpiryDate(DateTime date) {
+    _expiryDate = date;
     notifyListeners();
   }
 
@@ -147,6 +169,8 @@ class AddDocumentViewModel extends ChangeNotifier {
         isFavorite: _isFavorite,
         filePaths: [for (final a in _attachments) a.path],
         createdAt: DateTime.now(),
+        isExpirable: _isExpirable,
+        expiryDate: _expiryDate,
       ),
     );
   }

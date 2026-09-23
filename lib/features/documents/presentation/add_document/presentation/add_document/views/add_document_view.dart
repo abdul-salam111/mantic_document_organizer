@@ -2,13 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-import '../../../../../core/di/di_exports.dart';
-import '../../../../../core/localization/localization_exports.dart';
-import '../../../../../core/theme/theme_exports.dart';
-import '../../../../../core/utils/utils_exports.dart';
-import '../../../../../core/widgets/widgets_exports.dart';
-import '../../../../../routes/routes_exports.dart';
-import '../../../../home/home_exports.dart';
+import '../../../../../../../core/di/di_exports.dart';
+import '../../../../../../../core/localization/localization_exports.dart';
+import '../../../../../../../core/theme/theme_exports.dart';
+import '../../../../../../../core/utils/utils_exports.dart';
+import '../../../../../../../core/widgets/widgets_exports.dart';
+import '../../../../../../../routes/routes_exports.dart';
+import '../../../../../../home/home_exports.dart';
 import '../viewmodels/add_document_viewmodel.dart';
 
 class AddDocumentView extends StatelessWidget {
@@ -49,6 +49,8 @@ class AddDocumentView extends StatelessWidget {
                     _TagsField(vm: vm),
                     heightBox(20),
                     _FavoriteToggle(vm: vm),
+                    heightBox(20),
+                    _ExpirableToggle(vm: vm),
                     heightBox(32),
                     CustomButton(
                       text: AppLocalizations.of(context).save,
@@ -555,6 +557,118 @@ class _FavoriteToggle extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ExpirableToggle extends StatelessWidget {
+  final AddDocumentViewModel vm;
+
+  const _ExpirableToggle({required this.vm});
+
+  Future<void> _pickExpiry(BuildContext context) async {
+    final now = DateTime.now();
+    final date = await showDatePicker(
+      context: context,
+      initialDate: vm.expiryDate ?? now,
+      firstDate: now,
+      lastDate: DateTime(now.year + 20),
+    );
+    if (date == null) {
+      if (vm.expiryDate == null) vm.setExpirable(false);
+      return;
+    }
+    if (!context.mounted) return;
+    final time = await showTimePicker(
+      context: context,
+      initialTime: vm.expiryDate != null
+          ? TimeOfDay.fromDateTime(vm.expiryDate!)
+          : TimeOfDay.now(),
+    );
+    final combined = time == null
+        ? date
+        : DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    vm.setExpirable(true);
+    vm.setExpiryDate(combined);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const .symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: context.surfaceElevated,
+        borderRadius: .circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: context.shadow,
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Scoped to just the icon/label so it doesn't share a tap
+          // target with the Switch to its right.
+          Expanded(
+            child: InkWell(
+              onTap: () => _pickExpiry(context),
+              borderRadius: .circular(12),
+              child: Row(
+                children: [
+                  Icon(
+                    Iconsax.calendar_2,
+                    color: vm.isExpirable
+                        ? context.primary
+                        : context.textSecondary,
+                    size: 22,
+                  ),
+                  widthBox(12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: .start,
+                      mainAxisSize: .min,
+                      children: [
+                        Text(
+                          AppLocalizations.of(context).documentExpirable,
+                          style: context.bodyMedium.copyWith(fontWeight: .w600),
+                        ),
+                        if (vm.isExpirable) ...[
+                          heightBox(2),
+                          Text(
+                            vm.expiryDate == null
+                                ? AppLocalizations.of(
+                                    context,
+                                  ).tapToSetExpiryDate
+                                : AppLocalizations.of(
+                                    context,
+                                  ).expiresOn(vm.expiryDate!.fullFormat),
+                            style: context.labelSmall.copyWith(
+                              color: context.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Switch(
+            value: vm.isExpirable,
+            onChanged: (value) {
+              if (value) {
+                _pickExpiry(context);
+              } else {
+                vm.setExpirable(false);
+              }
+            },
+            activeThumbColor: context.primary,
+          ),
+        ],
       ),
     );
   }

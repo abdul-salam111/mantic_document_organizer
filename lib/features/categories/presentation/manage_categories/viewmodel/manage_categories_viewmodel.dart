@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../home/home_exports.dart';
+import '../../../../home/home_exports.dart';
 
 /// Presentation-only for now (see CLAUDE.md's "Known mismatches" section)
 /// — just a thin listener over the shared [CategoryLocalStore] so this

@@ -1,5 +1,5 @@
-import '../../../../core/constants/constants_exports.dart';
-import '../../../../core/shared/shared_exports.dart';
+import '../../../../../../core/constants/constants_exports.dart';
+import '../../../../../../core/shared/shared_exports.dart';
 import '../models/request_models/add_document_params.dart';
 import '../models/response_models/add_document_response.dart';
 
