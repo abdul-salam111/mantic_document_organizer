@@ -154,6 +154,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get biometricUnlock => 'Fingerprint Unlock';
 
   @override
+  String get faceIdUnlock => 'Face ID Unlock';
+
+  @override
+  String get touchIdUnlock => 'Touch ID Unlock';
+
+  @override
+  String get biometricUnlockGeneric => 'Biometric Unlock';
+
+  @override
   String get biometricUnlockSubtitle =>
       'Require your fingerprint or face to open the app';
 

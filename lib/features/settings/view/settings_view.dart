@@ -298,6 +298,28 @@ class _SecurityToggleRow extends StatefulWidget {
 
 class _SecurityToggleRowState extends State<_SecurityToggleRow> {
   bool _isBusy = false;
+  BiometricKind? _biometricKind;
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<SecurityController>().primaryBiometricKind().then((kind) {
+      if (mounted) setState(() => _biometricKind = kind);
+    });
+  }
+
+  (IconData, String) _iconAndLabel(BiometricKind? kind, AppLocalizations l10n) {
+    switch (kind) {
+      case BiometricKind.faceId:
+        return (Icons.face, l10n.faceIdUnlock);
+      case BiometricKind.touchId:
+      case BiometricKind.fingerprint:
+        return (Iconsax.finger_scan, l10n.biometricUnlock);
+      case BiometricKind.generic:
+      case null:
+        return (Iconsax.finger_scan, l10n.biometricUnlockGeneric);
+    }
+  }
 
   Future<void> _handleChanged(bool enable, SecurityController security) async {
     if (_isBusy) return;
@@ -337,10 +359,12 @@ class _SecurityToggleRowState extends State<_SecurityToggleRow> {
   Widget build(BuildContext context) {
     return Consumer<SecurityController>(
       builder: (context, security, _) {
+        final l10n = AppLocalizations.of(context);
+        final (icon, label) = _iconAndLabel(_biometricKind, l10n);
         return _SettingsRow(
-          icon: Iconsax.finger_scan,
-          label: AppLocalizations.of(context).biometricUnlock,
-          subtitle: AppLocalizations.of(context).biometricUnlockSubtitle,
+          icon: icon,
+          label: label,
+          subtitle: l10n.biometricUnlockSubtitle,
           trailing: _isBusy
               ? const SizedBox(
                   width: 20,

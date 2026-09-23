@@ -354,11 +354,29 @@ abstract class AppLocalizations {
   /// **'Security'**
   String get security;
 
-  /// Settings toggle label for biometric app lock
+  /// Settings toggle label for biometric app lock (fingerprint hardware)
   ///
   /// In en, this message translates to:
   /// **'Fingerprint Unlock'**
   String get biometricUnlock;
+
+  /// Settings toggle label for biometric app lock (iOS Face ID hardware)
+  ///
+  /// In en, this message translates to:
+  /// **'Face ID Unlock'**
+  String get faceIdUnlock;
+
+  /// Settings toggle label for biometric app lock (iOS Touch ID hardware)
+  ///
+  /// In en, this message translates to:
+  /// **'Touch ID Unlock'**
+  String get touchIdUnlock;
+
+  /// Settings toggle label for biometric app lock (unknown/mixed hardware)
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric Unlock'**
+  String get biometricUnlockGeneric;
 
   /// Settings toggle subtitle
   ///

@@ -79,7 +79,7 @@ class MainBottomNavbar extends StatelessWidget {
                   Expanded(
                     child: _NavItem(
                       icon: Iconsax.setting_2,
-                      activeIcon: Iconsax.setting_25,
+                      activeIcon: Iconsax.setting_2,
                       label: AppLocalizations.of(context).settings,
                       isActive: selectedIndex == 3,
                       onTap: () => onTabSelected(3),

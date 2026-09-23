@@ -153,6 +153,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get biometricUnlock => 'فتح القفل بالبصمة';
 
   @override
+  String get faceIdUnlock => 'فتح القفل عبر Face ID';
+
+  @override
+  String get touchIdUnlock => 'فتح القفل عبر Touch ID';
+
+  @override
+  String get biometricUnlockGeneric => 'فتح القفل البيومتري';
+
+  @override
   String get biometricUnlockSubtitle => 'يتطلب بصمتك أو وجهك لفتح التطبيق';
 
   @override

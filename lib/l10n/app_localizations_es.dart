@@ -155,6 +155,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get biometricUnlock => 'Desbloqueo por huella';
 
   @override
+  String get faceIdUnlock => 'Desbloqueo con Face ID';
+
+  @override
+  String get touchIdUnlock => 'Desbloqueo con Touch ID';
+
+  @override
+  String get biometricUnlockGeneric => 'Desbloqueo biométrico';
+
+  @override
   String get biometricUnlockSubtitle =>
       'Requiere tu huella o rostro para abrir la app';
 

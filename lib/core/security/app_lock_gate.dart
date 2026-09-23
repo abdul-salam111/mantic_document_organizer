@@ -8,8 +8,10 @@ import 'security_controller.dart';
 
 /// Wraps the whole app (via `MaterialApp.router`'s `builder`, where
 /// Localizations/Theme are already available) and shows a full-screen
-/// biometric lock whenever [SecurityController.isBiometricLockEnabled] is
-/// on and the app has just launched or returned from the background.
+/// biometric lock whenever the app returns from the background while
+/// [SecurityController.isBiometricLockEnabled] is on. Cold start isn't
+/// handled here — the splash screen prompts biometric auth itself as
+/// part of its normal flow, so there's no separate lock screen on open.
 class AppLockGate extends StatefulWidget {
   final Widget child;
 
@@ -22,15 +24,15 @@ class AppLockGate extends StatefulWidget {
 class _AppLockGateState extends State<AppLockGate> with WidgetsBindingObserver {
   bool _isLocked = false;
   bool _isAuthenticating = false;
+  BiometricKind? _biometricKind;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _isLocked = context.read<SecurityController>().isBiometricLockEnabled;
-    if (_isLocked) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _attemptUnlock());
-    }
+    context.read<SecurityController>().primaryBiometricKind().then((kind) {
+      if (mounted) setState(() => _biometricKind = kind);
+    });
   }
 
   @override
@@ -68,7 +70,11 @@ class _AppLockGateState extends State<AppLockGate> with WidgetsBindingObserver {
         return Stack(
           children: [
             widget.child,
-            if (locked) _LockScreen(onUnlockPressed: _attemptUnlock),
+            if (locked)
+              _LockScreen(
+                icon: biometricIconFor(_biometricKind ?? BiometricKind.generic),
+                onUnlockPressed: _attemptUnlock,
+              ),
           ],
         );
       },
@@ -77,9 +83,10 @@ class _AppLockGateState extends State<AppLockGate> with WidgetsBindingObserver {
 }
 
 class _LockScreen extends StatelessWidget {
+  final IconData icon;
   final VoidCallback onUnlockPressed;
 
-  const _LockScreen({required this.onUnlockPressed});
+  const _LockScreen({required this.icon, required this.onUnlockPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -100,11 +107,7 @@ class _LockScreen extends StatelessWidget {
                     shape: .circle,
                     color: context.primary.withValues(alpha: 0.1),
                   ),
-                  child: Icon(
-                    Iconsax.finger_scan,
-                    size: 36,
-                    color: context.primary,
-                  ),
+                  child: Icon(icon, size: 36, color: context.primary),
                 ),
                 heightBox(20),
                 Text(

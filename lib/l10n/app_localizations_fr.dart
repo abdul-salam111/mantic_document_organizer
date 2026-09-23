@@ -155,6 +155,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get biometricUnlock => 'Déverrouillage par empreinte';
 
   @override
+  String get faceIdUnlock => 'Déverrouillage Face ID';
+
+  @override
+  String get touchIdUnlock => 'Déverrouillage Touch ID';
+
+  @override
+  String get biometricUnlockGeneric => 'Déverrouillage biométrique';
+
+  @override
   String get biometricUnlockSubtitle =>
       'Exiger votre empreinte ou votre visage pour ouvrir l\'application';
 

@@ -171,7 +171,7 @@ Future<void> onboardingDependencies() async {
 
 /// Splash Feature Dependencies
 Future<void> splashDependencies() async {
-  sl.registerFactory<SplashViewModel>(() => SplashViewModel());
+  sl.registerFactory<SplashViewModel>(() => SplashViewModel(sl()));
 }
 
 /// Settings Feature Dependencies
