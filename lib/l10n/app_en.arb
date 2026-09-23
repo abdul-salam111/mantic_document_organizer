@@ -147,9 +147,6 @@
     "description": "Toast shown when tapping a not-yet-built item",
     "placeholders": {"name": {"type": "String"}}
   },
-  "pressBackAgainToExit": "Press back again to exit",
-  "@pressBackAgainToExit": {"description": "Toast shown on the first back-press on the Home tab"},
-
   "pageNotFound": "Page not found",
   "@pageNotFound": {"description": "Route error page title"},
   "pageNotFoundSubtitle": "We couldn't find \"{path}\".",

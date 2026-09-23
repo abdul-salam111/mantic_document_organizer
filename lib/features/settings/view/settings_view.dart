@@ -41,49 +41,104 @@ class SettingsView extends StatelessWidget {
             heightBox(10),
             Consumer<ThemeController>(
               builder: (context, themeController, _) {
-                return SegmentedButton<ThemeMode>(
+                return _SegmentedControl(
                   segments: [
-                    ButtonSegment(
-                      value: ThemeMode.system,
-                      label: Text(AppLocalizations.of(context).themeAuto),
-                      icon: const Icon(Iconsax.autobrightness),
+                    (
+                      icon: Iconsax.autobrightness,
+                      label: AppLocalizations.of(context).themeAuto,
+                      isSelected: themeController.themeMode == ThemeMode.system,
+                      onTap: () => themeController.setTheme(ThemeMode.system),
                     ),
-                    ButtonSegment(
-                      value: ThemeMode.light,
-                      label: Text(AppLocalizations.of(context).themeLight),
-                      icon: const Icon(Iconsax.sun_1),
+                    (
+                      icon: Iconsax.sun_1,
+                      label: AppLocalizations.of(context).themeLight,
+                      isSelected: themeController.themeMode == ThemeMode.light,
+                      onTap: () => themeController.setTheme(ThemeMode.light),
                     ),
-                    ButtonSegment(
-                      value: ThemeMode.dark,
-                      label: Text(AppLocalizations.of(context).themeDark),
-                      icon: const Icon(Iconsax.moon),
+                    (
+                      icon: Iconsax.moon,
+                      label: AppLocalizations.of(context).themeDark,
+                      isSelected: themeController.themeMode == ThemeMode.dark,
+                      onTap: () => themeController.setTheme(ThemeMode.dark),
                     ),
                   ],
-                  selected: {themeController.themeMode},
-                  onSelectionChanged: (selection) =>
-                      themeController.setTheme(selection.first),
                 );
               },
             ),
 
-            heightBox(28),
-            _SectionHeader(AppLocalizations.of(context).language),
-            heightBox(10),
+            heightBox(20),
             Consumer<LocaleController>(
               builder: (context, localeController, _) {
-                return Column(
+                final current = _languages.firstWhere(
+                  (l) =>
+                      l.locale.languageCode ==
+                      localeController.locale.languageCode,
+                  orElse: () => _languages.first,
+                );
+                return _SettingsCard(
                   children: [
-                    for (final language in _languages) ...[
-                      _LanguageTile(
-                        label: language.label,
-                        isSelected:
-                            localeController.locale.languageCode ==
-                            language.locale.languageCode,
-                        onTap: () =>
-                            localeController.setLocale(language.locale),
+                    _SettingsRow(
+                      icon: Iconsax.language_square,
+                      label: AppLocalizations.of(context).language,
+                      // The PopupMenuButton wraps only this trailing
+                      // value+arrow (not the whole row) so the menu
+                      // opens anchored right where the current language
+                      // is shown, not up at the row's icon/label.
+                      trailing: PopupMenuButton<Locale>(
+                        initialValue: current.locale,
+                        onSelected: localeController.setLocale,
+                        padding: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: .circular(14),
+                        ),
+                        itemBuilder: (context) => [
+                          for (final language in _languages)
+                            PopupMenuItem(
+                              value: language.locale,
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      language.label,
+                                      style: context.bodyMedium.copyWith(
+                                        fontWeight:
+                                            language.locale.languageCode ==
+                                                current.locale.languageCode
+                                            ? .bold
+                                            : .normal,
+                                      ),
+                                    ),
+                                  ),
+                                  if (language.locale.languageCode ==
+                                      current.locale.languageCode)
+                                    Icon(
+                                      Icons.check,
+                                      size: 18,
+                                      color: context.primaryAccent,
+                                    ),
+                                ],
+                              ),
+                            ),
+                        ],
+                        child: Row(
+                          mainAxisSize: .min,
+                          children: [
+                            Text(
+                              current.label,
+                              style: context.bodyMedium.copyWith(
+                                color: context.textSecondary,
+                              ),
+                            ),
+                            widthBox(4),
+                            Icon(
+                              Iconsax.arrow_down_1,
+                              size: 14,
+                              color: context.textSecondary,
+                            ),
+                          ],
+                        ),
                       ),
-                      if (language != _languages.last) heightBox(8),
-                    ],
+                    ),
                   ],
                 );
               },
@@ -381,57 +436,78 @@ class _SecurityToggleRowState extends State<_SecurityToggleRow> {
   }
 }
 
-class _LanguageTile extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
+typedef _AppearanceSegment = ({
+  IconData icon,
+  String label,
+  bool isSelected,
+  VoidCallback onTap,
+});
 
-  const _LanguageTile({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
+/// A compact single-row segmented control — used for Appearance instead
+/// of stacking one row per option, since there are only 3 mutually
+/// exclusive choices and a whole card of rows wastes vertical space.
+class _SegmentedControl extends StatelessWidget {
+  final List<_AppearanceSegment> segments;
+
+  const _SegmentedControl({required this.segments});
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: .circular(12),
-      onTap: onTap,
-      child: Container(
-        padding: const .symmetric(horizontal: 14, vertical: 14),
-        decoration: BoxDecoration(
-          color: context.surfaceElevated,
-          borderRadius: .circular(12),
-          border: isSelected
-              ? Border.all(color: context.primaryAccent, width: 1.5)
-              : null,
-          boxShadow: isSelected
-              ? null
-              : [
-                  BoxShadow(
-                    color: context.shadow,
-                    blurRadius: 5,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-        ),
-        child: Row(
-          children: [
+    return Container(
+      padding: const .all(6),
+      decoration: BoxDecoration(
+        color: context.surfaceElevated,
+        borderRadius: .circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: context.shadow,
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          for (final segment in segments)
             Expanded(
-              child: Text(
-                label,
-                style: context.bodyMedium.copyWith(
-                  fontWeight: isSelected ? .bold : .w500,
-                  color: isSelected
-                      ? context.primaryAccent
-                      : context.textPrimary,
+              child: InkWell(
+                onTap: segment.onTap,
+                borderRadius: .circular(10),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  padding: const .symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: segment.isSelected
+                        ? context.primaryAccent
+                        : context.transparent,
+                    borderRadius: .circular(10),
+                  ),
+                  child: Column(
+                    mainAxisSize: .min,
+                    children: [
+                      Icon(
+                        segment.icon,
+                        size: 18,
+                        color: segment.isSelected
+                            ? context.white
+                            : context.textSecondary,
+                      ),
+                      heightBox(4),
+                      Text(
+                        segment.label,
+                        style: context.labelSmall.copyWith(
+                          color: segment.isSelected
+                              ? context.white
+                              : context.textSecondary,
+                          fontWeight: segment.isSelected ? .bold : .w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-            if (isSelected)
-              Icon(Icons.check_circle, color: context.primaryAccent, size: 20),
-          ],
-        ),
+        ],
       ),
     );
   }

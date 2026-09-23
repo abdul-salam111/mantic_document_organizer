@@ -71,7 +71,6 @@
 
   "comingSoon": "Bientôt disponible",
   "comingSoonToast": "{name} — bientôt disponible",
-  "pressBackAgainToExit": "Appuyez de nouveau sur retour pour quitter",
 
   "pageNotFound": "Page introuvable",
   "pageNotFoundSubtitle": "Nous n'avons pas trouvé « {path} ».",

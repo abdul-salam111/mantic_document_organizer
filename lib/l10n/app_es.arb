@@ -71,7 +71,6 @@
 
   "comingSoon": "Próximamente",
   "comingSoonToast": "{name} — próximamente",
-  "pressBackAgainToExit": "Presiona atrás de nuevo para salir",
 
   "pageNotFound": "Página no encontrada",
   "pageNotFoundSubtitle": "No pudimos encontrar \"{path}\".",

@@ -214,9 +214,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get pressBackAgainToExit => 'Presiona atrás de nuevo para salir';
-
-  @override
   String get pageNotFound => 'Página no encontrada';
 
   @override

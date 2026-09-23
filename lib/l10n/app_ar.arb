@@ -71,7 +71,6 @@
 
   "comingSoon": "قريبًا",
   "comingSoonToast": "{name} — قريبًا",
-  "pressBackAgainToExit": "اضغط رجوع مرة أخرى للخروج",
 
   "pageNotFound": "الصفحة غير موجودة",
   "pageNotFoundSubtitle": "تعذّر العثور على \"{path}\".",

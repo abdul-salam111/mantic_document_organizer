@@ -211,9 +211,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get pressBackAgainToExit => 'اضغط رجوع مرة أخرى للخروج';
-
-  @override
   String get pageNotFound => 'الصفحة غير موجودة';
 
   @override

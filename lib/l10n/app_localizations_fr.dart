@@ -214,10 +214,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get pressBackAgainToExit =>
-      'Appuyez de nouveau sur retour pour quitter';
-
-  @override
   String get pageNotFound => 'Page introuvable';
 
   @override

@@ -468,12 +468,6 @@ abstract class AppLocalizations {
   /// **'{name} — coming soon'**
   String comingSoonToast(String name);
 
-  /// Toast shown on the first back-press on the Home tab
-  ///
-  /// In en, this message translates to:
-  /// **'Press back again to exit'**
-  String get pressBackAgainToExit;
-
   /// Route error page title
   ///
   /// In en, this message translates to:
