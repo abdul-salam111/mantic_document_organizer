@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
+import '../localization/localization_exports.dart';
 import '../networks/networks_exports.dart';
 import '../theme/theme_exports.dart';
 import '../../features/auth/auth_exports.dart';
@@ -13,6 +14,7 @@ import '../../features/navbar/navbar_exports.dart';
 import '../../features/onboarding/onboarding_exports.dart';
 import '../../features/settings/settings_exports.dart';
 import '../../features/splash/splash_exports.dart';
+
 // GENERATED_IMPORTS_START
 
 // GENERATED_IMPORTS_END
@@ -44,6 +46,7 @@ Future<void> coreDependencies() async {
     dispose: (dioHelper) => dioHelper.dispose(),
   );
   sl.registerLazySingleton(() => ThemeController());
+  sl.registerLazySingleton(() => LocaleController());
 }
 
 /// Auth Feature Dependencies

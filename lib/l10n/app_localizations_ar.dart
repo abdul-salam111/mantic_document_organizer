@@ -1,0 +1,173 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Arabic (`ar`).
+class AppLocalizationsAr extends AppLocalizations {
+  AppLocalizationsAr([String locale = 'ar']) : super(locale);
+
+  @override
+  String get splashTagline => 'منظّم المستندات';
+
+  @override
+  String get onboardingHeadline => 'جميع مستنداتك،\nمنظَّمة بشكل رائع';
+
+  @override
+  String get onboardingSubtitle =>
+      'امسح مستنداتك ضوئيًا، صنّفها، واعثر على أي مستند مهم خلال ثوانٍ — كل ذلك مخزَّن بأمان على جهازك، حتى بدون اتصال بالإنترنت.';
+
+  @override
+  String get onboardingGetStarted => 'ابدأ الآن';
+
+  @override
+  String get onboardingNoSignIn =>
+      'لا حاجة لتسجيل الدخول — تبقى مستنداتك على هذا الجهاز فقط.';
+
+  @override
+  String get navHome => 'الرئيسية';
+
+  @override
+  String get navAllDocs => 'المستندات';
+
+  @override
+  String get navFavorites => 'المفضلة';
+
+  @override
+  String get navProfile => 'الملف الشخصي';
+
+  @override
+  String get homeSearchHint => 'ابحث عن المستندات';
+
+  @override
+  String get recentFiles => 'الملفات الأخيرة';
+
+  @override
+  String get seeAll => 'عرض الكل';
+
+  @override
+  String get categories => 'الفئات';
+
+  @override
+  String get uncategorized => 'بدون تصنيف';
+
+  @override
+  String get newCategory => 'فئة جديدة';
+
+  @override
+  String fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ملفات',
+      one: '$count ملف',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get profileTooltip => 'الملف الشخصي';
+
+  @override
+  String get allDocsTitle => 'المستندات';
+
+  @override
+  String get allDocsSearchHint => 'ابحث عن مستندات أو فئات';
+
+  @override
+  String get allCategoryTab => 'الكل';
+
+  @override
+  String get noDocumentsFound => 'لم يتم العثور على مستندات';
+
+  @override
+  String nothingInCategoryYet(String category) {
+    return 'لا يوجد شيء في \"$category\" بعد';
+  }
+
+  @override
+  String nothingMatchesQueryInCategory(String query, String category) {
+    return 'لا يوجد ما يطابق \"$query\" في \"$category\"';
+  }
+
+  @override
+  String get favoritesTitle => 'المفضلة';
+
+  @override
+  String get noFavoritesYet => 'لا توجد عناصر مفضلة بعد';
+
+  @override
+  String get favoritesEmptySubtitle =>
+      'ستظهر هنا المستندات التي تضيفها إلى المفضلة';
+
+  @override
+  String get removeFromFavorites => 'إزالة من المفضلة';
+
+  @override
+  String get profileTitle => 'الملف الشخصي';
+
+  @override
+  String get guest => 'ضيف';
+
+  @override
+  String get account => 'الحساب';
+
+  @override
+  String get localOnlyStatus => 'محلي فقط — تبقى مستنداتك على هذا الجهاز';
+
+  @override
+  String get setUpBackup => 'إعداد النسخ الاحتياطي';
+
+  @override
+  String get trash => 'سلة المهملات';
+
+  @override
+  String get signOut => 'تسجيل الخروج';
+
+  @override
+  String get settings => 'الإعدادات';
+
+  @override
+  String get appearance => 'المظهر';
+
+  @override
+  String get themeAuto => 'تلقائي';
+
+  @override
+  String get themeLight => 'فاتح';
+
+  @override
+  String get themeDark => 'داكن';
+
+  @override
+  String get language => 'اللغة';
+
+  @override
+  String get addDocumentTitle => 'إضافة مستند';
+
+  @override
+  String get addADocument => 'إضافة مستند';
+
+  @override
+  String get comingSoon => 'قريبًا';
+
+  @override
+  String comingSoonToast(String name) {
+    return '$name — قريبًا';
+  }
+
+  @override
+  String get pressBackAgainToExit => 'اضغط رجوع مرة أخرى للخروج';
+
+  @override
+  String get pageNotFound => 'الصفحة غير موجودة';
+
+  @override
+  String pageNotFoundSubtitle(String path) {
+    return 'تعذّر العثور على \"$path\".';
+  }
+
+  @override
+  String get goBack => 'رجوع';
+}

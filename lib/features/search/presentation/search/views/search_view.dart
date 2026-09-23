@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/di/di_exports.dart';
+import '../../../../../core/localization/localization_exports.dart';
 import '../../../../../core/theme/theme_exports.dart';
 import '../../../../../core/utils/utils_exports.dart';
 import '../../../../../core/widgets/widgets_exports.dart';
@@ -19,7 +20,7 @@ class SearchView extends StatelessWidget {
       create: (_) => sl<SearchViewModel>(),
       child: Scaffold(
         appBar: CustomAppBar(
-          title: 'All Docs',
+          title: AppLocalizations.of(context).allDocsTitle,
           onBackPressed: () => context.read<NavbarViewModel>().selectTab(0),
         ),
         body: SafeArea(
@@ -31,7 +32,7 @@ class SearchView extends StatelessWidget {
                   crossAxisAlignment: .start,
                   children: [
                     CustomSearchField(
-                      hintText: 'Search documents or categories',
+                      hintText: AppLocalizations.of(context).allDocsSearchHint,
                       onChanged: vm.updateQuery,
                     ),
                     heightBox(14),
@@ -81,7 +82,7 @@ class _CategoryTabs extends StatelessWidget {
                   height: 36,
                   child: Padding(
                     padding: const .symmetric(horizontal: 10),
-                    child: Text(category),
+                    child: Text(_categoryLabel(context, category)),
                   ),
                 ),
             ],
@@ -101,6 +102,15 @@ class _CategoryTabs extends StatelessWidget {
   }
 }
 
+/// Displays [category] as-is, unless it's the sentinel
+/// [SearchViewModel.allCategoryTab] — that one gets swapped for the
+/// localized "All" label instead of showing the raw English sentinel.
+String _categoryLabel(BuildContext context, String category) {
+  return category == SearchViewModel.allCategoryTab
+      ? AppLocalizations.of(context).allCategoryTab
+      : category;
+}
+
 class _DocumentList extends StatelessWidget {
   final SearchViewModel vm;
   final String category;
@@ -112,12 +122,15 @@ class _DocumentList extends StatelessWidget {
     final documents = vm.documentsFor(category);
 
     if (documents.isEmpty) {
+      final label = _categoryLabel(context, category);
       return EmptyStateWidget(
         icon: Iconsax.document_text,
-        title: 'No documents found',
+        title: AppLocalizations.of(context).noDocumentsFound,
         subtitle: vm.query.trim().isEmpty
-            ? 'Nothing in "$category" yet'
-            : 'Nothing matches "${vm.query}" in "$category"',
+            ? AppLocalizations.of(context).nothingInCategoryYet(label)
+            : AppLocalizations.of(
+                context,
+              ).nothingMatchesQueryInCategory(vm.query, label),
       );
     }
 
@@ -139,7 +152,9 @@ class _SearchResultTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: .circular(12),
-      onTap: () => AppToastsUtils.info('${item.name} — coming soon'),
+      onTap: () => AppToastsUtils.info(
+        AppLocalizations.of(context).comingSoonToast(item.name),
+      ),
       child: Container(
         padding: const .symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
@@ -186,11 +201,7 @@ class _SearchResultTile extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
-              Iconsax.arrow_right_3,
-              size: 16,
-              color: context.textSecondary,
-            ),
+            Icon(Iconsax.arrow_right_3, size: 16, color: context.textSecondary),
           ],
         ),
       ),

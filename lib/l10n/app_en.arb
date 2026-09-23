@@ -1,0 +1,128 @@
+{
+  "@@locale": "en",
+
+  "splashTagline": "Document Organizer",
+  "@splashTagline": {"description": "Subtitle shown under the logo on the splash screen"},
+
+  "onboardingHeadline": "All Your Documents,\nBeautifully Organized",
+  "@onboardingHeadline": {"description": "Onboarding screen headline"},
+  "onboardingSubtitle": "Scan, categorize, and find every important document in seconds — all stored securely on your device, even offline.",
+  "@onboardingSubtitle": {"description": "Onboarding screen subtitle"},
+  "onboardingGetStarted": "Get Started",
+  "@onboardingGetStarted": {"description": "Onboarding CTA button"},
+  "onboardingNoSignIn": "No sign-in required — your documents stay on this device.",
+  "@onboardingNoSignIn": {"description": "Onboarding reassurance line under the CTA"},
+
+  "navHome": "Home",
+  "@navHome": {"description": "Bottom nav tab label"},
+  "navAllDocs": "All Docs",
+  "@navAllDocs": {"description": "Bottom nav tab label"},
+  "navFavorites": "Favorites",
+  "@navFavorites": {"description": "Bottom nav tab label"},
+  "navProfile": "Profile",
+  "@navProfile": {"description": "Bottom nav tab label"},
+
+  "homeSearchHint": "Search documents",
+  "@homeSearchHint": {"description": "Home screen search field placeholder"},
+  "recentFiles": "Recent Files",
+  "@recentFiles": {"description": "Home screen section heading"},
+  "seeAll": "See all",
+  "@seeAll": {"description": "Link that jumps to All Docs"},
+  "categories": "Categories",
+  "@categories": {"description": "Home screen section heading"},
+  "uncategorized": "Uncategorized",
+  "@uncategorized": {"description": "Fallback category tile shown after all real categories"},
+  "newCategory": "New Category",
+  "@newCategory": {"description": "Add-a-category tile at the end of the category grid/list"},
+  "fileCount": "{count, plural, one{{count} file} other{{count} files}}",
+  "@fileCount": {
+    "description": "File count shown under a category",
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "profileTooltip": "Profile",
+  "@profileTooltip": {"description": "Tooltip on Home's header profile icon button"},
+
+  "allDocsTitle": "All Docs",
+  "@allDocsTitle": {"description": "All Docs screen title"},
+  "allDocsSearchHint": "Search documents or categories",
+  "@allDocsSearchHint": {"description": "All Docs screen search field placeholder"},
+  "allCategoryTab": "All",
+  "@allCategoryTab": {"description": "The first category tab, showing every document"},
+  "noDocumentsFound": "No documents found",
+  "@noDocumentsFound": {"description": "Empty state title on All Docs"},
+  "nothingInCategoryYet": "Nothing in \"{category}\" yet",
+  "@nothingInCategoryYet": {
+    "description": "Empty state subtitle when a category tab has no documents and no search is active",
+    "placeholders": {"category": {"type": "String"}}
+  },
+  "nothingMatchesQueryInCategory": "Nothing matches \"{query}\" in \"{category}\"",
+  "@nothingMatchesQueryInCategory": {
+    "description": "Empty state subtitle when a search query has no matches within a category",
+    "placeholders": {
+      "query": {"type": "String"},
+      "category": {"type": "String"}
+    }
+  },
+
+  "favoritesTitle": "Favorites",
+  "@favoritesTitle": {"description": "Favorites screen title"},
+  "noFavoritesYet": "No favorites yet",
+  "@noFavoritesYet": {"description": "Favorites empty state title"},
+  "favoritesEmptySubtitle": "Documents you favorite will show up here",
+  "@favoritesEmptySubtitle": {"description": "Favorites empty state subtitle"},
+  "removeFromFavorites": "Remove from favorites",
+  "@removeFromFavorites": {"description": "Tooltip on a favorite tile's heart button"},
+
+  "profileTitle": "Profile",
+  "@profileTitle": {"description": "Profile screen title"},
+  "guest": "Guest",
+  "@guest": {"description": "Profile header name shown when signed out"},
+  "account": "Account",
+  "@account": {"description": "Profile header name fallback when signed in but no name is on file"},
+  "localOnlyStatus": "Local-only — your documents stay on this device",
+  "@localOnlyStatus": {"description": "Profile header subtitle shown when signed out"},
+  "setUpBackup": "Set up backup",
+  "@setUpBackup": {"description": "CTA button shown when signed out"},
+  "trash": "Trash",
+  "@trash": {"description": "Profile menu entry"},
+  "signOut": "Sign Out",
+  "@signOut": {"description": "Profile menu entry, shown when signed in"},
+
+  "settings": "Settings",
+  "@settings": {"description": "Settings screen title / Profile menu entry"},
+  "appearance": "Appearance",
+  "@appearance": {"description": "Settings section heading"},
+  "themeAuto": "Auto",
+  "@themeAuto": {"description": "Theme mode option"},
+  "themeLight": "Light",
+  "@themeLight": {"description": "Theme mode option"},
+  "themeDark": "Dark",
+  "@themeDark": {"description": "Theme mode option"},
+  "language": "Language",
+  "@language": {"description": "Settings section heading for the language picker"},
+
+  "addDocumentTitle": "Add Document",
+  "@addDocumentTitle": {"description": "Add Document screen title"},
+  "addADocument": "Add a document",
+  "@addADocument": {"description": "Add Document empty state title"},
+
+  "comingSoon": "Coming soon",
+  "@comingSoon": {"description": "Generic placeholder subtitle for an unbuilt screen"},
+  "comingSoonToast": "{name} — coming soon",
+  "@comingSoonToast": {
+    "description": "Toast shown when tapping a not-yet-built item",
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "pressBackAgainToExit": "Press back again to exit",
+  "@pressBackAgainToExit": {"description": "Toast shown on the first back-press on the Home tab"},
+
+  "pageNotFound": "Page not found",
+  "@pageNotFound": {"description": "Route error page title"},
+  "pageNotFoundSubtitle": "We couldn't find \"{path}\".",
+  "@pageNotFoundSubtitle": {
+    "description": "Route error page subtitle",
+    "placeholders": {"path": {"type": "String"}}
+  },
+  "goBack": "Go back",
+  "@goBack": {"description": "Route error page button"}
+}

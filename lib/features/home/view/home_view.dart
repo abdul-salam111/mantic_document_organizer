@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/di/di_exports.dart';
+import '../../../core/localization/localization_exports.dart';
 import '../../../core/theme/theme_exports.dart';
 import '../../../core/utils/utils_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
@@ -42,7 +43,9 @@ class HomeView extends StatelessWidget {
                               ),
                               const Spacer(),
                               IconButton(
-                                tooltip: 'Profile',
+                                tooltip: AppLocalizations.of(
+                                  context,
+                                ).profileTooltip,
                                 style: IconButton.styleFrom(
                                   backgroundColor: context.surface,
                                   fixedSize: const Size(36, 36),
@@ -64,12 +67,16 @@ class HomeView extends StatelessWidget {
                             ],
                           ),
                           heightBox(20),
-                          const CustomSearchField(hintText: 'Search documents'),
+                          CustomSearchField(
+                            hintText: AppLocalizations.of(
+                              context,
+                            ).homeSearchHint,
+                          ),
                           heightBox(14),
                           Row(
                             children: [
                               Text(
-                                'Recent Files',
+                                AppLocalizations.of(context).recentFiles,
                                 style: context.titleMedium.copyWith(
                                   fontWeight: .w700,
                                 ),
@@ -82,7 +89,7 @@ class HomeView extends StatelessWidget {
                                     .read<NavbarViewModel>()
                                     .selectTab(1),
                                 child: Text(
-                                  'See all',
+                                  AppLocalizations.of(context).seeAll,
                                   style: context.labelLarge.copyWith(
                                     color: context.primary,
                                     fontWeight: .w600,
@@ -108,7 +115,7 @@ class HomeView extends StatelessWidget {
                           Row(
                             children: [
                               Text(
-                                'Categories',
+                                AppLocalizations.of(context).categories,
                                 style: context.titleMedium.copyWith(
                                   fontWeight: .w700,
                                 ),
@@ -147,6 +154,7 @@ class HomeView extends StatelessWidget {
 }
 
 Widget _categoryTileAt(
+  BuildContext context,
   HomeViewModel vm,
   int index, {
   required bool isGridView,
@@ -164,14 +172,14 @@ Widget _categoryTileAt(
     );
   } else if (index == vm.categories.length) {
     tile = _CategoryTile(
-      name: 'Uncategorized',
+      name: AppLocalizations.of(context).uncategorized,
       fileCount: 0,
       icon: FontAwesomeIcons.folder,
       isGridView: isGridView,
     );
   } else {
     tile = _CategoryTile(
-      name: 'New Category',
+      name: AppLocalizations.of(context).newCategory,
       icon: FontAwesomeIcons.circlePlus,
       isAddNew: true,
       isGridView: isGridView,
@@ -307,7 +315,7 @@ class _CategoryGrid extends StatelessWidget {
       ),
       itemCount: vm.categories.length + 2,
       itemBuilder: (context, index) =>
-          _categoryTileAt(vm, index, isGridView: true, reveal: reveal),
+          _categoryTileAt(context, vm, index, isGridView: true, reveal: reveal),
     );
   }
 }
@@ -325,8 +333,13 @@ class _CategoryList extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       itemCount: vm.categories.length + 2,
       separatorBuilder: (context, index) => heightBox(10),
-      itemBuilder: (context, index) =>
-          _categoryTileAt(vm, index, isGridView: false, reveal: reveal),
+      itemBuilder: (context, index) => _categoryTileAt(
+        context,
+        vm,
+        index,
+        isGridView: false,
+        reveal: reveal,
+      ),
     );
   }
 }
@@ -367,7 +380,9 @@ class _RecentFileCard extends StatelessWidget {
     final color = _categoryIconColor(context, file.category);
     return InkWell(
       borderRadius: .circular(14),
-      onTap: () => AppToastsUtils.info('${file.name} — coming soon'),
+      onTap: () => AppToastsUtils.info(
+        AppLocalizations.of(context).comingSoonToast(file.name),
+      ),
       child: Container(
         width: 110,
         padding: .all(9),
@@ -479,7 +494,9 @@ class _CategoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: .circular(10),
-      onTap: () => AppToastsUtils.info('$name — coming soon'),
+      onTap: () => AppToastsUtils.info(
+        AppLocalizations.of(context).comingSoonToast(name),
+      ),
       child: isGridView ? _buildGrid(context) : _buildList(context),
     );
   }
@@ -569,7 +586,7 @@ class _CategoryTile extends StatelessWidget {
                 if (_showBadge) ...[
                   heightBox(4),
                   Text(
-                    '$fileCount ${fileCount == 1 ? 'file' : 'files'}',
+                    AppLocalizations.of(context).fileCount(fileCount!),
                     style: context.labelSmall.copyWith(
                       color: context.textSecondary,
                     ),

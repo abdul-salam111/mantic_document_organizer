@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'route_names.dart';
 import 'route_paths.dart';
+import '../core/localization/localization_exports.dart';
 import '../core/theme/theme_exports.dart';
 import '../core/widgets/widgets_exports.dart';
 import '../features/auth/auth_exports.dart';
@@ -117,10 +118,15 @@ class _RouteErrorPage extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Page not found', style: context.headlineSmall),
+                Text(
+                  AppLocalizations.of(context).pageNotFound,
+                  style: context.headlineSmall,
+                ),
                 const SizedBox(height: 8),
                 Text(
-                  "We couldn't find \"${state.uri}\".",
+                  AppLocalizations.of(
+                    context,
+                  ).pageNotFoundSubtitle(state.uri.toString()),
                   textAlign: TextAlign.center,
                   style: context.bodyMedium.copyWith(
                     color: context.textSecondary,
@@ -128,7 +134,7 @@ class _RouteErrorPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 CustomButton(
-                  text: 'Go back',
+                  text: AppLocalizations.of(context).goBack,
                   onPressed: () => context.goNamed(RouteNames.home),
                 ),
               ],

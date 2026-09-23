@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/di/di_exports.dart';
+import '../../../core/localization/localization_exports.dart';
 import '../../../core/theme/theme_exports.dart';
 import '../../../core/utils/utils_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
@@ -27,10 +28,10 @@ class _OnboardingViewState extends State<OnboardingView>
       duration: const Duration(milliseconds: 700),
     );
     _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-    _slide = Tween<Offset>(begin: const Offset(0, 0.06), end: Offset.zero)
-        .animate(
-          CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-        );
+    _slide = Tween<Offset>(
+      begin: const Offset(0, 0.06),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
     _controller.forward();
   }
 
@@ -83,7 +84,7 @@ class _OnboardingViewState extends State<OnboardingView>
                           ),
                           heightBox(18),
                           Text(
-                            'All Your Documents,\nBeautifully Organized',
+                            AppLocalizations.of(context).onboardingHeadline,
                             textAlign: .center,
                             style: context.headlineMedium.copyWith(
                               color: context.white,
@@ -93,9 +94,7 @@ class _OnboardingViewState extends State<OnboardingView>
                           ),
                           heightBox(12),
                           Text(
-                            'Scan, categorize, and find every important '
-                            'document in seconds — all stored securely on '
-                            'your device, even offline.',
+                            AppLocalizations.of(context).onboardingSubtitle,
                             textAlign: .center,
                             style: context.bodyMedium.copyWith(
                               color: context.white.withValues(alpha: 0.85),
@@ -104,7 +103,9 @@ class _OnboardingViewState extends State<OnboardingView>
                           ),
                           heightBox(32),
                           CustomButton(
-                            text: 'Get Started',
+                            text: AppLocalizations.of(
+                              context,
+                            ).onboardingGetStarted,
                             backgroundColor: context.white,
                             textColor: context.primary,
                             radius: 16,
@@ -112,8 +113,7 @@ class _OnboardingViewState extends State<OnboardingView>
                           ),
                           heightBox(14),
                           Text(
-                            'No sign-in required — your documents stay on '
-                            'this device.',
+                            AppLocalizations.of(context).onboardingNoSignIn,
                             textAlign: .center,
                             style: context.labelSmall.copyWith(
                               color: context.white.withValues(alpha: 0.7),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/localization_exports.dart';
 import '../../../../core/theme/theme_exports.dart';
 import '../../../../core/utils/utils_exports.dart';
 import '../../../../core/widgets/widgets_exports.dart';
@@ -51,7 +52,7 @@ class MainBottomNavbar extends StatelessWidget {
                     child: _NavItem(
                       icon: Iconsax.home,
                       activeIcon: Iconsax.home5,
-                      label: 'Home',
+                      label: AppLocalizations.of(context).navHome,
                       isActive: selectedIndex == 0,
                       onTap: () => onTabSelected(0),
                     ),
@@ -60,7 +61,7 @@ class MainBottomNavbar extends StatelessWidget {
                     child: _NavItem(
                       icon: Iconsax.document,
                       activeIcon: Iconsax.document5,
-                      label: 'All Docs',
+                      label: AppLocalizations.of(context).navAllDocs,
                       isActive: selectedIndex == 1,
                       onTap: () => onTabSelected(1),
                     ),
@@ -70,7 +71,7 @@ class MainBottomNavbar extends StatelessWidget {
                     child: _NavItem(
                       icon: Iconsax.heart,
                       activeIcon: Iconsax.heart5,
-                      label: 'Favorites',
+                      label: AppLocalizations.of(context).navFavorites,
                       isActive: selectedIndex == 2,
                       onTap: () => onTabSelected(2),
                     ),
@@ -79,7 +80,7 @@ class MainBottomNavbar extends StatelessWidget {
                     child: _NavItem(
                       icon: Iconsax.profile_circle,
                       activeIcon: Iconsax.profile_circle5,
-                      label: 'Profile',
+                      label: AppLocalizations.of(context).navProfile,
                       isActive: selectedIndex == 3,
                       onTap: () => onTabSelected(3),
                     ),

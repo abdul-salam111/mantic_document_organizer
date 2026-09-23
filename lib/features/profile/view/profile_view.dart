@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/di/di_exports.dart';
+import '../../../core/localization/localization_exports.dart';
 import '../../../core/theme/theme_exports.dart';
 import '../../../core/utils/utils_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
@@ -20,7 +21,7 @@ class ProfileView extends StatelessWidget {
       create: (_) => sl<ProfileViewModel>(),
       child: Scaffold(
         appBar: CustomAppBar(
-          title: 'Profile',
+          title: AppLocalizations.of(context).profileTitle,
           onBackPressed: () => context.read<NavbarViewModel>().selectTab(0),
         ),
         body: SafeArea(
@@ -33,20 +34,24 @@ class ProfileView extends StatelessWidget {
                   heightBox(24),
                   _ProfileMenuTile(
                     icon: Iconsax.setting_2,
-                    label: 'Settings',
+                    label: AppLocalizations.of(context).settings,
                     onTap: () => AppNavigator.pushNamed(RouteNames.settings),
                   ),
                   heightBox(10),
                   _ProfileMenuTile(
                     icon: Iconsax.trash,
-                    label: 'Trash',
-                    onTap: () => AppToastsUtils.info('Trash — coming soon'),
+                    label: AppLocalizations.of(context).trash,
+                    onTap: () => AppToastsUtils.info(
+                      AppLocalizations.of(
+                        context,
+                      ).comingSoonToast(AppLocalizations.of(context).trash),
+                    ),
                   ),
                   if (vm.isSignedIn) ...[
                     heightBox(10),
                     _ProfileMenuTile(
                       icon: Iconsax.logout,
-                      label: 'Sign Out',
+                      label: AppLocalizations.of(context).signOut,
                       isDestructive: true,
                       onTap: vm.signOut,
                     ),
@@ -75,11 +80,7 @@ class _ProfileHeaderCard extends StatelessWidget {
         gradient: LinearGradient(
           begin: .topLeft,
           end: .bottomRight,
-          colors: [
-            context.primaryDark,
-            context.primary,
-            context.primaryLight,
-          ],
+          colors: [context.primaryDark, context.primary, context.primaryLight],
         ),
         borderRadius: .circular(18),
       ),
@@ -97,7 +98,9 @@ class _ProfileHeaderCard extends StatelessWidget {
           ),
           heightBox(12),
           Text(
-            vm.isSignedIn ? (vm.userName ?? 'Account') : 'Guest',
+            vm.isSignedIn
+                ? (vm.userName ?? AppLocalizations.of(context).account)
+                : AppLocalizations.of(context).guest,
             style: context.titleMedium.copyWith(
               color: context.white,
               fontWeight: .bold,
@@ -107,7 +110,7 @@ class _ProfileHeaderCard extends StatelessWidget {
           Text(
             vm.isSignedIn
                 ? (vm.userEmail ?? '')
-                : 'Local-only — your documents stay on this device',
+                : AppLocalizations.of(context).localOnlyStatus,
             textAlign: .center,
             style: context.labelSmall.copyWith(
               color: context.white.withValues(alpha: 0.85),
@@ -116,7 +119,7 @@ class _ProfileHeaderCard extends StatelessWidget {
           if (!vm.isSignedIn) ...[
             heightBox(16),
             CustomButton(
-              text: 'Set up backup',
+              text: AppLocalizations.of(context).setUpBackup,
               backgroundColor: context.white,
               textColor: context.primary,
               radius: 12,

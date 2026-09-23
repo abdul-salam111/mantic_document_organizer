@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/di/di_exports.dart';
+import 'core/localization/localization_exports.dart';
 import 'routes/routes_exports.dart';
 import 'core/theme/theme_exports.dart';
 
@@ -27,6 +28,7 @@ void main() {
 
       await setupLocator();
       await sl<ThemeController>().loadTheme();
+      await sl<LocaleController>().loadLocale();
       runApp(const MyApp());
     },
     // Errors from uncaught async code (e.g. a Future that's never
@@ -45,15 +47,25 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<ThemeController>.value(
-      value: sl<ThemeController>(),
-      child: Consumer<ThemeController>(
-        builder: (context, themeController, _) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<ThemeController>.value(
+          value: sl<ThemeController>(),
+        ),
+        ChangeNotifierProvider<LocaleController>.value(
+          value: sl<LocaleController>(),
+        ),
+      ],
+      child: Consumer2<ThemeController, LocaleController>(
+        builder: (context, themeController, localeController, _) {
           return MaterialApp.router(
             title: 'Mantic Doc Org',
             theme: AppThemes.lightTheme,
             darkTheme: AppThemes.darkTheme,
             themeMode: themeController.themeMode,
+            locale: localeController.locale,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             routerConfig: AppRoutes.router,
             debugShowCheckedModeBanner: false,
           );

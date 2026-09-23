@@ -67,7 +67,8 @@ class SearchViewModel extends ChangeNotifier with UseCaseExecutor {
   List<SearchResultItem> documentsFor(String category) {
     final q = _query.trim().toLowerCase();
     return _dummyDocuments.where((d) {
-      final matchesCategory = category == allCategoryTab || d.category == category;
+      final matchesCategory =
+          category == allCategoryTab || d.category == category;
       final matchesQuery =
           q.isEmpty ||
           d.name.toLowerCase().contains(q) ||

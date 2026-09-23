@@ -4,8 +4,7 @@ import '../models/request_models/search_params.dart';
 import '../../domain/entities/search_entity.dart';
 import '../../domain/repositories/search_repository.dart';
 
-class SearchRepositoryImpl extends BaseRepository
-    implements ISearchRepository {
+class SearchRepositoryImpl extends BaseRepository implements ISearchRepository {
   final IRemoteSearchDataSource dataSource;
 
   SearchRepositoryImpl({required this.dataSource});

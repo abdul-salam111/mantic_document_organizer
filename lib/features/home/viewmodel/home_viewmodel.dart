@@ -95,15 +95,9 @@ class HomeViewModel extends ChangeNotifier {
       icon: FontAwesomeIcons.fileContract,
       fileCount: 6,
     ),
-    CategoryItem(
-      name: 'Driving License',
-      icon: FontAwesomeIcons.idCardClip,
-    ),
+    CategoryItem(name: 'Driving License', icon: FontAwesomeIcons.idCardClip),
     CategoryItem(name: 'Education', icon: FontAwesomeIcons.graduationCap),
-    CategoryItem(
-      name: 'Electricity/Gas',
-      icon: FontAwesomeIcons.boltLightning,
-    ),
+    CategoryItem(name: 'Electricity/Gas', icon: FontAwesomeIcons.boltLightning),
     CategoryItem(name: 'ID Card', icon: FontAwesomeIcons.idCard),
     CategoryItem(name: 'Insurance', icon: FontAwesomeIcons.shieldHalved),
     CategoryItem(name: 'Invoices', icon: FontAwesomeIcons.fileInvoice),

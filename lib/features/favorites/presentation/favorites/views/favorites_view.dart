@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/di/di_exports.dart';
+import '../../../../../core/localization/localization_exports.dart';
 import '../../../../../core/theme/theme_exports.dart';
 import '../../../../../core/utils/utils_exports.dart';
 import '../../../../../core/widgets/widgets_exports.dart';
@@ -19,17 +20,17 @@ class FavoritesView extends StatelessWidget {
       create: (_) => sl<FavoritesViewModel>(),
       child: Scaffold(
         appBar: CustomAppBar(
-          title: 'Favorites',
+          title: AppLocalizations.of(context).favoritesTitle,
           onBackPressed: () => context.read<NavbarViewModel>().selectTab(0),
         ),
         body: SafeArea(
           child: Consumer<FavoritesViewModel>(
             builder: (context, vm, _) {
               if (vm.items.isEmpty) {
-                return const EmptyStateWidget(
+                return EmptyStateWidget(
                   icon: Iconsax.heart,
-                  title: 'No favorites yet',
-                  subtitle: 'Documents you favorite will show up here',
+                  title: AppLocalizations.of(context).noFavoritesYet,
+                  subtitle: AppLocalizations.of(context).favoritesEmptySubtitle,
                 );
               }
 
@@ -63,7 +64,9 @@ class _FavoriteTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: .circular(12),
-      onTap: () => AppToastsUtils.info('${item.name} — coming soon'),
+      onTap: () => AppToastsUtils.info(
+        AppLocalizations.of(context).comingSoonToast(item.name),
+      ),
       child: Container(
         padding: const .symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
@@ -111,7 +114,7 @@ class _FavoriteTile extends StatelessWidget {
               ),
             ),
             IconButton(
-              tooltip: 'Remove from favorites',
+              tooltip: AppLocalizations.of(context).removeFromFavorites,
               icon: Icon(Iconsax.heart5, color: context.errorAccent, size: 20),
               onPressed: onUnfavorite,
             ),

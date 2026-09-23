@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/di/di_exports.dart';
+import '../../../core/localization/localization_exports.dart';
 import '../../../core/theme/theme_exports.dart';
 import '../../../core/utils/utils_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
@@ -45,7 +46,7 @@ class SplashView extends StatelessWidget {
                 ),
                 heightBox(6),
                 Text(
-                  'Document Organizer',
+                  AppLocalizations.of(context).splashTagline,
                   style: context.bodyMedium.copyWith(
                     color: context.white.withValues(alpha: 0.8),
                     letterSpacing: 1.2,

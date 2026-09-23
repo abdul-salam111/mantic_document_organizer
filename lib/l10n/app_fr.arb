@@ -1,0 +1,62 @@
+{
+  "@@locale": "fr",
+
+  "splashTagline": "Organisateur de documents",
+
+  "onboardingHeadline": "Tous vos documents,\nparfaitement organisés",
+  "onboardingSubtitle": "Numérisez, classez et retrouvez chaque document important en quelques secondes — le tout stocké en toute sécurité sur votre appareil, même hors ligne.",
+  "onboardingGetStarted": "Commencer",
+  "onboardingNoSignIn": "Aucune connexion requise — vos documents restent sur cet appareil.",
+
+  "navHome": "Accueil",
+  "navAllDocs": "Documents",
+  "navFavorites": "Favoris",
+  "navProfile": "Profil",
+
+  "homeSearchHint": "Rechercher des documents",
+  "recentFiles": "Fichiers récents",
+  "seeAll": "Tout voir",
+  "categories": "Catégories",
+  "uncategorized": "Sans catégorie",
+  "newCategory": "Nouvelle catégorie",
+  "fileCount": "{count, plural, one{{count} fichier} other{{count} fichiers}}",
+  "profileTooltip": "Profil",
+
+  "allDocsTitle": "Documents",
+  "allDocsSearchHint": "Rechercher des documents ou des catégories",
+  "allCategoryTab": "Tous",
+  "noDocumentsFound": "Aucun document trouvé",
+  "nothingInCategoryYet": "Rien dans « {category} » pour l'instant",
+  "nothingMatchesQueryInCategory": "Rien ne correspond à « {query} » dans « {category} »",
+
+  "favoritesTitle": "Favoris",
+  "noFavoritesYet": "Aucun favori pour l'instant",
+  "favoritesEmptySubtitle": "Les documents que vous ajoutez aux favoris apparaîtront ici",
+  "removeFromFavorites": "Retirer des favoris",
+
+  "profileTitle": "Profil",
+  "guest": "Invité",
+  "account": "Compte",
+  "localOnlyStatus": "Local uniquement — vos documents restent sur cet appareil",
+  "setUpBackup": "Configurer la sauvegarde",
+  "trash": "Corbeille",
+  "signOut": "Déconnexion",
+
+  "settings": "Paramètres",
+  "appearance": "Apparence",
+  "themeAuto": "Auto",
+  "themeLight": "Clair",
+  "themeDark": "Sombre",
+  "language": "Langue",
+
+  "addDocumentTitle": "Ajouter un document",
+  "addADocument": "Ajouter un document",
+
+  "comingSoon": "Bientôt disponible",
+  "comingSoonToast": "{name} — bientôt disponible",
+  "pressBackAgainToExit": "Appuyez de nouveau sur retour pour quitter",
+
+  "pageNotFound": "Page introuvable",
+  "pageNotFoundSubtitle": "Nous n'avons pas trouvé « {path} ».",
+  "goBack": "Retour"
+}

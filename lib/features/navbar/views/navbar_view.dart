@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../core/di/di_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
@@ -26,13 +27,22 @@ class NavbarView extends StatelessWidget {
       create: (_) => sl<NavbarViewModel>(),
       child: Consumer<NavbarViewModel>(
         builder: (context, vm, _) {
-          return Scaffold(
-            body: IndexedStack(index: vm.selectedIndex, children: _tabs),
-            bottomNavigationBar: MainBottomNavbar(
-              selectedIndex: vm.selectedIndex,
-              onTabSelected: vm.selectTab,
-              onAddPressed: () =>
-                  AppNavigator.pushNamed(RouteNames.addDocument),
+          return PopScope(
+            canPop: false,
+            onPopInvokedWithResult: (didPop, result) {
+              if (didPop) return;
+              if (vm.handleBackPressed()) {
+                SystemNavigator.pop();
+              }
+            },
+            child: Scaffold(
+              body: IndexedStack(index: vm.selectedIndex, children: _tabs),
+              bottomNavigationBar: MainBottomNavbar(
+                selectedIndex: vm.selectedIndex,
+                onTabSelected: vm.selectTab,
+                onAddPressed: () =>
+                    AppNavigator.pushNamed(RouteNames.addDocument),
+              ),
             ),
           );
         },

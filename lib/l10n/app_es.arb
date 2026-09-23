@@ -1,0 +1,62 @@
+{
+  "@@locale": "es",
+
+  "splashTagline": "Organizador de Documentos",
+
+  "onboardingHeadline": "Todos tus documentos,\norganizados con estilo",
+  "onboardingSubtitle": "Escanea, clasifica y encuentra cualquier documento importante en segundos, todo almacenado de forma segura en tu dispositivo, incluso sin conexión.",
+  "onboardingGetStarted": "Comenzar",
+  "onboardingNoSignIn": "No se requiere iniciar sesión: tus documentos permanecen en este dispositivo.",
+
+  "navHome": "Inicio",
+  "navAllDocs": "Documentos",
+  "navFavorites": "Favoritos",
+  "navProfile": "Perfil",
+
+  "homeSearchHint": "Buscar documentos",
+  "recentFiles": "Archivos recientes",
+  "seeAll": "Ver todos",
+  "categories": "Categorías",
+  "uncategorized": "Sin categoría",
+  "newCategory": "Nueva categoría",
+  "fileCount": "{count, plural, one{{count} archivo} other{{count} archivos}}",
+  "profileTooltip": "Perfil",
+
+  "allDocsTitle": "Documentos",
+  "allDocsSearchHint": "Buscar documentos o categorías",
+  "allCategoryTab": "Todos",
+  "noDocumentsFound": "No se encontraron documentos",
+  "nothingInCategoryYet": "Nada en \"{category}\" todavía",
+  "nothingMatchesQueryInCategory": "Nada coincide con \"{query}\" en \"{category}\"",
+
+  "favoritesTitle": "Favoritos",
+  "noFavoritesYet": "Sin favoritos todavía",
+  "favoritesEmptySubtitle": "Los documentos que marques como favoritos aparecerán aquí",
+  "removeFromFavorites": "Quitar de favoritos",
+
+  "profileTitle": "Perfil",
+  "guest": "Invitado",
+  "account": "Cuenta",
+  "localOnlyStatus": "Solo local: tus documentos permanecen en este dispositivo",
+  "setUpBackup": "Configurar copia de seguridad",
+  "trash": "Papelera",
+  "signOut": "Cerrar sesión",
+
+  "settings": "Configuración",
+  "appearance": "Apariencia",
+  "themeAuto": "Automático",
+  "themeLight": "Claro",
+  "themeDark": "Oscuro",
+  "language": "Idioma",
+
+  "addDocumentTitle": "Agregar documento",
+  "addADocument": "Agregar un documento",
+
+  "comingSoon": "Próximamente",
+  "comingSoonToast": "{name} — próximamente",
+  "pressBackAgainToExit": "Presiona atrás de nuevo para salir",
+
+  "pageNotFound": "Página no encontrada",
+  "pageNotFoundSubtitle": "No pudimos encontrar \"{path}\".",
+  "goBack": "Volver"
+}

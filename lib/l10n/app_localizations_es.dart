@@ -1,0 +1,175 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Spanish Castilian (`es`).
+class AppLocalizationsEs extends AppLocalizations {
+  AppLocalizationsEs([String locale = 'es']) : super(locale);
+
+  @override
+  String get splashTagline => 'Organizador de Documentos';
+
+  @override
+  String get onboardingHeadline =>
+      'Todos tus documentos,\norganizados con estilo';
+
+  @override
+  String get onboardingSubtitle =>
+      'Escanea, clasifica y encuentra cualquier documento importante en segundos, todo almacenado de forma segura en tu dispositivo, incluso sin conexión.';
+
+  @override
+  String get onboardingGetStarted => 'Comenzar';
+
+  @override
+  String get onboardingNoSignIn =>
+      'No se requiere iniciar sesión: tus documentos permanecen en este dispositivo.';
+
+  @override
+  String get navHome => 'Inicio';
+
+  @override
+  String get navAllDocs => 'Documentos';
+
+  @override
+  String get navFavorites => 'Favoritos';
+
+  @override
+  String get navProfile => 'Perfil';
+
+  @override
+  String get homeSearchHint => 'Buscar documentos';
+
+  @override
+  String get recentFiles => 'Archivos recientes';
+
+  @override
+  String get seeAll => 'Ver todos';
+
+  @override
+  String get categories => 'Categorías';
+
+  @override
+  String get uncategorized => 'Sin categoría';
+
+  @override
+  String get newCategory => 'Nueva categoría';
+
+  @override
+  String fileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count archivos',
+      one: '$count archivo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get profileTooltip => 'Perfil';
+
+  @override
+  String get allDocsTitle => 'Documentos';
+
+  @override
+  String get allDocsSearchHint => 'Buscar documentos o categorías';
+
+  @override
+  String get allCategoryTab => 'Todos';
+
+  @override
+  String get noDocumentsFound => 'No se encontraron documentos';
+
+  @override
+  String nothingInCategoryYet(String category) {
+    return 'Nada en \"$category\" todavía';
+  }
+
+  @override
+  String nothingMatchesQueryInCategory(String query, String category) {
+    return 'Nada coincide con \"$query\" en \"$category\"';
+  }
+
+  @override
+  String get favoritesTitle => 'Favoritos';
+
+  @override
+  String get noFavoritesYet => 'Sin favoritos todavía';
+
+  @override
+  String get favoritesEmptySubtitle =>
+      'Los documentos que marques como favoritos aparecerán aquí';
+
+  @override
+  String get removeFromFavorites => 'Quitar de favoritos';
+
+  @override
+  String get profileTitle => 'Perfil';
+
+  @override
+  String get guest => 'Invitado';
+
+  @override
+  String get account => 'Cuenta';
+
+  @override
+  String get localOnlyStatus =>
+      'Solo local: tus documentos permanecen en este dispositivo';
+
+  @override
+  String get setUpBackup => 'Configurar copia de seguridad';
+
+  @override
+  String get trash => 'Papelera';
+
+  @override
+  String get signOut => 'Cerrar sesión';
+
+  @override
+  String get settings => 'Configuración';
+
+  @override
+  String get appearance => 'Apariencia';
+
+  @override
+  String get themeAuto => 'Automático';
+
+  @override
+  String get themeLight => 'Claro';
+
+  @override
+  String get themeDark => 'Oscuro';
+
+  @override
+  String get language => 'Idioma';
+
+  @override
+  String get addDocumentTitle => 'Agregar documento';
+
+  @override
+  String get addADocument => 'Agregar un documento';
+
+  @override
+  String get comingSoon => 'Próximamente';
+
+  @override
+  String comingSoonToast(String name) {
+    return '$name — próximamente';
+  }
+
+  @override
+  String get pressBackAgainToExit => 'Presiona atrás de nuevo para salir';
+
+  @override
+  String get pageNotFound => 'Página no encontrada';
+
+  @override
+  String pageNotFoundSubtitle(String path) {
+    return 'No pudimos encontrar \"$path\".';
+  }
+
+  @override
+  String get goBack => 'Volver';
+}

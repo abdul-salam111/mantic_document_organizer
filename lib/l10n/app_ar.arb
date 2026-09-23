@@ -1,0 +1,62 @@
+{
+  "@@locale": "ar",
+
+  "splashTagline": "منظّم المستندات",
+
+  "onboardingHeadline": "جميع مستنداتك،\nمنظَّمة بشكل رائع",
+  "onboardingSubtitle": "امسح مستنداتك ضوئيًا، صنّفها، واعثر على أي مستند مهم خلال ثوانٍ — كل ذلك مخزَّن بأمان على جهازك، حتى بدون اتصال بالإنترنت.",
+  "onboardingGetStarted": "ابدأ الآن",
+  "onboardingNoSignIn": "لا حاجة لتسجيل الدخول — تبقى مستنداتك على هذا الجهاز فقط.",
+
+  "navHome": "الرئيسية",
+  "navAllDocs": "المستندات",
+  "navFavorites": "المفضلة",
+  "navProfile": "الملف الشخصي",
+
+  "homeSearchHint": "ابحث عن المستندات",
+  "recentFiles": "الملفات الأخيرة",
+  "seeAll": "عرض الكل",
+  "categories": "الفئات",
+  "uncategorized": "بدون تصنيف",
+  "newCategory": "فئة جديدة",
+  "fileCount": "{count, plural, one{{count} ملف} other{{count} ملفات}}",
+  "profileTooltip": "الملف الشخصي",
+
+  "allDocsTitle": "المستندات",
+  "allDocsSearchHint": "ابحث عن مستندات أو فئات",
+  "allCategoryTab": "الكل",
+  "noDocumentsFound": "لم يتم العثور على مستندات",
+  "nothingInCategoryYet": "لا يوجد شيء في \"{category}\" بعد",
+  "nothingMatchesQueryInCategory": "لا يوجد ما يطابق \"{query}\" في \"{category}\"",
+
+  "favoritesTitle": "المفضلة",
+  "noFavoritesYet": "لا توجد عناصر مفضلة بعد",
+  "favoritesEmptySubtitle": "ستظهر هنا المستندات التي تضيفها إلى المفضلة",
+  "removeFromFavorites": "إزالة من المفضلة",
+
+  "profileTitle": "الملف الشخصي",
+  "guest": "ضيف",
+  "account": "الحساب",
+  "localOnlyStatus": "محلي فقط — تبقى مستنداتك على هذا الجهاز",
+  "setUpBackup": "إعداد النسخ الاحتياطي",
+  "trash": "سلة المهملات",
+  "signOut": "تسجيل الخروج",
+
+  "settings": "الإعدادات",
+  "appearance": "المظهر",
+  "themeAuto": "تلقائي",
+  "themeLight": "فاتح",
+  "themeDark": "داكن",
+  "language": "اللغة",
+
+  "addDocumentTitle": "إضافة مستند",
+  "addADocument": "إضافة مستند",
+
+  "comingSoon": "قريبًا",
+  "comingSoonToast": "{name} — قريبًا",
+  "pressBackAgainToExit": "اضغط رجوع مرة أخرى للخروج",
+
+  "pageNotFound": "الصفحة غير موجودة",
+  "pageNotFoundSubtitle": "تعذّر العثور على \"{path}\".",
+  "goBack": "رجوع"
+}

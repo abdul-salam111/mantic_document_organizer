@@ -27,7 +27,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       iconTheme: IconThemeData(color: context.white),
       leading: onBackPressed != null
           ? IconButton(
-              icon: const Icon(Icons.arrow_back),
+              // Not Icon(Icons.arrow_back) — BackButtonIcon auto-mirrors
+              // for RTL locales (Arabic), where "back" points right.
+              icon: const BackButtonIcon(),
               onPressed: onBackPressed,
             )
           : null,
