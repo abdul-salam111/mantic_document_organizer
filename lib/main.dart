@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'core/di/di_exports.dart';
 import 'core/localization/localization_exports.dart';
@@ -22,6 +23,7 @@ void main() {
 
       // Errors from outside the Flutter framework (e.g. platform channel
       // callbacks, isolate errors)
+      
       PlatformDispatcher.instance.onError = (error, stack) {
         _reportError(error, stack);
         return true; // handled — don't crash the app
@@ -73,8 +75,23 @@ class MyApp extends StatelessWidget {
             supportedLocales: AppLocalizations.supportedLocales,
             routerConfig: AppRoutes.router,
             debugShowCheckedModeBanner: false,
-            builder: (context, child) =>
-                AppLockGate(child: child ?? const SizedBox.shrink()),
+            // Fallback status bar contrast for any screen without its own
+            // AppBar (e.g. HomeView) — those otherwise inherit whatever
+            // overlay style the previous screen left behind, which can
+            // leave the status bar icons invisible against the new
+            // background. Screens that do have a CustomAppBar still win
+            // here since Material's AppBar nests its own AnnotatedRegion
+            // underneath this one.
+            builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
+              value: SystemUiOverlayStyle(
+                statusBarColor: Colors.transparent,
+                statusBarIconBrightness: Theme.of(context).brightness == .dark
+                    ? Brightness.light
+                    : Brightness.dark,
+                statusBarBrightness: Theme.of(context).brightness,
+              ),
+              child: AppLockGate(child: child ?? const SizedBox.shrink()),
+            ),
           );
         },
       ),
