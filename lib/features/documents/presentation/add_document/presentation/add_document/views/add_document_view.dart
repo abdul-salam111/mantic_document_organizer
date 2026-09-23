@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../../../../core/di/di_exports.dart';
 import '../../../../../../../core/localization/localization_exports.dart';
@@ -47,8 +48,6 @@ class AddDocumentView extends StatelessWidget {
                     _CategoryPickerTrigger(vm: vm),
                     heightBox(20),
                     _TagsField(vm: vm),
-                    heightBox(20),
-                    _FavoriteToggle(vm: vm),
                     heightBox(20),
                     _ExpirableToggle(vm: vm),
                     heightBox(32),
@@ -127,7 +126,14 @@ class _AttachmentSection extends StatelessWidget {
               child: _SourceButton(
                 icon: Iconsax.document,
                 label: AppLocalizations.of(context).files,
-                onTap: vm.pickFile,
+                onTap: () async {
+                  final skippedImages = await vm.pickFile();
+                  if (skippedImages && context.mounted) {
+                    AppToastsUtils.warning(
+                      AppLocalizations.of(context).filesImagesNotAllowed,
+                    );
+                  }
+                },
               ),
             ),
           ],
@@ -464,32 +470,37 @@ class _TagsField extends StatelessWidget {
     return Column(
       crossAxisAlignment: .start,
       children: [
-        Row(
-          crossAxisAlignment: .end,
-          children: [
-            Expanded(
-              child: CustomTextFormField(
-                label: AppLocalizations.of(context).tags,
-                hintText: AppLocalizations.of(context).tagsHint,
-                controller: vm.tagController,
-              ),
-            ),
-            widthBox(8),
-            InkWell(
-              onTap: vm.addTag,
-              borderRadius: .circular(10),
-              child: Container(
-                height: 48,
-                width: 48,
-                alignment: .center,
-                decoration: BoxDecoration(
-                  color: context.primary,
-                  borderRadius: .circular(10),
-                ),
-                child: const Icon(Icons.add, color: Colors.white),
-              ),
-            ),
-          ],
+        CustomTextFormField(
+          label: AppLocalizations.of(context).tags,
+          hintText: AppLocalizations.of(context).tagsHint,
+          controller: vm.tagController,
+          onChanged: (_) => vm.clearTagError(),
+          textInputAction: .done,
+          onFieldSubmitted: (_) => vm.addTag(),
+          inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
+        ),
+        heightBox(4),
+        Text(
+          switch (vm.tagError) {
+            TagError.limitReached => AppLocalizations.of(
+              context,
+            ).tagErrorLimitReached(AddDocumentViewModel.maxTagCount),
+            TagError.tooLong => AppLocalizations.of(
+              context,
+            ).tagErrorTooLong(AddDocumentViewModel.maxTagLength),
+            TagError.invalidCharacters => AppLocalizations.of(
+              context,
+            ).tagErrorInvalidCharacters,
+            TagError.duplicate => AppLocalizations.of(
+              context,
+            ).tagErrorDuplicate,
+            null => AppLocalizations.of(
+              context,
+            ).tagsHelper(AddDocumentViewModel.maxTagLength),
+          },
+          style: context.labelSmall.copyWith(
+            color: vm.tagError != null ? context.error : context.textSecondary,
+          ),
         ),
         if (vm.tags.isNotEmpty) ...[
           heightBox(10),
@@ -509,55 +520,6 @@ class _TagsField extends StatelessWidget {
           ),
         ],
       ],
-    );
-  }
-}
-
-class _FavoriteToggle extends StatelessWidget {
-  final AddDocumentViewModel vm;
-
-  const _FavoriteToggle({required this.vm});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: vm.toggleFavorite,
-      borderRadius: .circular(12),
-      child: Container(
-        padding: const .symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: context.surfaceElevated,
-          borderRadius: .circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: context.shadow,
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Icon(
-              vm.isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: vm.isFavorite ? context.error : context.textSecondary,
-              size: 22,
-            ),
-            widthBox(12),
-            Expanded(
-              child: Text(
-                AppLocalizations.of(context).markAsFavorite,
-                style: context.bodyMedium.copyWith(fontWeight: .w600),
-              ),
-            ),
-            Switch(
-              value: vm.isFavorite,
-              onChanged: (_) => vm.toggleFavorite(),
-              activeThumbColor: context.primary,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

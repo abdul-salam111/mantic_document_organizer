@@ -7,6 +7,8 @@ import '../../../../../../home/home_exports.dart';
 
 enum AttachmentType { image, file }
 
+enum TagError { limitReached, tooLong, invalidCharacters, duplicate }
+
 class AttachmentItem {
   final String path;
   final AttachmentType type;
@@ -52,27 +54,46 @@ class AddDocumentViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  static const maxTagCount = 10;
+  static const maxTagLength = 20;
+  static final _tagPattern = RegExp(r'^[a-z0-9_-]+$');
+
   final List<String> _tags = [];
   List<String> get tags => List.unmodifiable(_tags);
 
+  TagError? _tagError;
+  TagError? get tagError => _tagError;
+
+  void clearTagError() {
+    if (_tagError == null) return;
+    _tagError = null;
+    notifyListeners();
+  }
+
+  /// Tags are normalized to lowercase slugs (letters/numbers/-/_ only, no
+  /// spaces) so they stay consistent for future filtering/search, capped
+  /// at [maxTagLength] chars and [maxTagCount] tags per document.
   void addTag() {
-    final tag = tagController.text.trim();
-    if (tag.isEmpty || _tags.contains(tag)) return;
-    _tags.add(tag);
-    tagController.clear();
+    final tag = tagController.text.trim().toLowerCase();
+    if (tag.isEmpty) return;
+    if (_tags.length >= maxTagCount) {
+      _tagError = TagError.limitReached;
+    } else if (tag.length > maxTagLength) {
+      _tagError = TagError.tooLong;
+    } else if (!_tagPattern.hasMatch(tag)) {
+      _tagError = TagError.invalidCharacters;
+    } else if (_tags.contains(tag)) {
+      _tagError = TagError.duplicate;
+    } else {
+      _tags.add(tag);
+      tagController.clear();
+      _tagError = null;
+    }
     notifyListeners();
   }
 
   void removeTag(String tag) {
     _tags.remove(tag);
-    notifyListeners();
-  }
-
-  bool _isFavorite = false;
-  bool get isFavorite => _isFavorite;
-
-  void toggleFavorite() {
-    _isFavorite = !_isFavorite;
     notifyListeners();
   }
 
@@ -126,8 +147,6 @@ class AddDocumentViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Documents only (PDF, Word, etc.) — png/jpg/etc. belong to the Camera
-  /// and Gallery buttons instead, so any image picked here is dropped.
   static const _imageExtensions = {
     'png',
     'jpg',
@@ -141,16 +160,69 @@ class AddDocumentViewModel extends ChangeNotifier {
     'tiff',
   };
 
-  Future<void> pickFile() async {
-    final result = await FilePicker.platform.pickFiles(allowMultiple: true);
-    if (result == null) return;
+  /// Non-image extensions the system file browser is restricted to —
+  /// png/jpg/etc. belong to the Camera and Gallery buttons instead, so
+  /// the picker itself is scoped to these rather than just filtering
+  /// afterward (that left images visibly selectable in the browser,
+  /// which just got filtered back out post-pick and confused users).
+  /// Not exhaustive, but covers what "a document" realistically means.
+  static const _documentExtensions = [
+    'pdf',
+    'doc',
+    'docx',
+    'xls',
+    'xlsx',
+    'ppt',
+    'pptx',
+    'txt',
+    'rtf',
+    'csv',
+    'odt',
+    'ods',
+    'odp',
+    'epub',
+    'md',
+    'json',
+    'xml',
+    'zip',
+    'rar',
+    '7z',
+  ];
+
+  bool _isImage(PlatformFile file) {
+    final extension = file.extension?.toLowerCase();
+    if (extension != null) return _imageExtensions.contains(extension);
+    // Fallback for platforms/providers that don't populate `extension`.
+    final name = file.name.toLowerCase();
+    final dot = name.lastIndexOf('.');
+    if (dot == -1) return false;
+    return _imageExtensions.contains(name.substring(dot + 1));
+  }
+
+  /// Returns true if one or more selected files were skipped for being
+  /// images — shouldn't normally happen now that the picker itself is
+  /// restricted to [_documentExtensions], but some Android file manager
+  /// providers ignore that restriction, so this stays as a backstop (the
+  /// caller can surface it as a toast).
+  Future<bool> pickFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: true,
+      type: FileType.custom,
+      allowedExtensions: _documentExtensions,
+    );
+    if (result == null) return false;
+    var skippedImage = false;
     for (final file in result.files) {
       final path = file.path;
       if (path == null) continue;
-      if (_imageExtensions.contains(file.extension?.toLowerCase())) continue;
+      if (_isImage(file)) {
+        skippedImage = true;
+        continue;
+      }
       _attachments.add(AttachmentItem(path: path, type: AttachmentType.file));
     }
     notifyListeners();
+    return skippedImage;
   }
 
   void removeAttachment(AttachmentItem attachment) {
@@ -166,7 +238,6 @@ class AddDocumentViewModel extends ChangeNotifier {
         category: category?.name ?? 'Uncategorized',
         icon: category?.icon ?? FontAwesomeIcons.folder,
         tags: _tags,
-        isFavorite: _isFavorite,
         filePaths: [for (final a in _attachments) a.path],
         createdAt: DateTime.now(),
         isExpirable: _isExpirable,

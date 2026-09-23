@@ -321,10 +321,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tags => 'Tags';
 
   @override
-  String get tagsHint => 'Add a tag';
+  String get tagsHint => 'e.g. invoice-2026';
 
   @override
-  String get markAsFavorite => 'Mark as Favorite';
+  String tagsHelper(int maxLength) {
+    return 'Letters, numbers, - and _ only, up to $maxLength characters each';
+  }
+
+  @override
+  String tagErrorLimitReached(int maxCount) {
+    return 'You can add up to $maxCount tags';
+  }
+
+  @override
+  String tagErrorTooLong(int maxLength) {
+    return 'Tags must be $maxLength characters or fewer';
+  }
+
+  @override
+  String get tagErrorInvalidCharacters =>
+      'Use letters, numbers, - and _ only (no spaces)';
+
+  @override
+  String get tagErrorDuplicate => 'That tag is already added';
 
   @override
   String get documentExpirable => 'This Document Expires';
@@ -348,6 +367,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get files => 'Files';
+
+  @override
+  String get filesImagesNotAllowed =>
+      'Images aren\'t accepted here — use Camera or Gallery instead';
 
   @override
   String documentCreatedToast(String name) {

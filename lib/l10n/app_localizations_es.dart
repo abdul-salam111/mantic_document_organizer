@@ -322,10 +322,29 @@ class AppLocalizationsEs extends AppLocalizations {
   String get tags => 'Etiquetas';
 
   @override
-  String get tagsHint => 'Agrega una etiqueta';
+  String get tagsHint => 'p. ej. factura-2026';
 
   @override
-  String get markAsFavorite => 'Marcar como favorito';
+  String tagsHelper(int maxLength) {
+    return 'Solo letras, números, - y _, hasta $maxLength caracteres cada una';
+  }
+
+  @override
+  String tagErrorLimitReached(int maxCount) {
+    return 'Puedes agregar hasta $maxCount etiquetas';
+  }
+
+  @override
+  String tagErrorTooLong(int maxLength) {
+    return 'Las etiquetas deben tener $maxLength caracteres o menos';
+  }
+
+  @override
+  String get tagErrorInvalidCharacters =>
+      'Usa solo letras, números, - y _ (sin espacios)';
+
+  @override
+  String get tagErrorDuplicate => 'Esa etiqueta ya fue agregada';
 
   @override
   String get documentExpirable => 'Este documento caduca';
@@ -350,6 +369,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get files => 'Archivos';
+
+  @override
+  String get filesImagesNotAllowed =>
+      'Las imágenes no se aceptan aquí — usa la cámara o la galería';
 
   @override
   String documentCreatedToast(String name) {

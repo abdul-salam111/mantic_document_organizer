@@ -319,10 +319,29 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tags => 'الوسوم';
 
   @override
-  String get tagsHint => 'أضف وسمًا';
+  String get tagsHint => 'مثال: فاتورة-2026';
 
   @override
-  String get markAsFavorite => 'وضع علامة كمفضلة';
+  String tagsHelper(int maxLength) {
+    return 'أحرف وأرقام و- و_ فقط، بحد أقصى $maxLength حرفًا لكل وسم';
+  }
+
+  @override
+  String tagErrorLimitReached(int maxCount) {
+    return 'يمكنك إضافة حتى $maxCount وسوم';
+  }
+
+  @override
+  String tagErrorTooLong(int maxLength) {
+    return 'يجب ألا يتجاوز الوسم $maxLength حرفًا';
+  }
+
+  @override
+  String get tagErrorInvalidCharacters =>
+      'استخدم الأحرف والأرقام و- و_ فقط (بدون مسافات)';
+
+  @override
+  String get tagErrorDuplicate => 'تمت إضافة هذا الوسم بالفعل';
 
   @override
   String get documentExpirable => 'هذا المستند قابل لانتهاء الصلاحية';
@@ -346,6 +365,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get files => 'الملفات';
+
+  @override
+  String get filesImagesNotAllowed =>
+      'الصور غير مقبولة هنا — استخدم الكاميرا أو المعرض';
 
   @override
   String documentCreatedToast(String name) {

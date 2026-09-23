@@ -627,14 +627,38 @@ abstract class AppLocalizations {
   /// Add Document screen text field placeholder
   ///
   /// In en, this message translates to:
-  /// **'Add a tag'**
+  /// **'e.g. invoice-2026'**
   String get tagsHint;
 
-  /// Add Document screen toggle row label
+  /// Add Document screen tags field helper text explaining the input rules
   ///
   /// In en, this message translates to:
-  /// **'Mark as Favorite'**
-  String get markAsFavorite;
+  /// **'Letters, numbers, - and _ only, up to {maxLength} characters each'**
+  String tagsHelper(int maxLength);
+
+  /// Add Document screen tag validation error
+  ///
+  /// In en, this message translates to:
+  /// **'You can add up to {maxCount} tags'**
+  String tagErrorLimitReached(int maxCount);
+
+  /// Add Document screen tag validation error
+  ///
+  /// In en, this message translates to:
+  /// **'Tags must be {maxLength} characters or fewer'**
+  String tagErrorTooLong(int maxLength);
+
+  /// Add Document screen tag validation error
+  ///
+  /// In en, this message translates to:
+  /// **'Use letters, numbers, - and _ only (no spaces)'**
+  String get tagErrorInvalidCharacters;
+
+  /// Add Document screen tag validation error
+  ///
+  /// In en, this message translates to:
+  /// **'That tag is already added'**
+  String get tagErrorDuplicate;
 
   /// Add Document screen toggle row label
   ///
@@ -677,6 +701,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Files'**
   String get files;
+
+  /// Add Document screen warning toast when an image is picked via the Files button
+  ///
+  /// In en, this message translates to:
+  /// **'Images aren\'t accepted here — use Camera or Gallery instead'**
+  String get filesImagesNotAllowed;
 
   /// Success toast shown after saving a document
   ///

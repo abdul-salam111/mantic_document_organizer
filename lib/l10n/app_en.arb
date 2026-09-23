@@ -216,10 +216,27 @@
   "@selectCategory": {"description": "Add Document screen category picker sheet heading"},
   "tags": "Tags",
   "@tags": {"description": "Add Document screen text field label"},
-  "tagsHint": "Add a tag",
+  "tagsHint": "e.g. invoice-2026",
   "@tagsHint": {"description": "Add Document screen text field placeholder"},
-  "markAsFavorite": "Mark as Favorite",
-  "@markAsFavorite": {"description": "Add Document screen toggle row label"},
+  "tagsHelper": "Letters, numbers, - and _ only, up to {maxLength} characters each",
+  "@tagsHelper": {
+    "description": "Add Document screen tags field helper text explaining the input rules",
+    "placeholders": {"maxLength": {"type": "int"}}
+  },
+  "tagErrorLimitReached": "You can add up to {maxCount} tags",
+  "@tagErrorLimitReached": {
+    "description": "Add Document screen tag validation error",
+    "placeholders": {"maxCount": {"type": "int"}}
+  },
+  "tagErrorTooLong": "Tags must be {maxLength} characters or fewer",
+  "@tagErrorTooLong": {
+    "description": "Add Document screen tag validation error",
+    "placeholders": {"maxLength": {"type": "int"}}
+  },
+  "tagErrorInvalidCharacters": "Use letters, numbers, - and _ only (no spaces)",
+  "@tagErrorInvalidCharacters": {"description": "Add Document screen tag validation error"},
+  "tagErrorDuplicate": "That tag is already added",
+  "@tagErrorDuplicate": {"description": "Add Document screen tag validation error"},
   "documentExpirable": "This Document Expires",
   "@documentExpirable": {"description": "Add Document screen toggle row label"},
   "expiresOn": "Expires on {date}",
@@ -237,6 +254,8 @@
   "@gallery": {"description": "Add Document screen attachment source button label"},
   "files": "Files",
   "@files": {"description": "Add Document screen attachment source button label"},
+  "filesImagesNotAllowed": "Images aren't accepted here — use Camera or Gallery instead",
+  "@filesImagesNotAllowed": {"description": "Add Document screen warning toast when an image is picked via the Files button"},
   "documentCreatedToast": "\"{name}\" added",
   "@documentCreatedToast": {
     "description": "Success toast shown after saving a document",

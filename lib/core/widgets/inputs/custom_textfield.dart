@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:iconsax/iconsax.dart';
 
 import '../../theme/theme_exports.dart';
@@ -14,6 +15,7 @@ class CustomTextFormField extends StatefulWidget {
   final TextCapitalization textCapitalization;
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
+  final void Function(String)? onFieldSubmitted;
   final void Function()? onTap;
   final int maxLines;
   final Color? fillColor;
@@ -22,6 +24,8 @@ class CustomTextFormField extends StatefulWidget {
   final bool isRequired;
   final double labelFontSize;
   final bool readOnly;
+  final TextInputAction? textInputAction;
+  final List<TextInputFormatter>? inputFormatters;
 
   const CustomTextFormField({
     super.key,
@@ -40,8 +44,11 @@ class CustomTextFormField extends StatefulWidget {
     this.validator,
     this.labelFontSize = 16.0,
     this.onChanged,
+    this.onFieldSubmitted,
     this.onTap,
     this.maxLines = 1,
+    this.textInputAction,
+    this.inputFormatters,
   });
 
   @override
@@ -113,6 +120,8 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
           obscureText: isObscure,
           keyboardType: widget.keyboardType,
           maxLines: widget.obscureText ? 1 : widget.maxLines,
+          textInputAction: widget.textInputAction,
+          inputFormatters: widget.inputFormatters,
           decoration: InputDecoration(
             hintText: widget.hintText,
             hintStyle: context.bodySmall.copyWith(color: context.textSecondary),
@@ -147,6 +156,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
           ),
           validator: widget.validator,
           onChanged: widget.onChanged,
+          onFieldSubmitted: widget.onFieldSubmitted,
           onTap: widget.onTap,
         ),
       ],
