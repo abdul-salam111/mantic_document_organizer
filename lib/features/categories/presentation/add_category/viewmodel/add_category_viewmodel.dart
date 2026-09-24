@@ -54,18 +54,18 @@ class AddCategoryViewModel extends ChangeNotifier {
   }
 
   bool nameExists(String name) =>
-      _categoryStore.exists(name, excluding: _editingCategory?.name);
+      _categoryStore.exists(name, excludingId: _editingCategory?.id);
 
   void submit() {
     final editing = _editingCategory;
     final item = CategoryItem(
+      id: editing?.id ?? generateLocalId(),
       name: nameController.text.trim(),
       icon: _selectedIcon,
       color: _selectedColor,
-      fileCount: editing?.fileCount,
     );
     if (editing != null) {
-      _categoryStore.updateCategory(editing.name, item);
+      _categoryStore.updateCategory(editing.id, item);
     } else {
       _categoryStore.addCategory(item);
     }

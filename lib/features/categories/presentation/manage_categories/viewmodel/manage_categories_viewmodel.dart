@@ -3,14 +3,21 @@ import 'package:flutter/material.dart';
 import '../../../../home/home_exports.dart';
 
 /// Presentation-only for now (see CLAUDE.md's "Known mismatches" section)
-/// — just a thin listener over the shared [CategoryLocalStore] so this
-/// screen's list stays in sync with categories added/edited elsewhere.
+/// — just a thin listener over the shared [CategoryLocalStore]/
+/// [DocumentLocalStore] so this screen's list (and each row's live
+/// document count) stays in sync with categories/documents added or
+/// edited elsewhere.
 class ManageCategoriesViewModel extends ChangeNotifier {
   final CategoryLocalStore _categoryStore;
+  final DocumentLocalStore _documentStore;
 
-  ManageCategoriesViewModel({required CategoryLocalStore categoryStore})
-    : _categoryStore = categoryStore {
+  ManageCategoriesViewModel({
+    required CategoryLocalStore categoryStore,
+    required DocumentLocalStore documentStore,
+  }) : _categoryStore = categoryStore,
+       _documentStore = documentStore {
     _categoryStore.addListener(notifyListeners);
+    _documentStore.addListener(notifyListeners);
   }
 
   String _query = '';
@@ -32,38 +39,42 @@ class ManageCategoriesViewModel extends ChangeNotifier {
   }
 
   void deleteCategory(CategoryItem category) {
-    _categoryStore.removeCategory(category.name);
+    _categoryStore.removeCategory(category.id);
   }
 
-  // Long-press-to-select, keyed by name (categories have no separate id).
-  final Set<String> _selectedNames = {};
-  bool get isSelecting => _selectedNames.isNotEmpty;
-  int get selectedCount => _selectedNames.length;
-  bool isSelected(String name) => _selectedNames.contains(name);
+  int documentCountFor(String categoryId) =>
+      _documentStore.countForCategory(categoryId);
 
-  void toggleSelection(String name) {
-    if (!_selectedNames.add(name)) _selectedNames.remove(name);
+  // Long-press-to-select, keyed by id.
+  final Set<String> _selectedIds = {};
+  bool get isSelecting => _selectedIds.isNotEmpty;
+  int get selectedCount => _selectedIds.length;
+  bool isSelected(String id) => _selectedIds.contains(id);
+
+  void toggleSelection(String id) {
+    if (!_selectedIds.add(id)) _selectedIds.remove(id);
     notifyListeners();
   }
 
   void clearSelection() {
-    if (_selectedNames.isEmpty) return;
-    _selectedNames.clear();
+    if (_selectedIds.isEmpty) return;
+    _selectedIds.clear();
     notifyListeners();
   }
 
   void deleteSelected() {
-    final names = Set<String>.of(_selectedNames);
+    final ids = Set<String>.of(_selectedIds);
     // Clear first (no notify) so the store's single notification below
     // reflects both the shorter category list and the cleared selection
     // in one rebuild, instead of a stale-selection frame in between.
-    _selectedNames.clear();
-    _categoryStore.removeCategories(names);
+    _selectedIds.clear();
+    _categoryStore.removeCategories(ids);
   }
 
   @override
   void dispose() {
     _categoryStore.removeListener(notifyListeners);
+    _documentStore.removeListener(notifyListeners);
     super.dispose();
   }
 }

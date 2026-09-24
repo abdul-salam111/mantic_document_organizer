@@ -42,14 +42,12 @@ class AddDocumentViewModel extends ChangeNotifier {
 
   /// Called from the view when opened with a category already in
   /// context (e.g. the "+" button on a category's document list) — picks
-  /// it by name from the live store rather than trusting the passed-in
+  /// it by id from the live store rather than trusting the passed-in
   /// [CategoryItem] as-is, since it may be stale (edited/deleted since).
-  /// No-op if the name no longer matches anything, leaving the
+  /// No-op if the id no longer matches anything, leaving the
   /// constructor's default selection in place.
   void preselectCategory(CategoryItem category) {
-    final matches = _categoryStore.categories.where(
-      (c) => c.name == category.name,
-    );
+    final matches = _categoryStore.categories.where((c) => c.id == category.id);
     if (matches.isEmpty) return;
     _selectedCategory = matches.first;
     notifyListeners();
@@ -286,8 +284,10 @@ class AddDocumentViewModel extends ChangeNotifier {
     final category = _selectedCategory;
     _documentStore.addDocument(
       DocumentItem(
+        id: generateLocalId(),
         title: titleController.text.trim(),
         category: category?.name ?? 'Uncategorized',
+        categoryId: category?.id ?? uncategorizedCategoryId,
         icon: category?.icon ?? FontAwesomeIcons.folder,
         tags: _tags,
         filePaths: [for (final a in _attachments) a.path],

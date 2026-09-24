@@ -72,45 +72,49 @@ class HomeView extends StatelessWidget {
                             ).homeSearchHint,
                           ),
                           heightBox(14),
-                          Row(
-                            children: [
-                              Text(
-                                AppLocalizations.of(context).recentFiles,
-                                style: context.titleMedium.copyWith(
-                                  fontWeight: .w700,
-                                ),
-                              ),
-                              const Spacer(),
-                              InkWell(
-                                borderRadius: .circular(6),
-                                // Index 1 = Search, per NavbarView's _tabs order.
-                                onTap: () => context
-                                    .read<NavbarViewModel>()
-                                    .selectTab(1),
-                                child: Text(
-                                  AppLocalizations.of(context).seeAll,
-                                  style: context.labelLarge.copyWith(
-                                    color: context.primary,
-                                    fontWeight: .w600,
+                          if (vm.recentFiles.isNotEmpty) ...[
+                            Row(
+                              children: [
+                                Text(
+                                  AppLocalizations.of(context).recentFiles,
+                                  style: context.titleMedium.copyWith(
+                                    fontWeight: .w700,
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          heightBox(7),
-                          SizedBox(
-                            height: 74,
-                            child: ListView.separated(
-                              scrollDirection: .horizontal,
-                              clipBehavior: Clip.none,
-                              itemCount: vm.recentFiles.length,
-                              separatorBuilder: (context, index) =>
-                                  widthBox(12),
-                              itemBuilder: (context, index) =>
-                                  _RecentFileCard(file: vm.recentFiles[index]),
+                                const Spacer(),
+                                InkWell(
+                                  borderRadius: .circular(6),
+                                  // Index 1 = Search, per NavbarView's _tabs order.
+                                  onTap: () => context
+                                      .read<NavbarViewModel>()
+                                      .selectTab(1),
+                                  child: Text(
+                                    AppLocalizations.of(context).seeAll,
+                                    style: context.labelLarge.copyWith(
+                                      color: context.primary,
+                                      fontWeight: .w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                          heightBox(20),
+                            heightBox(7),
+                            SizedBox(
+                              height: 74,
+                              child: ListView.separated(
+                                scrollDirection: .horizontal,
+                                clipBehavior: Clip.none,
+                                itemCount: vm.recentFiles.length,
+                                separatorBuilder: (context, index) =>
+                                    widthBox(12),
+                                itemBuilder: (context, index) =>
+                                    _RecentFileCard(
+                                      file: vm.recentFiles[index],
+                                    ),
+                              ),
+                            ),
+                            heightBox(20),
+                          ],
                           Row(
                             children: [
                               Text(
@@ -156,8 +160,9 @@ Widget _categoryTileAt(
   if (index < vm.categories.length) {
     final category = vm.categories[index];
     tile = _CategoryTile(
+      id: category.id,
       name: category.name,
-      fileCount: category.fileCount,
+      fileCount: vm.documentCountFor(category.id),
       icon: category.icon,
       isGridView: isGridView,
       colorKey: category.name,
@@ -165,8 +170,9 @@ Widget _categoryTileAt(
     );
   } else if (index == vm.categories.length) {
     tile = _CategoryTile(
+      id: uncategorizedCategoryId,
       name: AppLocalizations.of(context).uncategorized,
-      fileCount: 0,
+      fileCount: vm.documentCountFor(uncategorizedCategoryId),
       icon: FontAwesomeIcons.folder,
       isGridView: isGridView,
     );
@@ -437,6 +443,7 @@ class _RecentFileCard extends StatelessWidget {
 }
 
 class _CategoryTile extends StatelessWidget {
+  final String? id;
   final String name;
   final int? fileCount;
   final FaIconData icon;
@@ -446,6 +453,7 @@ class _CategoryTile extends StatelessWidget {
   final Color? color;
 
   const _CategoryTile({
+    this.id,
     required this.name,
     required this.icon,
     this.fileCount,
@@ -476,10 +484,10 @@ class _CategoryTile extends StatelessWidget {
         AppNavigator.pushNamed(
           RouteNames.categoryDocuments,
           extra: CategoryItem(
+            id: id ?? uncategorizedCategoryId,
             name: name,
             icon: icon,
             color: color,
-            fileCount: fileCount,
           ),
         );
       },

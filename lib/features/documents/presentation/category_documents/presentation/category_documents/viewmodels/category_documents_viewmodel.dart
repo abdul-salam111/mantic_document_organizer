@@ -6,8 +6,8 @@ import '../../../../../../home/home_exports.dart';
 /// mismatches" section) — this reads straight from the shared
 /// [DocumentLocalStore] (also used by HomeViewModel/AddDocumentViewModel)
 /// and filters to whichever [CategoryItem] the screen was opened for,
-/// matched by name (the same loose id-less matching every other feature
-/// uses for categories).
+/// matched by [CategoryItem.id]/[DocumentItem.categoryId] so a category
+/// rename doesn't orphan its documents.
 class CategoryDocumentsViewModel extends ChangeNotifier {
   final DocumentLocalStore _documentStore;
 
@@ -46,7 +46,7 @@ class CategoryDocumentsViewModel extends ChangeNotifier {
   /// All documents in this category, regardless of the current search
   /// query — used for the header count so it doesn't shrink while typing.
   List<DocumentItem> get allDocuments => _documentStore.documents
-      .where((d) => d.category == _category.name)
+      .where((d) => d.categoryId == _category.id)
       .toList();
 
   List<DocumentItem> get documents {

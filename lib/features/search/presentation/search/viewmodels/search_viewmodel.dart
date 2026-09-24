@@ -59,11 +59,20 @@ class SearchViewModel extends ChangeNotifier {
 
   /// Documents in [category] (or every document, for [allCategoryTab]),
   /// further narrowed by the current search [query] if one's been typed.
+  ///
+  /// [category] is a display name (a tab label) — resolved back to its
+  /// live [CategoryItem.id] here, on every call, rather than matching
+  /// documents by name directly, so a rename doesn't drop documents out of
+  /// their tab (the tab label and this resolution both read the same live
+  /// [CategoryLocalStore] in the same rebuild, so they never disagree).
   List<DocumentItem> documentsFor(String category) {
+    final categoryId = category == allCategoryTab
+        ? null
+        : _categoryIdForName(category);
     final q = _query.trim().toLowerCase();
     final filtered = _documentStore.documents.where((d) {
       final matchesCategory =
-          category == allCategoryTab || d.category == category;
+          category == allCategoryTab || d.categoryId == categoryId;
       final matchesQuery =
           q.isEmpty ||
           d.title.toLowerCase().contains(q) ||
@@ -72,6 +81,13 @@ class SearchViewModel extends ChangeNotifier {
       return matchesCategory && matchesQuery;
     }).toList();
     return filtered.sortedBy(_sort);
+  }
+
+  String? _categoryIdForName(String name) {
+    for (final category in _categoryStore.categories) {
+      if (category.name == name) return category.id;
+    }
+    return null;
   }
 
   void toggleFavorite(DocumentItem document) =>

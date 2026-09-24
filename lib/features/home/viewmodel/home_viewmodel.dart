@@ -3,23 +3,44 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../core/utils/utils_exports.dart';
 
+/// Sentinel [CategoryItem.id] for documents saved with no category
+/// selected — stable across locales/renames, unlike matching on the
+/// localized "Uncategorized" display name would be.
+const String uncategorizedCategoryId = 'uncategorized';
+
+/// Cheap local-id generator for records created in the in-memory stores
+/// below (new categories, new documents) — not a real primary key scheme,
+/// just enough to give each record a stable identity that survives a
+/// rename, matching the pattern already used for scanned-file names in
+/// add_document_viewmodel.dart's `_localizeScan`.
+String generateLocalId() => DateTime.now().microsecondsSinceEpoch.toString();
+
 /// Presentational-only for now — no categories feature/local DB exists
 /// yet (see CLAUDE.md's "Known mismatches" section), so this is dummy
 /// data standing in for what will eventually be a real sqflite-backed
 /// Category list. [color] is only ever set by custom categories created
 /// via the add_category feature — built-ins keep deriving their color
 /// from `categoryIconColor` in home_view.dart.
+///
+/// [id] is the stable identity used for matching/joins (rename-safe);
+/// [name] is display-only and free to change via [CategoryLocalStore.
+/// updateCategory]. Deliberately no `fileCount` here — that's derived data
+/// (how many [DocumentItem]s currently have this [id] as their
+/// [DocumentItem.categoryId]), so it's computed live via
+/// [DocumentLocalStore.countForCategory] wherever it's displayed instead
+/// of being cached on the category itself, where it would go stale the
+/// moment a document is added/removed/recategorized.
 class CategoryItem {
+  final String id;
   final String name;
   final FaIconData icon;
   final Color? color;
-  final int? fileCount;
 
   const CategoryItem({
+    required this.id,
     required this.name,
     required this.icon,
     this.color,
-    this.fileCount,
   });
 }
 
@@ -47,9 +68,18 @@ enum DocumentSort { newest, oldest, nameAz }
 /// Presentation-only for now, same reasoning as [CategoryItem] — a
 /// document created via the add_document feature, standing in for a real
 /// sqflite-backed Document row (see CLAUDE.md's "Known mismatches").
+///
+/// [id] is this document's own stable identity (used for favorite toggling
+/// instead of positional/reference matching). [categoryId] is the stable
+/// join key back to [CategoryItem.id] — [category] is only a display-name
+/// snapshot taken at save time, so it does NOT update if the category is
+/// later renamed; anything that needs to filter/join by category must use
+/// [categoryId], never [category].
 class DocumentItem {
+  final String id;
   final String title;
   final String category;
+  final String categoryId;
   final FaIconData icon;
   final List<String> tags;
   final bool isFavorite;
@@ -59,8 +89,10 @@ class DocumentItem {
   final DateTime? expiryDate;
 
   const DocumentItem({
+    required this.id,
     required this.title,
     required this.category,
+    required this.categoryId,
     required this.icon,
     required this.createdAt,
     this.tags = const [],
@@ -71,8 +103,10 @@ class DocumentItem {
   });
 
   DocumentItem copyWith({bool? isFavorite}) => DocumentItem(
+    id: id,
     title: title,
     category: category,
+    categoryId: categoryId,
     icon: icon,
     createdAt: createdAt,
     tags: tags,
@@ -119,16 +153,17 @@ class DocumentLocalStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Identity here is positional (no id on [DocumentItem] yet, same
-  /// gap noted on [CategoryItem]) — matches by reference/equality within
-  /// the current list, which is fine since callers always pass back an
-  /// item they just read from [documents].
   void toggleFavorite(DocumentItem document) {
-    final index = _documents.indexOf(document);
+    final index = _documents.indexWhere((d) => d.id == document.id);
     if (index == -1) return;
     _documents[index] = document.copyWith(isFavorite: !document.isFavorite);
     notifyListeners();
   }
+
+  /// Live document count for a category — replaces any static/cached
+  /// count, so it's always correct as documents are added/removed.
+  int countForCategory(String categoryId) =>
+      _documents.where((d) => d.categoryId == categoryId).length;
 }
 
 /// Single shared in-memory stand-in for the local Category table (see
@@ -139,55 +174,90 @@ class DocumentLocalStore extends ChangeNotifier {
 class CategoryLocalStore extends ChangeNotifier {
   final List<CategoryItem> _categories = [
     const CategoryItem(
+      id: 'bank',
       name: 'Bank',
       icon: FontAwesomeIcons.buildingColumns,
-      fileCount: 4,
     ),
     const CategoryItem(
+      id: 'business_card',
       name: 'Business Card',
       icon: FontAwesomeIcons.addressCard,
     ),
     const CategoryItem(
+      id: 'contracts',
       name: 'Contracts',
       icon: FontAwesomeIcons.fileContract,
-      fileCount: 6,
     ),
     const CategoryItem(
+      id: 'driving_license',
       name: 'Driving License',
       icon: FontAwesomeIcons.idCardClip,
     ),
-    const CategoryItem(name: 'Education', icon: FontAwesomeIcons.graduationCap),
     const CategoryItem(
+      id: 'education',
+      name: 'Education',
+      icon: FontAwesomeIcons.graduationCap,
+    ),
+    const CategoryItem(
+      id: 'electricity_gas',
       name: 'Electricity/Gas',
       icon: FontAwesomeIcons.boltLightning,
     ),
-    const CategoryItem(name: 'ID Card', icon: FontAwesomeIcons.idCard),
-    const CategoryItem(name: 'Insurance', icon: FontAwesomeIcons.shieldHalved),
-    const CategoryItem(name: 'Invoices', icon: FontAwesomeIcons.fileInvoice),
     const CategoryItem(
+      id: 'id_card',
+      name: 'ID Card',
+      icon: FontAwesomeIcons.idCard,
+    ),
+    const CategoryItem(
+      id: 'insurance',
+      name: 'Insurance',
+      icon: FontAwesomeIcons.shieldHalved,
+    ),
+    const CategoryItem(
+      id: 'invoices',
+      name: 'Invoices',
+      icon: FontAwesomeIcons.fileInvoice,
+    ),
+    const CategoryItem(
+      id: 'medical',
       name: 'Medical',
       icon: FontAwesomeIcons.stethoscope,
-      fileCount: 5,
     ),
-    const CategoryItem(name: 'Passports', icon: FontAwesomeIcons.passport),
     const CategoryItem(
+      id: 'passports',
+      name: 'Passports',
+      icon: FontAwesomeIcons.passport,
+    ),
+    const CategoryItem(
+      id: 'products',
       name: 'Products',
       icon: FontAwesomeIcons.boxesStacked,
-      fileCount: 7,
     ),
     const CategoryItem(
+      id: 'tax_documents',
       name: 'Tax Documents',
       icon: FontAwesomeIcons.fileInvoiceDollar,
     ),
-    const CategoryItem(name: 'Tickets', icon: FontAwesomeIcons.ticket),
+    const CategoryItem(
+      id: 'tickets',
+      name: 'Tickets',
+      icon: FontAwesomeIcons.ticket,
+    ),
   ];
 
   List<CategoryItem> get categories => List.unmodifiable(_categories);
 
-  bool exists(String name, {String? excluding}) {
+  CategoryItem? byId(String id) {
+    for (final category in _categories) {
+      if (category.id == id) return category;
+    }
+    return null;
+  }
+
+  bool exists(String name, {String? excludingId}) {
     final normalized = name.trim().toLowerCase();
     return _categories.any(
-      (c) => c.name.toLowerCase() == normalized && c.name != excluding,
+      (c) => c.name.toLowerCase() == normalized && c.id != excludingId,
     );
   }
 
@@ -196,23 +266,23 @@ class CategoryLocalStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateCategory(String originalName, CategoryItem updated) {
-    final index = _categories.indexWhere((c) => c.name == originalName);
+  void updateCategory(String id, CategoryItem updated) {
+    final index = _categories.indexWhere((c) => c.id == id);
     if (index == -1) return;
     _categories[index] = updated;
     notifyListeners();
   }
 
-  void removeCategory(String name) {
-    _categories.removeWhere((c) => c.name == name);
+  void removeCategory(String id) {
+    _categories.removeWhere((c) => c.id == id);
     notifyListeners();
   }
 
   /// Bulk variant of [removeCategory] — one notification instead of one
   /// per item, for manage_categories' multi-select delete.
-  void removeCategories(Iterable<String> names) {
-    final nameSet = names.toSet();
-    _categories.removeWhere((c) => nameSet.contains(c.name));
+  void removeCategories(Iterable<String> ids) {
+    final idSet = ids.toSet();
+    _categories.removeWhere((c) => idSet.contains(c.id));
     notifyListeners();
   }
 }
@@ -244,56 +314,24 @@ class HomeViewModel extends ChangeNotifier {
       List<CategoryItem>.of(_categoryStore.categories)
         ..sort((a, b) => a.name.compareTo(b.name));
 
-  /// Newly created documents (newest first) ahead of the static dummy
-  /// list, so Add Document's output is immediately visible here.
+  /// Live document count for a category (or [uncategorizedCategoryId]) —
+  /// see [CategoryItem]'s doc comment for why this isn't a stored field.
+  int documentCountFor(String categoryId) =>
+      _documentStore.countForCategory(categoryId);
+
+  /// Newest first, capped to a reasonable preview length for the
+  /// horizontal strip — real documents only, no placeholder/dummy entries,
+  /// so this is empty until something's actually been added.
+  static const int _recentFilesLimit = 10;
+
   List<RecentFileItem> get recentFiles => [
-    for (final doc in _documentStore.documents)
+    for (final doc in _documentStore.documents.take(_recentFilesLimit))
       RecentFileItem(
         name: doc.title,
         category: doc.category,
         icon: doc.icon,
         timeLabel: doc.createdAt.timeAgo,
       ),
-    ..._staticRecentFiles,
-  ];
-
-  static const List<RecentFileItem> _staticRecentFiles = [
-    RecentFileItem(
-      name: 'Electricity Bill - Sept',
-      category: 'Electricity/Gas',
-      icon: FontAwesomeIcons.boltLightning,
-      timeLabel: '2h ago',
-    ),
-    RecentFileItem(
-      name: 'Passport Scan',
-      category: 'Passports',
-      icon: FontAwesomeIcons.passport,
-      timeLabel: '5h ago',
-    ),
-    RecentFileItem(
-      name: 'Insurance Policy',
-      category: 'Insurance',
-      icon: FontAwesomeIcons.shieldHalved,
-      timeLabel: 'Yesterday',
-    ),
-    RecentFileItem(
-      name: 'Bank Statement',
-      category: 'Bank',
-      icon: FontAwesomeIcons.buildingColumns,
-      timeLabel: '2d ago',
-    ),
-    RecentFileItem(
-      name: 'Lease Agreement',
-      category: 'Contracts',
-      icon: FontAwesomeIcons.fileContract,
-      timeLabel: '3d ago',
-    ),
-    RecentFileItem(
-      name: 'Lab Report',
-      category: 'Medical',
-      icon: FontAwesomeIcons.stethoscope,
-      timeLabel: '4d ago',
-    ),
   ];
 
   @override

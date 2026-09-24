@@ -59,15 +59,16 @@ class ManageCategoriesView extends StatelessWidget {
                               final category = vm.categories[index];
                               return _CategoryRow(
                                 category: category,
+                                fileCount: vm.documentCountFor(category.id),
                                 isSelecting: vm.isSelecting,
-                                isSelected: vm.isSelected(category.name),
+                                isSelected: vm.isSelected(category.id),
                                 onTap: () {
                                   if (vm.isSelecting) {
-                                    vm.toggleSelection(category.name);
+                                    vm.toggleSelection(category.id);
                                   }
                                 },
                                 onLongPress: () =>
-                                    vm.toggleSelection(category.name),
+                                    vm.toggleSelection(category.id),
                                 onEdit: () => AppNavigator.pushNamed(
                                   RouteNames.addCategory,
                                   extra: category,
@@ -195,6 +196,7 @@ class _SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
 
 class _CategoryRow extends StatelessWidget {
   final CategoryItem category;
+  final int fileCount;
   final bool isSelecting;
   final bool isSelected;
   final VoidCallback onTap;
@@ -204,6 +206,7 @@ class _CategoryRow extends StatelessWidget {
 
   const _CategoryRow({
     required this.category,
+    required this.fileCount,
     required this.isSelecting,
     required this.isSelected,
     required this.onTap,
@@ -268,9 +271,7 @@ class _CategoryRow extends StatelessWidget {
                     style: context.bodyMedium.copyWith(fontWeight: .w600),
                   ),
                   Text(
-                    AppLocalizations.of(
-                      context,
-                    ).fileCount(category.fileCount ?? 0),
+                    AppLocalizations.of(context).fileCount(fileCount),
                     style: context.labelSmall.copyWith(
                       color: context.textSecondary,
                     ),

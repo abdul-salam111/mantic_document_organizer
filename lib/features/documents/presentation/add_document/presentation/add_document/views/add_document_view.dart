@@ -413,7 +413,7 @@ class _CategoryPickerSheet extends StatelessWidget {
                   separatorBuilder: (context, index) => heightBox(8),
                   itemBuilder: (context, index) {
                     final category = categories[index];
-                    final isSelected = category.name == selected?.name;
+                    final isSelected = category.id == selected?.id;
                     final color =
                         category.color ??
                         categoryIconColor(context, category.name);

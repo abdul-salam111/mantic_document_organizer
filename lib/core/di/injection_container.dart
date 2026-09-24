@@ -214,7 +214,7 @@ Future<void> addCategoryDependencies() async {
 /// Manage Categories Feature Dependencies
 Future<void> manageCategoriesDependencies() async {
   sl.registerFactory<ManageCategoriesViewModel>(
-    () => ManageCategoriesViewModel(categoryStore: sl()),
+    () => ManageCategoriesViewModel(categoryStore: sl(), documentStore: sl()),
   );
 }
 
