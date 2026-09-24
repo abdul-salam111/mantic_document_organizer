@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/di/di_exports.dart';
 import '../../../../../core/localization/localization_exports.dart';
+import '../../../../../core/theme/theme_exports.dart';
 import '../../../../../core/utils/utils_exports.dart';
 import '../../../../../core/widgets/widgets_exports.dart';
 // Imports the viewmodel directly rather than navbar_exports.dart — the
@@ -22,49 +23,54 @@ class FavoritesView extends StatelessWidget {
         appBar: CustomAppBar(
           title: AppLocalizations.of(context).favoritesTitle,
           onBackPressed: () => context.read<NavbarViewModel>().selectTab(0),
-          actions: [
-            Consumer<FavoritesViewModel>(
-              builder: (context, vm, _) => ViewModeToggle(
-                isGridView: vm.isGridView,
-                onChanged: vm.setGridView,
-                onAppBar: true,
-              ),
-            ),
-            widthBox(10),
-            Consumer<FavoritesViewModel>(
-              builder: (context, vm, _) => DocumentSortMenuButton(
-                selected: vm.sort,
-                onSelected: vm.setSort,
-              ),
-            ),
-            widthBox(6),
-          ],
         ),
         body: SafeArea(
           child: Consumer<FavoritesViewModel>(
             builder: (context, vm, _) {
-              if (vm.allFavorites.isEmpty) {
-                return EmptyStateWidget(
-                  icon: Iconsax.heart,
-                  title: AppLocalizations.of(context).noFavoritesYet,
-                  subtitle: AppLocalizations.of(context).favoritesEmptySubtitle,
-                );
-              }
-
-              return Column(
-                children: [
-                  Padding(
-                    padding: const .fromLTRB(10, 16, 10, 0),
-                    child: CustomSearchField(
+              return Padding(
+                padding: const .fromLTRB(10, 16, 10, 0),
+                child: Column(
+                  children: [
+                    CustomSearchField(
                       hintText: AppLocalizations.of(
                         context,
                       ).searchDocumentsHint,
                       onChanged: vm.updateQuery,
                     ),
-                  ),
-                  heightBox(10),
-                  Expanded(child: _FavoritesList(vm: vm)),
-                ],
+                    heightBox(10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            vm.query.trim().isEmpty
+                                ? AppLocalizations.of(
+                                    context,
+                                  ).fileCount(vm.items.length)
+                                : AppLocalizations.of(
+                                    context,
+                                  ).resultsCount(vm.items.length),
+                            style: context.labelSmall.copyWith(
+                              color: context.textSecondary,
+                            ),
+                          ),
+                        ),
+                        ViewModeToggle(
+                          isGridView: vm.isGridView,
+                          onChanged: vm.setGridView,
+                          onAppBar: false,
+                        ),
+                
+                        DocumentSortMenuButton(
+                          selected: vm.sort,
+                          onSelected: vm.setSort,
+                          onAppBar: false,
+                        ),
+                      ],
+                    ),
+                    heightBox(10),
+                    Expanded(child: _FavoritesList(vm: vm)),
+                  ],
+                ),
               );
             },
           ),
@@ -81,22 +87,27 @@ class _FavoritesList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (vm.allFavorites.isEmpty) {
+      return EmptyStateWidget(
+        icon: Iconsax.heart,
+        title: AppLocalizations.of(context).noFavoritesYet,
+        subtitle: AppLocalizations.of(context).favoritesEmptySubtitle,
+      );
+    }
+
     final items = vm.items;
 
     if (items.isEmpty) {
-      return Padding(
-        padding: const .symmetric(horizontal: 10),
-        child: EmptyStateWidget(
-          icon: Iconsax.document_text,
-          title: AppLocalizations.of(context).noDocumentsFound,
-          subtitle: AppLocalizations.of(context).nothingMatchesQuery(vm.query),
-        ),
+      return EmptyStateWidget(
+        icon: Iconsax.document_text,
+        title: AppLocalizations.of(context).noDocumentsFound,
+        subtitle: AppLocalizations.of(context).nothingMatchesQuery(vm.query),
       );
     }
 
     if (vm.isGridView) {
       return GridView.builder(
-        padding: const .fromLTRB(10, 0, 10, 16),
+        padding: const .fromLTRB(0, 0, 0, 16),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           mainAxisSpacing: 12,
@@ -119,7 +130,7 @@ class _FavoritesList extends StatelessWidget {
     }
 
     return ListView.separated(
-      padding: const .fromLTRB(10, 0, 10, 16),
+      padding: const .fromLTRB(0, 0, 0, 16),
       itemCount: items.length,
       separatorBuilder: (context, index) => heightBox(10),
       itemBuilder: (context, index) {
