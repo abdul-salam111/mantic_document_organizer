@@ -67,7 +67,7 @@ class MyApp extends StatelessWidget {
         builder: (context, themeController, localeController, _) {
           return MaterialApp.router(
             title: 'Mantic Doc Org',
-            theme: AppThemes.lightTheme,
+            theme: AppThemes.lightTheme,    
             darkTheme: AppThemes.darkTheme,
             themeMode: themeController.themeMode,
             locale: localeController.locale,
