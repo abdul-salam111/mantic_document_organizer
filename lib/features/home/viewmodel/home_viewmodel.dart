@@ -39,6 +39,11 @@ class RecentFileItem {
   });
 }
 
+/// Shared document sort order — used by every screen that lists
+/// [DocumentItem]s (category_documents, favorites, ...) so the options
+/// and their ordering logic aren't redefined per screen.
+enum DocumentSort { newest, oldest, nameAz }
+
 /// Presentation-only for now, same reasoning as [CategoryItem] — a
 /// document created via the add_document feature, standing in for a real
 /// sqflite-backed Document row (see CLAUDE.md's "Known mismatches").
@@ -76,6 +81,26 @@ class DocumentItem {
     isExpirable: isExpirable,
     expiryDate: expiryDate,
   );
+}
+
+/// Shared sort logic for any screen listing [DocumentItem]s — returns a
+/// new sorted list rather than mutating [this], so callers can chain it
+/// straight off a filter without worrying about aliasing the source list.
+extension DocumentListSorting on List<DocumentItem> {
+  List<DocumentItem> sortedBy(DocumentSort sort) {
+    final sorted = List<DocumentItem>.of(this);
+    switch (sort) {
+      case DocumentSort.newest:
+        sorted.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      case DocumentSort.oldest:
+        sorted.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      case DocumentSort.nameAz:
+        sorted.sort(
+          (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+        );
+    }
+    return sorted;
+  }
 }
 
 /// Single shared in-memory stand-in for the local Document table (see

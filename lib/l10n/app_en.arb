@@ -61,6 +61,11 @@
       "category": {"type": "String"}
     }
   },
+  "nothingMatchesQuery": "Nothing matches \"{query}\"",
+  "@nothingMatchesQuery": {
+    "description": "Empty state subtitle when a search query has no matches, with no category scope (e.g. Favorites)",
+    "placeholders": {"query": {"type": "String"}}
+  },
 
   "favoritesTitle": "Favorites",
   "@favoritesTitle": {"description": "Favorites screen title"},

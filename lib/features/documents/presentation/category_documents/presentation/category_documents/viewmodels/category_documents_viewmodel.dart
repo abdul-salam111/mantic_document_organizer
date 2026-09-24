@@ -2,8 +2,6 @@ import 'package:flutter/foundation.dart';
 
 import '../../../../../../home/home_exports.dart';
 
-enum DocumentSort { newest, oldest, nameAz }
-
 /// No real document data layer exists yet (see CLAUDE.md's "Known
 /// mismatches" section) — this reads straight from the shared
 /// [DocumentLocalStore] (also used by HomeViewModel/AddDocumentViewModel)
@@ -58,18 +56,7 @@ class CategoryDocumentsViewModel extends ChangeNotifier {
       return d.title.toLowerCase().contains(q) ||
           d.tags.any((tag) => tag.contains(q));
     }).toList();
-
-    switch (_sort) {
-      case DocumentSort.newest:
-        filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      case DocumentSort.oldest:
-        filtered.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-      case DocumentSort.nameAz:
-        filtered.sort(
-          (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
-        );
-    }
-    return filtered;
+    return filtered.sortedBy(_sort);
   }
 
   void toggleFavorite(DocumentItem document) =>

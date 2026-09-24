@@ -27,6 +27,7 @@
   "noDocumentsFound": "لم يتم العثور على مستندات",
   "nothingInCategoryYet": "لا يوجد شيء في \"{category}\" بعد",
   "nothingMatchesQueryInCategory": "لا يوجد ما يطابق \"{query}\" في \"{category}\"",
+  "nothingMatchesQuery": "لا يوجد ما يطابق \"{query}\"",
 
   "favoritesTitle": "المفضلة",
   "noFavoritesYet": "لا توجد عناصر مفضلة بعد",

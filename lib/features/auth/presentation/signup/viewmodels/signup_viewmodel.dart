@@ -18,8 +18,9 @@ class SignupViewModel extends ChangeNotifier with UseCaseExecutor {
 
   Future<void> signup(String name, String email, String password) async {
     await execute(
-      call: () =>
-          _signupUsecase(SignupUser(name: name, email: email, password: password)),
+      call: () => _signupUsecase(
+        SignupUser(name: name, email: email, password: password),
+      ),
       onSuccess: (user) async {
         _user = user;
         await SessionController.instance.saveUserInStorage(user);

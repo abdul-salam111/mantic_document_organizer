@@ -90,6 +90,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String nothingMatchesQuery(String query) {
+    return 'Nada coincide con \"$query\"';
+  }
+
+  @override
   String get favoritesTitle => 'Favoritos';
 
   @override

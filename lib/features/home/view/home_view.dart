@@ -8,6 +8,7 @@ import '../../../core/widgets/widgets_exports.dart';
 import '../../../routes/routes_exports.dart';
 import '../../navbar/viewmodel/navbar_viewmodel.dart';
 import '../viewmodel/home_viewmodel.dart';
+import 'widgets/view_mode_toggle.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -119,16 +120,9 @@ class HomeView extends StatelessWidget {
                                 ),
                               ),
                               const Spacer(),
-                              _ViewModeButton(
-                                icon: Iconsax.element_3,
-                                isSelected: vm.isGridView,
-                                onTap: () => vm.setGridView(true),
-                              ),
-                              widthBox(6),
-                              _ViewModeButton(
-                                icon: Iconsax.row_vertical,
-                                isSelected: !vm.isGridView,
-                                onTap: () => vm.setGridView(false),
+                              ViewModeToggle(
+                                isGridView: vm.isGridView,
+                                onChanged: vm.setGridView,
                               ),
                             ],
                           ),
@@ -436,40 +430,6 @@ class _RecentFileCard extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ViewModeButton extends StatelessWidget {
-  final IconData icon;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _ViewModeButton({
-    required this.icon,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: .circular(8),
-      onTap: onTap,
-      child: Container(
-        width: 26,
-        height: 26,
-        alignment: .center,
-        decoration: BoxDecoration(
-          color: isSelected ? context.primary : context.surface,
-          borderRadius: .circular(7),
-        ),
-        child: Icon(
-          icon,
-          size: 14,
-          color: isSelected ? context.white : context.textSecondary,
         ),
       ),
     );

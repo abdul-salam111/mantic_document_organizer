@@ -234,6 +234,12 @@ abstract class AppLocalizations {
   /// **'Nothing matches \"{query}\" in \"{category}\"'**
   String nothingMatchesQueryInCategory(String query, String category);
 
+  /// Empty state subtitle when a search query has no matches, with no category scope (e.g. Favorites)
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches \"{query}\"'**
+  String nothingMatchesQuery(String query);
+
   /// Favorites screen title
   ///
   /// In en, this message translates to:

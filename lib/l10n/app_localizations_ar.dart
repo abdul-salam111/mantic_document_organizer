@@ -89,6 +89,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String nothingMatchesQuery(String query) {
+    return 'لا يوجد ما يطابق \"$query\"';
+  }
+
+  @override
   String get favoritesTitle => 'المفضلة';
 
   @override

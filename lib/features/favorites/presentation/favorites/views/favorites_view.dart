@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/di/di_exports.dart';
 import '../../../../../core/localization/localization_exports.dart';
-import '../../../../../core/theme/theme_exports.dart';
 import '../../../../../core/utils/utils_exports.dart';
 import '../../../../../core/widgets/widgets_exports.dart';
 // Imports the viewmodel directly rather than navbar_exports.dart — the
 // barrel re-exports NavbarView, which imports every tab feature
 // (including this one), so importing it here would create an import cycle.
 import '../../../../navbar/viewmodel/navbar_viewmodel.dart';
+import '../../../../home/home_exports.dart';
 import '../viewmodels/favorites_viewmodel.dart';
 
 class FavoritesView extends StatelessWidget {
@@ -22,11 +22,19 @@ class FavoritesView extends StatelessWidget {
         appBar: CustomAppBar(
           title: AppLocalizations.of(context).favoritesTitle,
           onBackPressed: () => context.read<NavbarViewModel>().selectTab(0),
+          actions: [
+            Consumer<FavoritesViewModel>(
+              builder: (context, vm, _) => DocumentSortMenuButton(
+                selected: vm.sort,
+                onSelected: vm.setSort,
+              ),
+            ),
+          ],
         ),
         body: SafeArea(
           child: Consumer<FavoritesViewModel>(
             builder: (context, vm, _) {
-              if (vm.items.isEmpty) {
+              if (vm.allFavorites.isEmpty) {
                 return EmptyStateWidget(
                   icon: Iconsax.heart,
                   title: AppLocalizations.of(context).noFavoritesYet,
@@ -34,17 +42,32 @@ class FavoritesView extends StatelessWidget {
                 );
               }
 
-              return ListView.separated(
-                padding: const .fromLTRB(10, 16, 10, 16),
-                itemCount: vm.items.length,
-                separatorBuilder: (context, index) => heightBox(10),
-                itemBuilder: (context, index) {
-                  final item = vm.items[index];
-                  return _FavoriteTile(
-                    item: item,
-                    onUnfavorite: () => vm.removeFavorite(item),
-                  );
-                },
+              return Column(
+                children: [
+                  Padding(
+                    padding: const .fromLTRB(10, 16, 10, 0),
+                    child: CustomSearchField(
+                      hintText: AppLocalizations.of(
+                        context,
+                      ).searchDocumentsHint,
+                      onChanged: vm.updateQuery,
+                    ),
+                  ),
+                  Padding(
+                    padding: const .fromLTRB(10, 10, 10, 0),
+                    child: Row(
+                      children: [
+                        const Spacer(),
+                        ViewModeToggle(
+                          isGridView: vm.isGridView,
+                          onChanged: vm.setGridView,
+                        ),
+                      ],
+                    ),
+                  ),
+                  heightBox(10),
+                  Expanded(child: _FavoritesList(vm: vm)),
+                ],
               );
             },
           ),
@@ -54,73 +77,65 @@ class FavoritesView extends StatelessWidget {
   }
 }
 
-class _FavoriteTile extends StatelessWidget {
-  final FavoriteItem item;
-  final VoidCallback onUnfavorite;
+class _FavoritesList extends StatelessWidget {
+  final FavoritesViewModel vm;
 
-  const _FavoriteTile({required this.item, required this.onUnfavorite});
+  const _FavoritesList({required this.vm});
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: .circular(12),
-      onTap: () => AppToastsUtils.info(
-        AppLocalizations.of(context).comingSoonToast(item.name),
-      ),
-      child: Container(
-        padding: const .symmetric(horizontal: 14, vertical: 14),
-        decoration: BoxDecoration(
-          color: context.surfaceElevated,
-          borderRadius: .circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: context.shadow,
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            ),
-          ],
+    final items = vm.items;
+
+    if (items.isEmpty) {
+      return Padding(
+        padding: const .symmetric(horizontal: 10),
+        child: EmptyStateWidget(
+          icon: Iconsax.document_text,
+          title: AppLocalizations.of(context).noDocumentsFound,
+          subtitle: AppLocalizations.of(context).nothingMatchesQuery(vm.query),
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              alignment: .center,
-              decoration: BoxDecoration(
-                color: context.primary.withValues(alpha: 0.1),
-                borderRadius: .circular(10),
-              ),
-              child: FaIcon(item.icon, size: 18, color: context.primary),
-            ),
-            widthBox(14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: .start,
-                children: [
-                  Text(
-                    item.name,
-                    maxLines: 1,
-                    overflow: .ellipsis,
-                    style: context.bodyMedium.copyWith(fontWeight: .w600),
-                  ),
-                  heightBox(2),
-                  Text(
-                    item.category,
-                    style: context.labelSmall.copyWith(
-                      color: context.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              tooltip: AppLocalizations.of(context).removeFromFavorites,
-              icon: Icon(Iconsax.heart5, color: context.errorAccent, size: 20),
-              onPressed: onUnfavorite,
-            ),
-          ],
+      );
+    }
+
+    if (vm.isGridView) {
+      return GridView.builder(
+        padding: const .fromLTRB(10, 0, 10, 16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 0.85,
         ),
-      ),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final document = items[index];
+          return DocumentGridTile(
+            document: document,
+            accentColor: categoryIconColor(context, document.category),
+            onTap: () => AppToastsUtils.info(
+              AppLocalizations.of(context).comingSoonToast(document.title),
+            ),
+            onToggleFavorite: () => vm.toggleFavorite(document),
+          );
+        },
+      );
+    }
+
+    return ListView.separated(
+      padding: const .fromLTRB(10, 0, 10, 16),
+      itemCount: items.length,
+      separatorBuilder: (context, index) => heightBox(10),
+      itemBuilder: (context, index) {
+        final document = items[index];
+        return DocumentListTile(
+          document: document,
+          accentColor: categoryIconColor(context, document.category),
+          onTap: () => AppToastsUtils.info(
+            AppLocalizations.of(context).comingSoonToast(document.title),
+          ),
+          onToggleFavorite: () => vm.toggleFavorite(document),
+        );
+      },
     );
   }
 }

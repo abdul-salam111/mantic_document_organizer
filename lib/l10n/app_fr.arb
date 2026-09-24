@@ -27,6 +27,7 @@
   "noDocumentsFound": "Aucun document trouvé",
   "nothingInCategoryYet": "Rien dans « {category} » pour l'instant",
   "nothingMatchesQueryInCategory": "Rien ne correspond à « {query} » dans « {category} »",
+  "nothingMatchesQuery": "Rien ne correspond à « {query} »",
 
   "favoritesTitle": "Favoris",
   "noFavoritesYet": "Aucun favori pour l'instant",

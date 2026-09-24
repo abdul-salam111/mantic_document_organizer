@@ -27,6 +27,7 @@
   "noDocumentsFound": "No se encontraron documentos",
   "nothingInCategoryYet": "Nada en \"{category}\" todavía",
   "nothingMatchesQueryInCategory": "Nada coincide con \"{query}\" en \"{category}\"",
+  "nothingMatchesQuery": "Nada coincide con \"{query}\"",
 
   "favoritesTitle": "Favoritos",
   "noFavoritesYet": "Sin favoritos todavía",

@@ -90,6 +90,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String nothingMatchesQuery(String query) {
+    return 'Rien ne correspond à « $query »';
+  }
+
+  @override
   String get favoritesTitle => 'Favoris';
 
   @override

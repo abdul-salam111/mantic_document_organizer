@@ -139,7 +139,7 @@ Future<void> favoritesDependencies() async {
 
   // ViewModel
   sl.registerFactory<FavoritesViewModel>(
-    () => FavoritesViewModel(favoritesUsecase: sl()),
+    () => FavoritesViewModel(documentStore: sl()),
   );
 }
 
