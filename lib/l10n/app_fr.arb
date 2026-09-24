@@ -97,6 +97,7 @@
   "unlock": "Déverrouiller",
 
   "addDocumentTitle": "Ajouter un document",
+  "editDocumentTitle": "Modifier le fichier",
   "documentTitleLabel": "Titre",
   "documentTitleHint": "p. ex. Numérisation de passeport",
   "documentTitleRequired": "Le titre est requis",
@@ -119,6 +120,7 @@
   "filesImagesNotAllowed": "Les images ne sont pas acceptées ici — utilisez l'appareil photo ou la galerie",
   "scanFailedToast": "Échec de la numérisation — veuillez réessayer",
   "documentCreatedToast": "« {name} » ajouté",
+  "documentUpdatedToast": "« {name} » mis à jour",
 
   "searchDocumentsHint": "Rechercher des documents",
   "sortBy": "Trier par",

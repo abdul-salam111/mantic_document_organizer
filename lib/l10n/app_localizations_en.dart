@@ -334,6 +334,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addDocumentTitle => 'Add Document';
 
   @override
+  String get editDocumentTitle => 'Edit file';
+
+  @override
   String get documentTitleLabel => 'Title';
 
   @override
@@ -409,6 +412,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String documentCreatedToast(String name) {
     return '\"$name\" added';
+  }
+
+  @override
+  String documentUpdatedToast(String name) {
+    return '\"$name\" updated';
   }
 
   @override

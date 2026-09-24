@@ -224,6 +224,8 @@
 
   "addDocumentTitle": "Add Document",
   "@addDocumentTitle": {"description": "Add Document screen title"},
+  "editDocumentTitle": "Edit file",
+  "@editDocumentTitle": {"description": "Edit Document screen title / document viewer edit button tooltip"},
   "documentTitleLabel": "Title",
   "@documentTitleLabel": {"description": "Add Document screen text field label"},
   "documentTitleHint": "e.g. Passport Scan",
@@ -281,6 +283,11 @@
   "documentCreatedToast": "\"{name}\" added",
   "@documentCreatedToast": {
     "description": "Success toast shown after saving a document",
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "documentUpdatedToast": "\"{name}\" updated",
+  "@documentUpdatedToast": {
+    "description": "Success toast shown after editing a document",
     "placeholders": {"name": {"type": "String"}}
   },
 

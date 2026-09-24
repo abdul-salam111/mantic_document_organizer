@@ -18,20 +18,36 @@ class AddDocumentView extends StatelessWidget {
   /// category they were already looking at.
   final CategoryItem? initialCategory;
 
-  const AddDocumentView({super.key, this.initialCategory});
+  /// Set when opened via the document viewer's Edit button — switches this
+  /// screen into edit mode, prefilling every field and updating the
+  /// existing document on save instead of creating a new one.
+  final DocumentItem? editingDocument;
+
+  const AddDocumentView({
+    super.key,
+    this.initialCategory,
+    this.editingDocument,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) {
         final vm = sl<AddDocumentViewModel>();
-        final category = initialCategory;
-        if (category != null) vm.preselectCategory(category);
+        final editing = editingDocument;
+        if (editing != null) {
+          vm.startEditing(editing);
+        } else {
+          final category = initialCategory;
+          if (category != null) vm.preselectCategory(category);
+        }
         return vm;
       },
       child: Scaffold(
         appBar: CustomAppBar(
-          title: AppLocalizations.of(context).addDocumentTitle,
+          title: editingDocument != null
+              ? AppLocalizations.of(context).editDocumentTitle
+              : AppLocalizations.of(context).addDocumentTitle,
         ),
         body: SafeArea(
           child: Consumer<AddDocumentViewModel>(
@@ -76,9 +92,14 @@ class AddDocumentView extends StatelessWidget {
                         // own Navigator route, so popping this screen right
                         // on top of that in-flight push corrupts the
                         // navigator's route lifecycle.
-                        final message = AppLocalizations.of(
-                          context,
-                        ).documentCreatedToast(vm.titleController.text.trim());
+                        final title = vm.titleController.text.trim();
+                        final message = editingDocument != null
+                            ? AppLocalizations.of(
+                                context,
+                              ).documentUpdatedToast(title)
+                            : AppLocalizations.of(
+                                context,
+                              ).documentCreatedToast(title);
                         AppNavigator.pop();
                         AppToastsUtils.success(message);
                       },

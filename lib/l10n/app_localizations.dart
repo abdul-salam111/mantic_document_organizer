@@ -630,6 +630,12 @@ abstract class AppLocalizations {
   /// **'Add Document'**
   String get addDocumentTitle;
 
+  /// Edit Document screen title / document viewer edit button tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Edit file'**
+  String get editDocumentTitle;
+
   /// Add Document screen text field label
   ///
   /// In en, this message translates to:
@@ -761,6 +767,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'\"{name}\" added'**
   String documentCreatedToast(String name);
+
+  /// Success toast shown after editing a document
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" updated'**
+  String documentUpdatedToast(String name);
 
   /// Category Documents screen search field placeholder
   ///

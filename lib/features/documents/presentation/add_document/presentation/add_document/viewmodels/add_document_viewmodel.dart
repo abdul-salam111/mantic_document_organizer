@@ -54,6 +54,38 @@ class AddDocumentViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// The document being edited, if this screen was opened via the document
+  /// viewer's Edit button instead of the "+" button — [submit] updates it
+  /// in place (preserving its id/createdAt/favorite status) instead of
+  /// creating a new one.
+  DocumentItem? _editingDocument;
+  bool get isEditing => _editingDocument != null;
+
+  /// Prefills every field from an existing document. Called once by the
+  /// view right after creation, mirroring [preselectCategory].
+  void startEditing(DocumentItem document) {
+    _editingDocument = document;
+    titleController.text = document.title;
+    _selectedCategory = _categoryStore.byId(document.categoryId);
+    _tags
+      ..clear()
+      ..addAll(document.tags);
+    _isExpirable = document.isExpirable;
+    _expiryDate = document.expiryDate;
+    _attachments
+      ..clear()
+      ..addAll([
+        for (final path in document.filePaths)
+          AttachmentItem(
+            path: path,
+            type: isImagePath(path)
+                ? AttachmentType.image
+                : AttachmentType.file,
+          ),
+      ]);
+    notifyListeners();
+  }
+
   final TextEditingController titleController = TextEditingController();
   final TextEditingController tagController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -283,20 +315,25 @@ class AddDocumentViewModel extends ChangeNotifier {
 
   void submit() {
     final category = _selectedCategory;
-    _documentStore.addDocument(
-      DocumentItem(
-        id: generateLocalId(),
-        title: titleController.text.trim(),
-        category: category?.name ?? 'Uncategorized',
-        categoryId: category?.id ?? uncategorizedCategoryId,
-        icon: category?.icon ?? FontAwesomeIcons.folder,
-        tags: _tags,
-        filePaths: [for (final a in _attachments) a.path],
-        createdAt: DateTime.now(),
-        isExpirable: _isExpirable,
-        expiryDate: _expiryDate,
-      ),
+    final original = _editingDocument;
+    final item = DocumentItem(
+      id: original?.id ?? generateLocalId(),
+      title: titleController.text.trim(),
+      category: category?.name ?? 'Uncategorized',
+      categoryId: category?.id ?? uncategorizedCategoryId,
+      icon: category?.icon ?? FontAwesomeIcons.folder,
+      tags: _tags,
+      filePaths: [for (final a in _attachments) a.path],
+      createdAt: original?.createdAt ?? DateTime.now(),
+      isFavorite: original?.isFavorite ?? false,
+      isExpirable: _isExpirable,
+      expiryDate: _expiryDate,
     );
+    if (original != null) {
+      _documentStore.updateDocument(item);
+    } else {
+      _documentStore.addDocument(item);
+    }
   }
 
   @override

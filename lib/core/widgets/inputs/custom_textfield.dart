@@ -24,6 +24,7 @@ class CustomTextFormField extends StatefulWidget {
   final bool isRequired;
   final double labelFontSize;
   final bool readOnly;
+  final bool autofocus;
   final TextInputAction? textInputAction;
   final List<TextInputFormatter>? inputFormatters;
 
@@ -47,6 +48,7 @@ class CustomTextFormField extends StatefulWidget {
     this.onFieldSubmitted,
     this.onTap,
     this.maxLines = 1,
+    this.autofocus = false,
     this.textInputAction,
     this.inputFormatters,
   });
@@ -81,6 +83,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
     }
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Label with optional required asterisk
@@ -112,7 +115,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
 
         // Text Form Field
         TextFormField(
-          autofocus: false,
+          autofocus: widget.autofocus,
           textCapitalization: widget.textCapitalization,
           readOnly: widget.readOnly,
           style: context.bodySmall.copyWith(color: context.textPrimary),

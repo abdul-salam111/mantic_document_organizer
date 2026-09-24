@@ -36,6 +36,11 @@ bool isImagePath(String path) {
   return _imagePathExtensions.contains(path.substring(dot + 1).toLowerCase());
 }
 
+/// Whether a [DocumentItem.filePaths] entry is a PDF — the one non-image
+/// type document_viewer can actually render inline (via pdfx) rather than
+/// falling back to a generic "no preview" placeholder.
+bool isPdfPath(String path) => path.toLowerCase().endsWith('.pdf');
+
 /// Presentational-only for now — no categories feature/local DB exists
 /// yet (see CLAUDE.md's "Known mismatches" section), so this is dummy
 /// data standing in for what will eventually be a real sqflite-backed

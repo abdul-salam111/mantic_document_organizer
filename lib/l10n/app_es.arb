@@ -97,6 +97,7 @@
   "unlock": "Desbloquear",
 
   "addDocumentTitle": "Agregar documento",
+  "editDocumentTitle": "Editar archivo",
   "documentTitleLabel": "Título",
   "documentTitleHint": "p. ej. Escaneo de pasaporte",
   "documentTitleRequired": "El título es obligatorio",
@@ -119,6 +120,7 @@
   "filesImagesNotAllowed": "Las imágenes no se aceptan aquí — usa la cámara o la galería",
   "scanFailedToast": "Error al escanear — inténtalo de nuevo",
   "documentCreatedToast": "\"{name}\" agregado",
+  "documentUpdatedToast": "\"{name}\" actualizado",
 
   "searchDocumentsHint": "Buscar documentos",
   "sortBy": "Ordenar por",

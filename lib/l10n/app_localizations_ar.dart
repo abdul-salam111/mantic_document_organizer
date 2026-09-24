@@ -332,6 +332,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get addDocumentTitle => 'إضافة مستند';
 
   @override
+  String get editDocumentTitle => 'تعديل الملف';
+
+  @override
   String get documentTitleLabel => 'العنوان';
 
   @override
@@ -407,6 +410,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String documentCreatedToast(String name) {
     return 'تمت إضافة \"$name\"';
+  }
+
+  @override
+  String documentUpdatedToast(String name) {
+    return 'تم تحديث \"$name\"';
   }
 
   @override

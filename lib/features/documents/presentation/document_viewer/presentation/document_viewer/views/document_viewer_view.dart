@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:pdfx/pdfx.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../../../../core/di/di_exports.dart';
@@ -12,7 +13,7 @@ import '../../../../../../../routes/routes_exports.dart';
 import '../../../../../../home/home_exports.dart';
 import '../viewmodels/document_viewer_viewmodel.dart';
 
-enum _DocumentAction { rename, move, delete }
+enum _DocumentAction { edit, share, rename, move, delete }
 
 /// Opened by tapping a document anywhere in the app (Favorites, All Docs,
 /// Category Documents, Home's Recent Files). Shows every attached
@@ -56,17 +57,26 @@ class DocumentViewerView extends StatelessWidget {
                   ),
                   onPressed: vm.toggleFavorite,
                 ),
-                if (current.filePaths.isNotEmpty)
-                  IconButton(
-                    tooltip: AppLocalizations.of(context).share,
-                    icon: Icon(Iconsax.share, color: context.white),
-                    onPressed: () => _shareAll(current),
-                  ),
                 PopupMenuButton<_DocumentAction>(
                   icon: Icon(Iconsax.more, color: context.white),
                   onSelected: (action) =>
                       _handleAction(context, vm, current, action),
                   itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: _DocumentAction.edit,
+                      child: _MenuRow(
+                        icon: Iconsax.edit,
+                        label: AppLocalizations.of(context).editDocumentTitle,
+                      ),
+                    ),
+                    if (current.filePaths.isNotEmpty)
+                      PopupMenuItem(
+                        value: _DocumentAction.share,
+                        child: _MenuRow(
+                          icon: Iconsax.share,
+                          label: AppLocalizations.of(context).share,
+                        ),
+                      ),
                     PopupMenuItem(
                       value: _DocumentAction.rename,
                       child: _MenuRow(
@@ -123,6 +133,11 @@ class DocumentViewerView extends StatelessWidget {
     _DocumentAction action,
   ) {
     switch (action) {
+      case _DocumentAction.edit:
+        AppNavigator.pushNamed(RouteNames.addDocument, extra: current);
+        return Future.value();
+      case _DocumentAction.share:
+        return _shareAll(current);
       case _DocumentAction.rename:
         return _showRenameDialog(context, vm, current);
       case _DocumentAction.move:
@@ -143,7 +158,13 @@ class DocumentViewerView extends StatelessWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: context.surfaceElevated,
-        title: Text(AppLocalizations.of(context).renameDocument),
+        shape: RoundedRectangleBorder(borderRadius: .circular(20)),
+        titlePadding: const .fromLTRB(24, 24, 24, 4),
+        contentPadding: const .fromLTRB(24, 12, 24, 8),
+        title: Text(
+          AppLocalizations.of(context).renameDocument,
+          style: context.titleMedium.copyWith(fontWeight: .bold),
+        ),
         content: Form(
           key: formKey,
           child: CustomTextFormField(
@@ -151,17 +172,24 @@ class DocumentViewerView extends StatelessWidget {
             hintText: AppLocalizations.of(context).documentTitleHint,
             controller: controller,
             isRequired: true,
+            autofocus: true,
+            textCapitalization: .sentences,
             validator: (value) => (value == null || value.trim().isEmpty)
                 ? AppLocalizations.of(context).documentTitleRequired
                 : null,
           ),
         ),
+        actionsPadding: const .fromLTRB(12, 0, 12, 12),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
             child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
           ),
-          TextButton(
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: context.primary,
+              shape: RoundedRectangleBorder(borderRadius: .circular(10)),
+            ),
             onPressed: () {
               if (formKey.currentState?.validate() != true) return;
               Navigator.of(dialogContext).pop(controller.text.trim());
@@ -366,6 +394,7 @@ class _PagePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (isPdfPath(path)) return _PdfPreview(path: path);
     if (!isImagePath(path)) return _UnsupportedPreview(path: path);
     return InteractiveViewer(
       minScale: 1,
@@ -377,6 +406,46 @@ class _PagePreview extends StatelessWidget {
           errorBuilder: (context, error, stackTrace) =>
               _UnsupportedPreview(path: path),
         ),
+      ),
+    );
+  }
+}
+
+/// Renders a PDF inline (pinch-zoom, swipe between its own internal pages)
+/// instead of falling back to [_UnsupportedPreview] — the one non-image
+/// attachment type this screen can actually preview rather than just
+/// share out. Owns a [PdfControllerPinch] so it can dispose the underlying
+/// document when the page is swiped away.
+class _PdfPreview extends StatefulWidget {
+  final String path;
+
+  const _PdfPreview({required this.path});
+
+  @override
+  State<_PdfPreview> createState() => _PdfPreviewState();
+}
+
+class _PdfPreviewState extends State<_PdfPreview> {
+  late final PdfControllerPinch _controller = PdfControllerPinch(
+    document: PdfDocument.openFile(widget.path),
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PdfViewPinch(
+      controller: _controller,
+      builders: PdfViewPinchBuilders<DefaultBuilderOptions>(
+        options: const DefaultBuilderOptions(),
+        documentLoaderBuilder: (context) =>
+            const Center(child: CircularProgressIndicator()),
+        errorBuilder: (context, error) =>
+            _UnsupportedPreview(path: widget.path),
       ),
     );
   }

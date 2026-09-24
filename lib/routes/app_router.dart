@@ -82,8 +82,13 @@ class AppRoutes {
       GoRoute(
         path: RoutePaths.addDocument,
         name: RouteNames.addDocument,
-        builder: (context, state) =>
-            AddDocumentView(initialCategory: state.extra as CategoryItem?),
+        builder: (context, state) {
+          final extra = state.extra;
+          return AddDocumentView(
+            initialCategory: extra is CategoryItem ? extra : null,
+            editingDocument: extra is DocumentItem ? extra : null,
+          );
+        },
       ),
       GoRoute(
         path: RoutePaths.onboarding,

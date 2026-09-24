@@ -97,6 +97,7 @@
   "unlock": "فتح القفل",
 
   "addDocumentTitle": "إضافة مستند",
+  "editDocumentTitle": "تعديل الملف",
   "documentTitleLabel": "العنوان",
   "documentTitleHint": "مثال: مسح جواز السفر",
   "documentTitleRequired": "العنوان مطلوب",
@@ -119,6 +120,7 @@
   "filesImagesNotAllowed": "الصور غير مقبولة هنا — استخدم الكاميرا أو المعرض",
   "scanFailedToast": "فشل المسح — يرجى المحاولة مرة أخرى",
   "documentCreatedToast": "تمت إضافة \"{name}\"",
+  "documentUpdatedToast": "تم تحديث \"{name}\"",
 
   "searchDocumentsHint": "ابحث عن المستندات",
   "sortBy": "ترتيب حسب",
