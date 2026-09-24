@@ -41,7 +41,12 @@
   "localOnlyStatus": "محلي فقط — تبقى مستنداتك على هذا الجهاز",
   "setUpBackup": "إعداد النسخ الاحتياطي",
   "trash": "سلة المهملات",
+  "trashSubtitle": "استعادة المستندات المحذوفة مؤخرًا",
+  "settingsSubtitle": "المظهر واللغة والفئات والأمان",
   "signOut": "تسجيل الخروج",
+  "statDocuments": "المستندات",
+  "statCategories": "الفئات",
+  "statFavorites": "المفضلة",
 
   "settings": "الإعدادات",
   "appearance": "المظهر",

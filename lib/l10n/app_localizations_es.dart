@@ -138,7 +138,22 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trash => 'Papelera';
 
   @override
+  String get trashSubtitle => 'Recupera documentos eliminados recientemente';
+
+  @override
+  String get settingsSubtitle => 'Apariencia, idioma, categorías y seguridad';
+
+  @override
   String get signOut => 'Cerrar sesión';
+
+  @override
+  String get statDocuments => 'Documentos';
+
+  @override
+  String get statCategories => 'Categorías';
+
+  @override
+  String get statFavorites => 'Favoritos';
 
   @override
   String get settings => 'Configuración';

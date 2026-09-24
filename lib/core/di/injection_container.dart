@@ -145,7 +145,9 @@ Future<void> favoritesDependencies() async {
 
 /// Profile Feature Dependencies
 Future<void> profileDependencies() async {
-  sl.registerFactory<ProfileViewModel>(() => ProfileViewModel());
+  sl.registerFactory<ProfileViewModel>(
+    () => ProfileViewModel(categoryStore: sl(), documentStore: sl()),
+  );
 }
 
 /// Documents Feature Dependencies

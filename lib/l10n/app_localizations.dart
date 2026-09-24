@@ -306,11 +306,41 @@ abstract class AppLocalizations {
   /// **'Trash'**
   String get trash;
 
+  /// Profile menu entry subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Recover recently deleted documents'**
+  String get trashSubtitle;
+
+  /// Profile menu entry subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance, language, categories & security'**
+  String get settingsSubtitle;
+
   /// Profile menu entry, shown when signed in
   ///
   /// In en, this message translates to:
   /// **'Sign Out'**
   String get signOut;
+
+  /// Profile stats row label
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get statDocuments;
+
+  /// Profile stats row label
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get statCategories;
+
+  /// Profile stats row label
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get statFavorites;
 
   /// Settings screen title / Profile menu entry
   ///

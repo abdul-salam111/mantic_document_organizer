@@ -138,7 +138,22 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trash => 'Corbeille';
 
   @override
+  String get trashSubtitle => 'Récupérer les documents récemment supprimés';
+
+  @override
+  String get settingsSubtitle => 'Apparence, langue, catégories et sécurité';
+
+  @override
   String get signOut => 'Déconnexion';
+
+  @override
+  String get statDocuments => 'Documents';
+
+  @override
+  String get statCategories => 'Catégories';
+
+  @override
+  String get statFavorites => 'Favoris';
 
   @override
   String get settings => 'Paramètres';

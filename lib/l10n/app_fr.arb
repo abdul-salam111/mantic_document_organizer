@@ -41,7 +41,12 @@
   "localOnlyStatus": "Local uniquement — vos documents restent sur cet appareil",
   "setUpBackup": "Configurer la sauvegarde",
   "trash": "Corbeille",
+  "trashSubtitle": "Récupérer les documents récemment supprimés",
+  "settingsSubtitle": "Apparence, langue, catégories et sécurité",
   "signOut": "Déconnexion",
+  "statDocuments": "Documents",
+  "statCategories": "Catégories",
+  "statFavorites": "Favoris",
 
   "settings": "Paramètres",
   "appearance": "Apparence",

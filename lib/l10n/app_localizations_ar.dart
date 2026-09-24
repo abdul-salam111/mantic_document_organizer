@@ -136,7 +136,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trash => 'سلة المهملات';
 
   @override
+  String get trashSubtitle => 'استعادة المستندات المحذوفة مؤخرًا';
+
+  @override
+  String get settingsSubtitle => 'المظهر واللغة والفئات والأمان';
+
+  @override
   String get signOut => 'تسجيل الخروج';
+
+  @override
+  String get statDocuments => 'المستندات';
+
+  @override
+  String get statCategories => 'الفئات';
+
+  @override
+  String get statFavorites => 'المفضلة';
 
   @override
   String get settings => 'الإعدادات';
