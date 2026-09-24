@@ -1,0 +1,237 @@
+
+
+TWO SMALLER THINGS TO CHECK WHEN THE FUNCTIONAL PASS STARTS (not urgent):
+
+- DocumentItem/CategoryItem store FaIconData (a UI type) directly on what
+  will become the domain entity — technically conflicts with this repo's
+  own architecture rule ("never let a non-domain type escape the repository
+  boundary" in CLAUDE.md). Should become a string/enum key mapped to
+  FaIconData in the presentation layer only — fine to leave as-is for now.
+- Not yet verified whether scanned-page filePaths get copied into permanent
+  app storage (path_provider's app documents directory) or point at a
+  cache/temp directory the OS can reclaim. Worth confirming before
+  persistence lands — a surviving database row pointing at a deleted file is
+  a worse bug than the app simply being empty.
+
+EVERYTHING ELSE IS SAFE TO DEFER: field_schema, is_essential, deleted_at,
+ocr_text, detected_dates, embedding — all additive fields, not identity/
+reference changes, so none of them create rework if left for the
+"make it functional" pass.
+
+
+================================================================================
+SECTION 4 — THINGS THAT LOOK FINISHED BUT ARE STUBS
+================================================================================
+
+These are UI elements that exist, look correct, and do nothing (or the wrong
+thing) when tapped. A user WILL find these within their first few minutes:
+
+- Tapping ANY document, anywhere in the app (Favorites, All Docs, Category
+  Documents, presumably Home's Recent strip too) shows a "coming soon" toast.
+  There is no document viewer screen at all. This means once a document is
+  saved, it can never be opened, re-viewed, exported, shared, renamed, or
+  individually deleted. Combined with Section 1 (nothing persists anyway),
+  this makes the app currently "write-only" — you can add documents, but you
+  can never really use them again.
+- Profile → Trash: toast stub. No screen, no soft-delete field on the
+  Document model, no restore flow. The spec explicitly calls for 30-day
+  soft-delete with restore — none of that plumbing exists yet.
+- Profile → "Set up backup": routes to the plain sign-in screen. There is no
+  Google sign-in, no Drive integration, nothing backup-specific happens after
+  sign-in.
+- Settings → "Rate App": toast stub (reasonable to leave stubbed pre-launch).
+- Auth (sign in / sign up): the UI, validation, and Clean Architecture
+  plumbing are real and correct, but they point at
+  https://api.example.com/v1/ — a placeholder domain, not a live backend.
+  Nobody can actually create an account or sign in today.
+- Search/Favorites/Document REST datasources, repositories, and usecases are
+  fully coded, DI-registered, and completely unused dead code — every real
+  screen bypasses them and reads the in-memory store directly. Not urgent to
+  remove, but worth knowing they're not actually doing anything.
+
+
+================================================================================
+SECTION 5 — SPEC FEATURES THAT DON'T EXIST YET AT ALL
+================================================================================
+
+Comparing against project_doc.md (your own technical spec), these are simply
+not started:
+
+- Local database (sqflite) — see Section 1.
+- OCR (on-device text extraction from scanned pages). Zero text-recognition
+  code anywhere. This blocks: full-text search over document content,
+  auto-categorization from scanned text, and automatic deadline/date
+  detection — all three are OCR-dependent per the spec.
+- Auto-categorization and deadline detection (Phase 2) — dependent on OCR.
+- Expiry/deadline local notifications. The Add Document form DOES capture an
+  expiry date/time today, but nothing ever reads it to remind the user. This
+  is a real gap: you're collecting data you don't act on.
+- Custom per-category fields (field_schema). The spec calls for category-
+  specific structured fields (e.g. Driving License: license no., DOB, valid
+  till). Today every document has the same generic shape (title, category,
+  tags, one expiry field) — no category-aware form fields anywhere.
+- Document-completeness progress bar ("3 of 5 important documents added") on
+  Home and Profile — not implemented; no is_essential concept exists on
+  Category at all.
+- PDF generation/export for scanned documents.
+- AI features (Phase 3): no Anthropic/OpenAI integration, no embeddings, no
+  AI search, no auto-summaries, no similar-document clustering. Entirely
+  unbuilt, which is expected — this is explicitly your Phase 3.
+- Backup/sync/Google Drive (Phase 1's optional backup + Phase 4's full sync):
+  no google_sign_in, no Drive SDK, nothing.
+- Shared vaults, voice notes (Phase 4): not started, expected at this stage.
+- State management mismatch: the spec calls for Riverpod or Bloc; the app
+  uses Provider throughout. Not wrong, just an open decision from CLAUDE.md
+  that's still unresolved — worth explicitly deciding to keep Provider (it's
+  working fine) rather than leaving it as a lingering "someday" migration.
+
+
+================================================================================
+SECTION 6 — TESTING REALITY CHECK
+================================================================================
+
+6 test files, ~374 lines total. What's covered: app-boot smoke test, theme
+toggle, one textfield-capitalization check, a couple of date/validator unit
+tests, two widget-rendering checks, and genuinely solid coverage of the Dio
+retry interceptor. What's NOT covered: not a single ViewModel (Home, Add
+Document, Search, Favorites, Category Documents, Profile), not the
+CategoryLocalStore/DocumentLocalStore logic itself, not the repository layer.
+Three of the existing widget tests currently fail against the app's real
+behavior (they assert the app boots to the sign-in screen, but Splash
+actually routes to Home — this baseline has been failing throughout recent
+development and should be fixed or deleted, since a red test suite trains
+everyone to ignore it).
+
+
+================================================================================
+SECTION 7 — RECOMMENDED ORDER OF WORK
+================================================================================
+
+This is the realistic path from "impressive demo" to "app people can
+actually rely on," in the order I'd tackle it:
+
+1. PERSISTENCE (sqflite). Nothing else below is worth much until this lands.
+   Model Category/Document/Page/Tag in real tables per the existing spec,
+   swap CategoryLocalStore/DocumentLocalStore to read/write through it
+   instead of a plain List. This is mechanical but non-trivial — budget real
+   time for it, including a migration story for anyone testing pre-release.
+
+2. DOCUMENT VIEWER + DELETE/TRASH. Close the loop: right now you can create
+   but never open, remove, or recover a document. This is the second
+   highest-priority gap — a document manager where documents disappear into
+   a void the moment you tap them is not yet a usable product. Trash with
+   restore is also a safety net users will expect before they trust the app
+   with anything important.
+
+3. EXPIRY NOTIFICATIONS. You already collect expiry dates; wiring
+   flutter_local_notifications to remind users before something lapses is a
+   comparatively small amount of work for a genuinely high-value, very
+   "sellable" feature (passport/visa/insurance renewal reminders are one of
+   the most obvious reasons someone would want this app at all).
+
+4. OCR + LOCAL FULL-TEXT SEARCH. This is what turns "photo organizer" into
+   "document organizer" — being able to search "insurance policy number
+   4471" and find the right scan, without remembering which folder you put
+   it in, is the single biggest differentiator this product has over a
+   generic gallery/files app. It's also entirely on-device per your own
+   spec, so it doesn't need the backend.
+
+5. BACKUP (Google Drive). Once the above is solid, this is what protects
+   users from losing everything if they lose their phone — arguably the
+   second most important trust feature after "the app doesn't lose your
+   data while you're using it."
+
+6. AI SEARCH / SUMMARIES. Genuinely valuable, but it's the most expensive
+   (ongoing API cost, backend dependency, more moving parts) and least
+   urgent relative to the gaps above. Correctly sequenced last in your own
+   spec, and I'd agree with that.
+
+
+================================================================================
+SECTION 8 — ENHANCEMENT IDEAS BEYOND THE CURRENT SPEC
+================================================================================
+
+You asked what else could make this genuinely easier for a real person's
+life, beyond what's already planned. These are scoped realistically, not a
+wishlist — each has a rough effort/impact note so you can judge honestly
+whether it's worth it.
+
+HIGH IMPACT, LOW-TO-MEDIUM EFFORT:
+
+- "Share into Mantic" from other apps. Android/iOS share-sheet integration
+  so a PDF emailed to you, or a photo taken in the native camera app, can be
+  sent directly into Mantic's Add Document flow instead of requiring you to
+  open the app first. This matches how people actually receive documents
+  (email attachments, WhatsApp, bank apps) far more often than they proactively
+  open a document-organizer app to go scan something.
+- Home-screen quick-capture shortcut / widget. A single tap from the phone's
+  home screen straight into the camera-scan flow, skipping Home entirely.
+  Removes friction at exactly the moment someone has a physical paper in
+  hand and needs to capture it before it gets lost.
+- "Expiring soon" digest. A single weekly (not per-document-spammy) local
+  notification: "3 documents expire this month" — links straight to a
+  filtered list. Builds on the expiry-notification work in Section 7 step 3
+  for almost no extra cost, and gives people a reason to open the app
+  regularly instead of only when they need something.
+- Local export/backup-to-zip. Before full Google Drive sync exists, even a
+  "export everything as a zip of PDFs to a folder I choose" button gives
+  privacy-conscious users (or anyone who doesn't want a Google account) a
+  real safety net. Much less engineering than full Drive sync.
+
+MEDIUM IMPACT, MEDIUM EFFORT:
+
+- Per-category "hide behind biometric" for sensitive categories (e.g.
+  medical, financial) separate from the whole-app lock — lets someone hand
+  their unlocked phone to a friend without exposing everything.
+- Barcode / QR capture mode for things like warranty cards, membership cards,
+  vehicle registration stickers — a different capture affordance than the
+  page-scanner, reusing the same storage/tagging model.
+- Bulk actions: multi-select documents (not just categories, which already
+  supports multi-select) for bulk move/tag/delete/export. Natural extension
+  of work already done for Manage Categories.
+- "Renewal helper" links: for common expiring categories (passport, driving
+  license, insurance), a category-level link out to the relevant official
+  renewal site/portal. Small but genuinely reduces friction at the exact
+  moment the reminder fires.
+
+LOWER PRIORITY / LONGER HORIZON (fine to leave for later, listed for
+completeness — don't let these distract from Sections 1–7):
+
+- Family/shared vaults with read-only links (a lighter first cut of the full
+  Phase 4 shared-vault system).
+- Voice notes per document.
+- Redaction tool (blur a field like an ID number) before sharing a document
+  out of the app.
+- On-device duplicate-scan detection (flag "you already scanned this").
+
+WORTH ACTIVELY NOT BUILDING RIGHT NOW: anything AI-adjacent beyond what's
+already in Phase 3 of your spec. It's tempting to keep adding "smart"
+features, but every one below Section 7 step 4 depends on OCR existing
+first, and every AI feature depends on a live backend + API cost that
+doesn't exist yet. Piling more ideas on top of an app that currently can't
+save a document past a restart would be the wrong kind of ambitious.
+
+
+================================================================================
+SECTION 9 — CLOSING, HONEST TAKE
+================================================================================
+
+The UI/UX work is genuinely good — consistent, thoughtful, and further along
+than the underlying data layer, which is an unusual (but not bad) place to
+be this early. The architecture is clean enough that adding sqflite,
+OCR, notifications, and the document viewer should slot in without fighting
+the existing code.
+
+But right now, if someone installed this app today, scanned their passport,
+and came back tomorrow, it would be gone, and even before that, they'd
+never have been able to open it again to look at it. That's the honest
+state of the product. Everything else in this document is secondary to
+fixing that.
+
+None of this is a criticism of the pace or the choices made so far — building
+the UI and interaction model first, on top of a realistic in-memory
+placeholder, is a completely reasonable way to iterate quickly on product
+feel before locking in a schema. But it's exactly the kind of thing that's
+easy to keep deferring in favor of the next visible screen, so calling it out
+explicitly, as asked: this is the next real milestone, not another screen.
+================================================================================

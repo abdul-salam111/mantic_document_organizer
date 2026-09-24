@@ -58,6 +58,16 @@ class ProfileView extends StatelessWidget {
                       onTap: vm.signOut,
                     ),
                   ],
+                  heightBox(24),
+                  if (vm.appVersion != null)
+                    Center(
+                      child: Text(
+                        vm.appVersion!,
+                        style: context.labelSmall.copyWith(
+                          color: context.textSecondary,
+                        ),
+                      ),
+                    ),
                 ],
               );
             },

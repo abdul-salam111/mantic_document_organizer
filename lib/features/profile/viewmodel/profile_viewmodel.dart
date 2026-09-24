@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../core/local_storage/local_storage_exports.dart';
 import '../../../core/services/services_exports.dart';
@@ -16,6 +17,7 @@ class ProfileViewModel extends ChangeNotifier {
     _categoryStore.addListener(notifyListeners);
     _documentStore.addListener(notifyListeners);
     _loadSession();
+    _loadAppVersion();
   }
 
   bool _isSignedIn = false;
@@ -29,9 +31,18 @@ class ProfileViewModel extends ChangeNotifier {
   int get favoriteCount =>
       _documentStore.documents.where((d) => d.isFavorite).length;
 
+  String? _appVersion;
+  String? get appVersion => _appVersion;
+
   Future<void> _loadSession() async {
     await SessionController.instance.loadUserFromStorage();
     _isSignedIn = SessionController.instance.islogin;
+    notifyListeners();
+  }
+
+  Future<void> _loadAppVersion() async {
+    final info = await PackageInfo.fromPlatform();
+    _appVersion = 'v${info.version} (${info.buildNumber})';
     notifyListeners();
   }
 
