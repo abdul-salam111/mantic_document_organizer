@@ -428,6 +428,49 @@ class AppLocalizationsAr extends AppLocalizations {
   String get addToFavorites => 'إضافة إلى المفضلة';
 
   @override
+  String get share => 'مشاركة';
+
+  @override
+  String get rename => 'إعادة تسمية';
+
+  @override
+  String get move => 'نقل';
+
+  @override
+  String get renameDocument => 'إعادة تسمية المستند';
+
+  @override
+  String documentRenamedToast(String name) {
+    return 'أُعيدت التسمية إلى \"$name\"';
+  }
+
+  @override
+  String documentMovedToast(String category) {
+    return 'تم النقل إلى \"$category\"';
+  }
+
+  @override
+  String get deleteDocument => 'حذف المستند';
+
+  @override
+  String deleteDocumentConfirm(String name) {
+    return 'حذف \"$name\"؟ لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String documentDeletedToast(String name) {
+    return 'تم حذف \"$name\"';
+  }
+
+  @override
+  String get noPreviewAvailable => 'المعاينة غير متاحة لهذا النوع من الملفات';
+
+  @override
+  String addedOn(String date) {
+    return 'أُضيف في $date';
+  }
+
+  @override
   String get comingSoon => 'قريبًا';
 
   @override

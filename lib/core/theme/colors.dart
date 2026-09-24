@@ -31,7 +31,7 @@ class AppColors {
   static const Color secondaryLight = Color(0xFFEDE7FC);
 
   /// Tertiary brand color - Alternative accents
-  /// 
+  ///
   static const Color tertiary = Color(0xFF3927AD);
   static const Color tertiaryDark = Color(0xFF2A1C7B);
   static const Color tertiaryLight = Color(0xFF5B47C9);
@@ -94,6 +94,7 @@ class AppColors {
   // ============================================
 
   static const Color backgroundLight = white;
+
   /// Material's canonical dark base rather than pure black — pure black
   /// gives elevated surfaces no headroom to read as "lighter" against it,
   /// and reads harsher than intended on OLED screens.
@@ -127,6 +128,7 @@ class AppColors {
 
   static const Color border = grey200;
   static const Color borderLight = grey200;
+
   /// A step lighter than [surfaceElevatedDark] so a border is actually
   /// visible on an elevated surface — it used to equal grey700, the same
   /// value as the elevated surface itself, making borders on cards/sheets

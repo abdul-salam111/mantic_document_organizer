@@ -30,15 +30,16 @@ class AddDocumentViewModel extends ChangeNotifier {
   final CategoryLocalStore _categoryStore;
   final DocumentLocalStore _documentStore;
 
+  /// No default category selection — opening this screen with no category
+  /// already in context (the navbar's "+" button) starts on Uncategorized,
+  /// matching [submit]'s existing `category == null` fallback. Opening it
+  /// from a category's own "+" button still preselects that category via
+  /// [preselectCategory], called separately by the view.
   AddDocumentViewModel({
     required CategoryLocalStore categoryStore,
     required DocumentLocalStore documentStore,
   }) : _categoryStore = categoryStore,
-       _documentStore = documentStore {
-    final sorted = List<CategoryItem>.of(_categoryStore.categories)
-      ..sort((a, b) => a.name.compareTo(b.name));
-    if (sorted.isNotEmpty) _selectedCategory = sorted.first;
-  }
+       _documentStore = documentStore;
 
   /// Called from the view when opened with a category already in
   /// context (e.g. the "+" button on a category's document list) — picks

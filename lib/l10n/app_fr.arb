@@ -127,6 +127,18 @@
   "sortNameAZ": "Nom (A-Z)",
   "addToFavorites": "Ajouter aux favoris",
 
+  "share": "Partager",
+  "rename": "Renommer",
+  "move": "Déplacer",
+  "renameDocument": "Renommer le document",
+  "documentRenamedToast": "Renommé en « {name} »",
+  "documentMovedToast": "Déplacé vers « {category} »",
+  "deleteDocument": "Supprimer le document",
+  "deleteDocumentConfirm": "Supprimer « {name} » ? Cette action est irréversible.",
+  "documentDeletedToast": "« {name} » supprimé",
+  "noPreviewAvailable": "Aperçu non disponible pour ce type de fichier",
+  "addedOn": "Ajouté le {date}",
+
   "comingSoon": "Bientôt disponible",
   "comingSoonToast": "{name} — bientôt disponible",
 

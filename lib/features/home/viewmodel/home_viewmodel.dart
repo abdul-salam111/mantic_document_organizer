@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-import '../../../core/utils/utils_exports.dart';
-
 /// Sentinel [CategoryItem.id] for documents saved with no category
 /// selected — stable across locales/renames, unlike matching on the
 /// localized "Uncategorized" display name would be.
@@ -14,6 +12,29 @@ const String uncategorizedCategoryId = 'uncategorized';
 /// rename, matching the pattern already used for scanned-file names in
 /// add_document_viewmodel.dart's `_localizeScan`.
 String generateLocalId() => DateTime.now().microsecondsSinceEpoch.toString();
+
+/// Extensions this codebase's own capture/attach flow can actually produce
+/// as an image (camera scan output, gallery picks) — used to decide
+/// whether a [DocumentItem.filePaths] entry can be shown inline (e.g. in
+/// document_viewer) or needs a generic file placeholder instead.
+const Set<String> _imagePathExtensions = {
+  'png',
+  'jpg',
+  'jpeg',
+  'gif',
+  'bmp',
+  'webp',
+  'heic',
+  'heif',
+  'tif',
+  'tiff',
+};
+
+bool isImagePath(String path) {
+  final dot = path.lastIndexOf('.');
+  if (dot == -1) return false;
+  return _imagePathExtensions.contains(path.substring(dot + 1).toLowerCase());
+}
 
 /// Presentational-only for now — no categories feature/local DB exists
 /// yet (see CLAUDE.md's "Known mismatches" section), so this is dummy
@@ -41,22 +62,6 @@ class CategoryItem {
     required this.name,
     required this.icon,
     this.color,
-  });
-}
-
-/// Presentational-only for now, same as [CategoryItem] — standing in for
-/// what will eventually be the most-recently-added/edited Document rows.
-class RecentFileItem {
-  final String name;
-  final String category;
-  final FaIconData icon;
-  final String timeLabel;
-
-  const RecentFileItem({
-    required this.name,
-    required this.category,
-    required this.icon,
-    required this.timeLabel,
   });
 }
 
@@ -102,12 +107,18 @@ class DocumentItem {
     this.expiryDate,
   });
 
-  DocumentItem copyWith({bool? isFavorite}) => DocumentItem(
+  DocumentItem copyWith({
+    String? title,
+    String? category,
+    String? categoryId,
+    FaIconData? icon,
+    bool? isFavorite,
+  }) => DocumentItem(
     id: id,
-    title: title,
-    category: category,
-    categoryId: categoryId,
-    icon: icon,
+    title: title ?? this.title,
+    category: category ?? this.category,
+    categoryId: categoryId ?? this.categoryId,
+    icon: icon ?? this.icon,
     createdAt: createdAt,
     tags: tags,
     isFavorite: isFavorite ?? this.isFavorite,
@@ -157,6 +168,22 @@ class DocumentLocalStore extends ChangeNotifier {
     final index = _documents.indexWhere((d) => d.id == document.id);
     if (index == -1) return;
     _documents[index] = document.copyWith(isFavorite: !document.isFavorite);
+    notifyListeners();
+  }
+
+  /// General-purpose update (rename, move to another category, ...) —
+  /// matched and replaced by [DocumentItem.id], same as [toggleFavorite].
+  void updateDocument(DocumentItem updated) {
+    final index = _documents.indexWhere((d) => d.id == updated.id);
+    if (index == -1) return;
+    _documents[index] = updated;
+    notifyListeners();
+  }
+
+  /// Hard delete — there's no Trash/soft-delete yet (see
+  /// PROJECT_STATUS_AND_ROADMAP.txt), so this is genuinely permanent.
+  void removeDocument(String id) {
+    _documents.removeWhere((d) => d.id == id);
     notifyListeners();
   }
 
@@ -324,15 +351,8 @@ class HomeViewModel extends ChangeNotifier {
   /// so this is empty until something's actually been added.
   static const int _recentFilesLimit = 10;
 
-  List<RecentFileItem> get recentFiles => [
-    for (final doc in _documentStore.documents.take(_recentFilesLimit))
-      RecentFileItem(
-        name: doc.title,
-        category: doc.category,
-        icon: doc.icon,
-        timeLabel: doc.createdAt.timeAgo,
-      ),
-  ];
+  List<DocumentItem> get recentFiles =>
+      _documentStore.documents.take(_recentFilesLimit).toList();
 
   @override
   void dispose() {

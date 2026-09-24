@@ -14,6 +14,7 @@ class RoutePaths {
   static const String addCategory = "/add-category";
   static const String manageCategories = "/manage-categories";
   static const String categoryDocuments = "/category-documents";
+  static const String documentViewer = "/document-viewer";
 
   // GENERATED_ROUTE_PATHS_START
 

@@ -10,6 +10,7 @@ import '../../../../../core/widgets/widgets_exports.dart';
 // (including this one), so importing it here would create an import cycle.
 import '../../../../navbar/viewmodel/navbar_viewmodel.dart';
 import '../../../../home/home_exports.dart';
+import '../../../../../routes/routes_exports.dart';
 import '../viewmodels/favorites_viewmodel.dart';
 
 class FavoritesView extends StatelessWidget {
@@ -59,7 +60,7 @@ class FavoritesView extends StatelessWidget {
                           onChanged: vm.setGridView,
                           onAppBar: false,
                         ),
-                
+
                         DocumentSortMenuButton(
                           selected: vm.sort,
                           onSelected: vm.setSort,
@@ -120,8 +121,9 @@ class _FavoritesList extends StatelessWidget {
           return DocumentGridTile(
             document: document,
             accentColor: categoryIconColor(context, document.category),
-            onTap: () => AppToastsUtils.info(
-              AppLocalizations.of(context).comingSoonToast(document.title),
+            onTap: () => AppNavigator.pushNamed(
+              RouteNames.documentViewer,
+              extra: document,
             ),
             onToggleFavorite: () => vm.toggleFavorite(document),
           );
@@ -138,8 +140,9 @@ class _FavoritesList extends StatelessWidget {
         return DocumentListTile(
           document: document,
           accentColor: categoryIconColor(context, document.category),
-          onTap: () => AppToastsUtils.info(
-            AppLocalizations.of(context).comingSoonToast(document.title),
+          onTap: () => AppNavigator.pushNamed(
+            RouteNames.documentViewer,
+            extra: document,
           ),
           onToggleFavorite: () => vm.toggleFavorite(document),
         );

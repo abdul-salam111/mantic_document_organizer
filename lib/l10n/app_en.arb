@@ -297,6 +297,44 @@
   "addToFavorites": "Add to favorites",
   "@addToFavorites": {"description": "Tooltip on a document tile's outline-heart button"},
 
+  "share": "Share",
+  "@share": {"description": "Document Viewer app bar action tooltip / unsupported-file-preview button label"},
+  "rename": "Rename",
+  "@rename": {"description": "Document Viewer overflow menu entry"},
+  "move": "Move",
+  "@move": {"description": "Document Viewer overflow menu entry"},
+  "renameDocument": "Rename Document",
+  "@renameDocument": {"description": "Document Viewer rename dialog title"},
+  "documentRenamedToast": "Renamed to \"{name}\"",
+  "@documentRenamedToast": {
+    "description": "Success toast shown after renaming a document",
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "documentMovedToast": "Moved to \"{category}\"",
+  "@documentMovedToast": {
+    "description": "Success toast shown after moving a document to another category",
+    "placeholders": {"category": {"type": "String"}}
+  },
+  "deleteDocument": "Delete Document",
+  "@deleteDocument": {"description": "Document Viewer overflow menu entry / confirm dialog title"},
+  "deleteDocumentConfirm": "Delete \"{name}\"? This can't be undone.",
+  "@deleteDocumentConfirm": {
+    "description": "Confirm dialog body shown before deleting a document",
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "documentDeletedToast": "\"{name}\" deleted",
+  "@documentDeletedToast": {
+    "description": "Success toast shown after deleting a document",
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "noPreviewAvailable": "Preview not available for this file type",
+  "@noPreviewAvailable": {"description": "Document Viewer shown for an attachment that isn't an image (e.g. PDF/docx)"},
+  "addedOn": "Added {date}",
+  "@addedOn": {
+    "description": "Document Viewer info panel — when the document was created",
+    "placeholders": {"date": {"type": "String"}}
+  },
+
   "comingSoon": "Coming soon",
   "@comingSoon": {"description": "Generic placeholder subtitle for an unbuilt screen"},
   "comingSoonToast": "{name} — coming soon",

@@ -38,7 +38,6 @@ class StorageKeys {
   static const String hasSeenOnboarding = 'hasSeenOnboarding';
 }
 
-
 extension LocalStorageGetters on LocalStorage {
   Future<String?> get userId async {
     return await readValues(StorageKeys.userId);

@@ -127,6 +127,18 @@
   "sortNameAZ": "الاسم (أ-ي)",
   "addToFavorites": "إضافة إلى المفضلة",
 
+  "share": "مشاركة",
+  "rename": "إعادة تسمية",
+  "move": "نقل",
+  "renameDocument": "إعادة تسمية المستند",
+  "documentRenamedToast": "أُعيدت التسمية إلى \"{name}\"",
+  "documentMovedToast": "تم النقل إلى \"{category}\"",
+  "deleteDocument": "حذف المستند",
+  "deleteDocumentConfirm": "حذف \"{name}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+  "documentDeletedToast": "تم حذف \"{name}\"",
+  "noPreviewAvailable": "المعاينة غير متاحة لهذا النوع من الملفات",
+  "addedOn": "أُضيف في {date}",
+
   "comingSoon": "قريبًا",
   "comingSoonToast": "{name} — قريبًا",
 

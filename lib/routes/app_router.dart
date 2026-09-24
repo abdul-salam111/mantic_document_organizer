@@ -18,6 +18,7 @@ import '../features/profile/profile_exports.dart';
 import '../features/settings/settings_exports.dart';
 import '../features/splash/splash_exports.dart';
 import '../features/documents/presentation/category_documents/category_documents_exports.dart';
+import '../features/documents/presentation/document_viewer/document_viewer_exports.dart';
 
 // GENERATED_IMPORTS_START
 
@@ -120,6 +121,12 @@ class AppRoutes {
         name: RouteNames.categoryDocuments,
         builder: (context, state) =>
             CategoryDocumentsView(category: state.extra as CategoryItem),
+      ),
+      GoRoute(
+        path: RoutePaths.documentViewer,
+        name: RouteNames.documentViewer,
+        builder: (context, state) =>
+            DocumentViewerView(document: state.extra as DocumentItem),
       ),
 
       // GENERATED_ROUTES_START

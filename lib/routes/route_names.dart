@@ -10,6 +10,7 @@ class RouteNames {
   static const String addCategory = "addCategory";
   static const String manageCategories = "manageCategories";
   static const String categoryDocuments = "categoryDocuments";
+  static const String documentViewer = "documentViewer";
 
   // GENERATED_ROUTE_NAMES_START
 

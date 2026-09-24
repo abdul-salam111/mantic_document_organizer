@@ -430,6 +430,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addToFavorites => 'Add to favorites';
 
   @override
+  String get share => 'Share';
+
+  @override
+  String get rename => 'Rename';
+
+  @override
+  String get move => 'Move';
+
+  @override
+  String get renameDocument => 'Rename Document';
+
+  @override
+  String documentRenamedToast(String name) {
+    return 'Renamed to \"$name\"';
+  }
+
+  @override
+  String documentMovedToast(String category) {
+    return 'Moved to \"$category\"';
+  }
+
+  @override
+  String get deleteDocument => 'Delete Document';
+
+  @override
+  String deleteDocumentConfirm(String name) {
+    return 'Delete \"$name\"? This can\'t be undone.';
+  }
+
+  @override
+  String documentDeletedToast(String name) {
+    return '\"$name\" deleted';
+  }
+
+  @override
+  String get noPreviewAvailable => 'Preview not available for this file type';
+
+  @override
+  String addedOn(String date) {
+    return 'Added $date';
+  }
+
+  @override
   String get comingSoon => 'Coming soon';
 
   @override

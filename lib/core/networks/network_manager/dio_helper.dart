@@ -34,7 +34,8 @@ class DioHelper {
     this.dio, {
     InternetConnectionChecker? connectionChecker,
     Duration connectivityCheckInterval = const Duration(seconds: 10),
-  }) : _connectionChecker = connectionChecker ?? InternetConnectionChecker.instance,
+  }) : _connectionChecker =
+           connectionChecker ?? InternetConnectionChecker.instance,
        _connectivityCheckInterval = connectivityCheckInterval {
     _refreshConnectivity();
     _connectivityPollTimer = Timer.periodic(

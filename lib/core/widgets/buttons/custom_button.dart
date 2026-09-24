@@ -78,13 +78,12 @@ class CustomButton extends StatelessWidget {
                     softWrap: true,
                     overflow: TextOverflow.ellipsis,
                     maxLines: 2,
-                    style:
-                        (theme.textTheme.labelLarge ?? const TextStyle())
-                            .copyWith(
-                              color: resolvedTextColor,
-                              fontSize: fontSize,
-                              fontWeight: FontWeight.bold,
-                            ),
+                    style: (theme.textTheme.labelLarge ?? const TextStyle())
+                        .copyWith(
+                          color: resolvedTextColor,
+                          fontSize: fontSize,
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                 ),
               ],

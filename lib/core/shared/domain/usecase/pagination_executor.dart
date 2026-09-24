@@ -8,7 +8,10 @@ import '../result/result.dart';
 /// for a paginated list looks like. Returns [Result] like every other call
 /// in this template, just returning a page of items instead of one object.
 typedef PageFetcher<T> =
-    Future<Result<List<T>>> Function({required int page, required int pageSize});
+    Future<Result<List<T>>> Function({
+      required int page,
+      required int pageSize,
+    });
 
 /// Mixin for list screens — the [UseCaseExecutor] equivalent for paginated
 /// data. Composes alongside `UseCaseExecutor` on the same ViewModel (a

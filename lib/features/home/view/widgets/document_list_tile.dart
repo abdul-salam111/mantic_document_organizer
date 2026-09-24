@@ -5,6 +5,7 @@ import '../../../../core/theme/theme_exports.dart';
 import '../../../../core/utils/utils_exports.dart';
 import '../../../../core/widgets/widgets_exports.dart';
 import '../../viewmodel/home_viewmodel.dart';
+import 'document_chips.dart';
 
 /// Row rendering for a single [DocumentItem] — icon, title, file count +
 /// relative time, tags, an expiry badge when applicable, and a favorite
@@ -109,9 +110,9 @@ class DocumentListTile extends StatelessWidget {
                       spacing: 6,
                       runSpacing: 6,
                       children: [
-                        if (_showExpiryChip) _buildExpiryChip(context),
-                        for (final tag in document.tags)
-                          _buildTagChip(context, tag),
+                        if (_showExpiryChip)
+                          ExpiryChip(expiryDate: document.expiryDate!),
+                        for (final tag in document.tags) TagChip(tag: tag),
                       ],
                     ),
                   ],
@@ -134,52 +135,6 @@ class DocumentListTile extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildExpiryChip(BuildContext context) {
-    final expiry = document.expiryDate!;
-    final daysLeft = expiry.difference(DateTime.now()).inDays;
-    final chipColor = daysLeft < 0
-        ? context.errorAccent
-        : daysLeft <= 30
-        ? context.warning
-        : context.textSecondary;
-    return Container(
-      padding: const .symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: chipColor.withValues(alpha: 0.12),
-        borderRadius: .circular(20),
-      ),
-      child: Row(
-        mainAxisSize: .min,
-        children: [
-          Icon(Iconsax.timer_1, size: 11, color: chipColor),
-          widthBox(4),
-          Text(
-            AppLocalizations.of(context).expiresOn(expiry.formatted),
-            style: context.labelSmall.copyWith(
-              color: chipColor,
-              fontWeight: .w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTagChip(BuildContext context, String tag) {
-    return Container(
-      padding: const .symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: context.background,
-        borderRadius: .circular(20),
-        border: Border.all(color: context.border),
-      ),
-      child: Text(
-        tag,
-        style: context.labelSmall.copyWith(color: context.textSecondary),
       ),
     );
   }

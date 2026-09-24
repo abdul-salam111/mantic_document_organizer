@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
-void showLoadingPopup(BuildContext context, {String message = "Please wait..."}) {
+void showLoadingPopup(
+  BuildContext context, {
+  String message = "Please wait...",
+}) {
   showDialog(
     context: context,
     barrierDismissible: false,
     builder: (BuildContext context) {
       return PopScope(
-        onPopInvokedWithResult: (_,_) async => false,
+        onPopInvokedWithResult: (_, _) async => false,
         child: Dialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
@@ -18,10 +21,7 @@ void showLoadingPopup(BuildContext context, {String message = "Please wait..."})
               children: [
                 const CircularProgressIndicator(),
                 const SizedBox(height: 20),
-                Text(
-                  message,
-                  style: const TextStyle(fontSize: 16),
-                ),
+                Text(message, style: const TextStyle(fontSize: 16)),
               ],
             ),
           ),

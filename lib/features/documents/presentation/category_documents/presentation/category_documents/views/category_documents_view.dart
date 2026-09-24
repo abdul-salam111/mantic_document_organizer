@@ -43,7 +43,7 @@ class CategoryDocumentsView extends StatelessWidget {
               child: Column(
                 children: [
                   Padding(
-                    padding: const .fromLTRB(14, 16, 14, 0),
+                    padding: const .fromLTRB(10, 16, 10, 0),
                     child: CustomSearchField(
                       hintText: AppLocalizations.of(
                         context,
@@ -87,7 +87,7 @@ class _DocumentList extends StatelessWidget {
 
     if (documents.isEmpty) {
       return Padding(
-        padding: const .symmetric(horizontal: 14),
+        padding: const .symmetric(horizontal: 10),
         child: EmptyStateWidget(
           icon: Iconsax.document_text,
           title: AppLocalizations.of(context).noDocumentsFound,
@@ -103,7 +103,7 @@ class _DocumentList extends StatelessWidget {
     }
 
     return ListView.separated(
-      padding: const .fromLTRB(14, 0, 14, 90),
+      padding: const .fromLTRB(10, 0, 10, 90),
       itemCount: documents.length,
       separatorBuilder: (context, index) => heightBox(10),
       itemBuilder: (context, index) {
@@ -111,8 +111,9 @@ class _DocumentList extends StatelessWidget {
         return DocumentListTile(
           document: document,
           accentColor: color,
-          onTap: () => AppToastsUtils.info(
-            AppLocalizations.of(context).comingSoonToast(document.title),
+          onTap: () => AppNavigator.pushNamed(
+            RouteNames.documentViewer,
+            extra: document,
           ),
           onToggleFavorite: () => vm.toggleFavorite(document),
         );

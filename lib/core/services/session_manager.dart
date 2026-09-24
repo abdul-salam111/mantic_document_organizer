@@ -19,10 +19,7 @@ class SessionController {
   String? userToken;
 
   Future<void> saveUserInStorage(AuthEntity user) async {
-    await storage.setValues(
-      StorageKeys.userDetails,
-      jsonEncode(user.toJson()),
-    );
+    await storage.setValues(StorageKeys.userDetails, jsonEncode(user.toJson()));
     await storage.setValues(StorageKeys.loggedIn, 'true');
     await storage.setValues(StorageKeys.token, user.token ?? "");
   }

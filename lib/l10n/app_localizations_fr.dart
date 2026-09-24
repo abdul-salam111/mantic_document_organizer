@@ -432,6 +432,50 @@ class AppLocalizationsFr extends AppLocalizations {
   String get addToFavorites => 'Ajouter aux favoris';
 
   @override
+  String get share => 'Partager';
+
+  @override
+  String get rename => 'Renommer';
+
+  @override
+  String get move => 'Déplacer';
+
+  @override
+  String get renameDocument => 'Renommer le document';
+
+  @override
+  String documentRenamedToast(String name) {
+    return 'Renommé en « $name »';
+  }
+
+  @override
+  String documentMovedToast(String category) {
+    return 'Déplacé vers « $category »';
+  }
+
+  @override
+  String get deleteDocument => 'Supprimer le document';
+
+  @override
+  String deleteDocumentConfirm(String name) {
+    return 'Supprimer « $name » ? Cette action est irréversible.';
+  }
+
+  @override
+  String documentDeletedToast(String name) {
+    return '« $name » supprimé';
+  }
+
+  @override
+  String get noPreviewAvailable =>
+      'Aperçu non disponible pour ce type de fichier';
+
+  @override
+  String addedOn(String date) {
+    return 'Ajouté le $date';
+  }
+
+  @override
   String get comingSoon => 'Bientôt disponible';
 
   @override

@@ -19,6 +19,7 @@ import '../../features/onboarding/onboarding_exports.dart';
 import '../../features/settings/settings_exports.dart';
 import '../../features/splash/splash_exports.dart';
 import '../../features/documents/presentation/category_documents/category_documents_exports.dart';
+import '../../features/documents/presentation/document_viewer/document_viewer_exports.dart';
 
 // GENERATED_IMPORTS_START
 
@@ -43,6 +44,7 @@ Future<void> setupLocator() async {
   await addCategoryDependencies();
   await manageCategoriesDependencies();
   await categoryDocumentsDependencies();
+  await documentViewerDependencies();
   // GENERATED_SETUP_CALLS_START
 
   // GENERATED_SETUP_CALLS_END
@@ -222,6 +224,13 @@ Future<void> manageCategoriesDependencies() async {
 Future<void> categoryDocumentsDependencies() async {
   sl.registerFactory<CategoryDocumentsViewModel>(
     () => CategoryDocumentsViewModel(documentStore: sl()),
+  );
+}
+
+/// Document Viewer Page Dependencies
+Future<void> documentViewerDependencies() async {
+  sl.registerFactory<DocumentViewerViewModel>(
+    () => DocumentViewerViewModel(documentStore: sl(), categoryStore: sl()),
   );
 }
 

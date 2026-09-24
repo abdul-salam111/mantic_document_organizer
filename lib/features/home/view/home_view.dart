@@ -109,7 +109,7 @@ class HomeView extends StatelessWidget {
                                     widthBox(12),
                                 itemBuilder: (context, index) =>
                                     _RecentFileCard(
-                                      file: vm.recentFiles[index],
+                                      document: vm.recentFiles[index],
                                     ),
                               ),
                             ),
@@ -373,18 +373,17 @@ Color categoryIconColor(BuildContext context, String categoryName) {
 }
 
 class _RecentFileCard extends StatelessWidget {
-  final RecentFileItem file;
+  final DocumentItem document;
 
-  const _RecentFileCard({required this.file});
+  const _RecentFileCard({required this.document});
 
   @override
   Widget build(BuildContext context) {
-    final color = categoryIconColor(context, file.category);
+    final color = categoryIconColor(context, document.category);
     return InkWell(
       borderRadius: .circular(14),
-      onTap: () => AppToastsUtils.info(
-        AppLocalizations.of(context).comingSoonToast(file.name),
-      ),
+      onTap: () =>
+          AppNavigator.pushNamed(RouteNames.documentViewer, extra: document),
       child: Container(
         width: 210,
         padding: .all(9),
@@ -409,7 +408,7 @@ class _RecentFileCard extends StatelessWidget {
                 color: color.withValues(alpha: 0.12),
                 borderRadius: .circular(9),
               ),
-              child: FaIcon(file.icon, size: 22, color: color),
+              child: FaIcon(document.icon, size: 22, color: color),
             ),
             widthBox(10),
             Expanded(
@@ -418,14 +417,14 @@ class _RecentFileCard extends StatelessWidget {
                 mainAxisAlignment: .center,
                 children: [
                   Text(
-                    file.name,
+                    document.title,
                     maxLines: 1,
                     overflow: .ellipsis,
                     style: context.bodySmall.copyWith(fontWeight: .w600),
                   ),
                   heightBox(2),
                   Text(
-                    '${file.category} • ${file.timeLabel}',
+                    '${document.category} • ${document.createdAt.timeAgo}',
                     maxLines: 1,
                     overflow: .ellipsis,
                     style: context.labelSmall.copyWith(

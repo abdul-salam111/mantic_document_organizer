@@ -798,6 +798,72 @@ abstract class AppLocalizations {
   /// **'Add to favorites'**
   String get addToFavorites;
 
+  /// Document Viewer app bar action tooltip / unsupported-file-preview button label
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get share;
+
+  /// Document Viewer overflow menu entry
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get rename;
+
+  /// Document Viewer overflow menu entry
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get move;
+
+  /// Document Viewer rename dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Rename Document'**
+  String get renameDocument;
+
+  /// Success toast shown after renaming a document
+  ///
+  /// In en, this message translates to:
+  /// **'Renamed to \"{name}\"'**
+  String documentRenamedToast(String name);
+
+  /// Success toast shown after moving a document to another category
+  ///
+  /// In en, this message translates to:
+  /// **'Moved to \"{category}\"'**
+  String documentMovedToast(String category);
+
+  /// Document Viewer overflow menu entry / confirm dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Document'**
+  String get deleteDocument;
+
+  /// Confirm dialog body shown before deleting a document
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"? This can\'t be undone.'**
+  String deleteDocumentConfirm(String name);
+
+  /// Success toast shown after deleting a document
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" deleted'**
+  String documentDeletedToast(String name);
+
+  /// Document Viewer shown for an attachment that isn't an image (e.g. PDF/docx)
+  ///
+  /// In en, this message translates to:
+  /// **'Preview not available for this file type'**
+  String get noPreviewAvailable;
+
+  /// Document Viewer info panel — when the document was created
+  ///
+  /// In en, this message translates to:
+  /// **'Added {date}'**
+  String addedOn(String date);
+
   /// Generic placeholder subtitle for an unbuilt screen
   ///
   /// In en, this message translates to:

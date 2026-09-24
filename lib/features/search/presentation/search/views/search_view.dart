@@ -10,6 +10,7 @@ import '../../../../../core/widgets/widgets_exports.dart';
 // (including this one), so importing it here would create an import cycle.
 import '../../../../navbar/viewmodel/navbar_viewmodel.dart';
 import '../../../../home/home_exports.dart';
+import '../../../../../routes/routes_exports.dart';
 import '../viewmodels/search_viewmodel.dart';
 
 class SearchView extends StatelessWidget {
@@ -207,8 +208,9 @@ class _DocumentList extends StatelessWidget {
           return DocumentGridTile(
             document: document,
             accentColor: categoryIconColor(context, document.category),
-            onTap: () => AppToastsUtils.info(
-              AppLocalizations.of(context).comingSoonToast(document.title),
+            onTap: () => AppNavigator.pushNamed(
+              RouteNames.documentViewer,
+              extra: document,
             ),
             onToggleFavorite: () => vm.toggleFavorite(document),
           );
@@ -224,8 +226,9 @@ class _DocumentList extends StatelessWidget {
         return DocumentListTile(
           document: document,
           accentColor: categoryIconColor(context, document.category),
-          onTap: () => AppToastsUtils.info(
-            AppLocalizations.of(context).comingSoonToast(document.title),
+          onTap: () => AppNavigator.pushNamed(
+            RouteNames.documentViewer,
+            extra: document,
           ),
           onToggleFavorite: () => vm.toggleFavorite(document),
         );
