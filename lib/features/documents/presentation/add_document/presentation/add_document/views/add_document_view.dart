@@ -13,12 +13,22 @@ import '../../../../../../home/home_exports.dart';
 import '../viewmodels/add_document_viewmodel.dart';
 
 class AddDocumentView extends StatelessWidget {
-  const AddDocumentView({super.key});
+  /// Preselects the category picker — set when opened via a category's
+  /// document list "+" button, so the user doesn't have to reselect the
+  /// category they were already looking at.
+  final CategoryItem? initialCategory;
+
+  const AddDocumentView({super.key, this.initialCategory});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => sl<AddDocumentViewModel>(),
+      create: (_) {
+        final vm = sl<AddDocumentViewModel>();
+        final category = initialCategory;
+        if (category != null) vm.preselectCategory(category);
+        return vm;
+      },
       child: Scaffold(
         appBar: CustomAppBar(
           title: AppLocalizations.of(context).addDocumentTitle,
@@ -110,7 +120,14 @@ class _AttachmentSection extends StatelessWidget {
               child: _SourceButton(
                 icon: Iconsax.camera,
                 label: AppLocalizations.of(context).camera,
-                onTap: vm.pickFromCamera,
+                onTap: () async {
+                  final failed = await vm.pickFromCamera();
+                  if (failed && context.mounted) {
+                    AppToastsUtils.error(
+                      AppLocalizations.of(context).scanFailedToast,
+                    );
+                  }
+                },
               ),
             ),
             widthBox(10),

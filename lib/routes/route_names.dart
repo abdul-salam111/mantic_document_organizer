@@ -9,6 +9,7 @@ class RouteNames {
   static const String profile = "profile";
   static const String addCategory = "addCategory";
   static const String manageCategories = "manageCategories";
+  static const String categoryDocuments = "categoryDocuments";
 
   // GENERATED_ROUTE_NAMES_START
 

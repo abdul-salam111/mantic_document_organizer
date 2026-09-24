@@ -64,6 +64,18 @@ class DocumentItem {
     this.isExpirable = false,
     this.expiryDate,
   });
+
+  DocumentItem copyWith({bool? isFavorite}) => DocumentItem(
+    title: title,
+    category: category,
+    icon: icon,
+    createdAt: createdAt,
+    tags: tags,
+    isFavorite: isFavorite ?? this.isFavorite,
+    filePaths: filePaths,
+    isExpirable: isExpirable,
+    expiryDate: expiryDate,
+  );
 }
 
 /// Single shared in-memory stand-in for the local Document table (see
@@ -79,6 +91,17 @@ class DocumentLocalStore extends ChangeNotifier {
 
   void addDocument(DocumentItem document) {
     _documents.insert(0, document);
+    notifyListeners();
+  }
+
+  /// Identity here is positional (no id on [DocumentItem] yet, same
+  /// gap noted on [CategoryItem]) — matches by reference/equality within
+  /// the current list, which is fine since callers always pass back an
+  /// item they just read from [documents].
+  void toggleFavorite(DocumentItem document) {
+    final index = _documents.indexOf(document);
+    if (index == -1) return;
+    _documents[index] = document.copyWith(isFavorite: !document.isFavorite);
     notifyListeners();
   }
 }

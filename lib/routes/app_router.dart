@@ -17,6 +17,7 @@ import '../features/onboarding/onboarding_exports.dart';
 import '../features/profile/profile_exports.dart';
 import '../features/settings/settings_exports.dart';
 import '../features/splash/splash_exports.dart';
+import '../features/documents/presentation/category_documents/category_documents_exports.dart';
 
 // GENERATED_IMPORTS_START
 
@@ -80,7 +81,8 @@ class AppRoutes {
       GoRoute(
         path: RoutePaths.addDocument,
         name: RouteNames.addDocument,
-        builder: (context, state) => const AddDocumentView(),
+        builder: (context, state) =>
+            AddDocumentView(initialCategory: state.extra as CategoryItem?),
       ),
       GoRoute(
         path: RoutePaths.onboarding,
@@ -112,6 +114,12 @@ class AppRoutes {
         path: RoutePaths.manageCategories,
         name: RouteNames.manageCategories,
         builder: (context, state) => const ManageCategoriesView(),
+      ),
+      GoRoute(
+        path: RoutePaths.categoryDocuments,
+        name: RouteNames.categoryDocuments,
+        builder: (context, state) =>
+            CategoryDocumentsView(category: state.extra as CategoryItem),
       ),
 
       // GENERATED_ROUTES_START

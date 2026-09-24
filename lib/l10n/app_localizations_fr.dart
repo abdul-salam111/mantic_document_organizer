@@ -375,9 +375,30 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les images ne sont pas acceptées ici — utilisez l\'appareil photo ou la galerie';
 
   @override
+  String get scanFailedToast => 'Échec de la numérisation — veuillez réessayer';
+
+  @override
   String documentCreatedToast(String name) {
     return '« $name » ajouté';
   }
+
+  @override
+  String get searchDocumentsHint => 'Rechercher des documents';
+
+  @override
+  String get sortBy => 'Trier par';
+
+  @override
+  String get sortNewestFirst => 'Plus récents d\'abord';
+
+  @override
+  String get sortOldestFirst => 'Plus anciens d\'abord';
+
+  @override
+  String get sortNameAZ => 'Nom (A-Z)';
+
+  @override
+  String get addToFavorites => 'Ajouter aux favoris';
 
   @override
   String get comingSoon => 'Bientôt disponible';

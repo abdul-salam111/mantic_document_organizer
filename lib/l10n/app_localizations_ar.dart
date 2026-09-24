@@ -371,9 +371,30 @@ class AppLocalizationsAr extends AppLocalizations {
       'الصور غير مقبولة هنا — استخدم الكاميرا أو المعرض';
 
   @override
+  String get scanFailedToast => 'فشل المسح — يرجى المحاولة مرة أخرى';
+
+  @override
   String documentCreatedToast(String name) {
     return 'تمت إضافة \"$name\"';
   }
+
+  @override
+  String get searchDocumentsHint => 'ابحث عن المستندات';
+
+  @override
+  String get sortBy => 'ترتيب حسب';
+
+  @override
+  String get sortNewestFirst => 'الأحدث أولاً';
+
+  @override
+  String get sortOldestFirst => 'الأقدم أولاً';
+
+  @override
+  String get sortNameAZ => 'الاسم (أ-ي)';
+
+  @override
+  String get addToFavorites => 'إضافة إلى المفضلة';
 
   @override
   String get comingSoon => 'قريبًا';

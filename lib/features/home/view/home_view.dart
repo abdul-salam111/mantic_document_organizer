@@ -513,7 +513,15 @@ class _CategoryTile extends StatelessWidget {
           AppNavigator.pushNamed(RouteNames.addCategory);
           return;
         }
-        AppToastsUtils.info(AppLocalizations.of(context).comingSoonToast(name));
+        AppNavigator.pushNamed(
+          RouteNames.categoryDocuments,
+          extra: CategoryItem(
+            name: name,
+            icon: icon,
+            color: color,
+            fileCount: fileCount,
+          ),
+        );
       },
       child: isGridView ? _buildGrid(context) : _buildList(context),
     );

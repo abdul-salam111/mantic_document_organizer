@@ -39,5 +39,15 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+
+    # flutter_doc_scanner depends on permission_handler, which is macro-gated
+    # per permission group — enable PermissionGroup.camera so the scanner can
+    # actually request camera access on iOS.
+    target.build_configurations.each do |config|
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
+        '$(inherited)',
+        'PERMISSION_CAMERA=1',
+      ]
+    end
   end
 end

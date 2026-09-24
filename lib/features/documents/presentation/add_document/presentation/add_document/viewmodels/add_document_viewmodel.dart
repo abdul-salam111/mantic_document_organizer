@@ -1,7 +1,10 @@
+import 'package:content_resolver/content_resolver.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_doc_scanner/flutter_doc_scanner.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../../../../../home/home_exports.dart';
 
@@ -35,6 +38,21 @@ class AddDocumentViewModel extends ChangeNotifier {
     final sorted = List<CategoryItem>.of(_categoryStore.categories)
       ..sort((a, b) => a.name.compareTo(b.name));
     if (sorted.isNotEmpty) _selectedCategory = sorted.first;
+  }
+
+  /// Called from the view when opened with a category already in
+  /// context (e.g. the "+" button on a category's document list) — picks
+  /// it by name from the live store rather than trusting the passed-in
+  /// [CategoryItem] as-is, since it may be stale (edited/deleted since).
+  /// No-op if the name no longer matches anything, leaving the
+  /// constructor's default selection in place.
+  void preselectCategory(CategoryItem category) {
+    final matches = _categoryStore.categories.where(
+      (c) => c.name == category.name,
+    );
+    if (matches.isEmpty) return;
+    _selectedCategory = matches.first;
+    notifyListeners();
   }
 
   final TextEditingController titleController = TextEditingController();
@@ -122,16 +140,50 @@ class AddDocumentViewModel extends ChangeNotifier {
   final List<AttachmentItem> _attachments = [];
   List<AttachmentItem> get attachments => List.unmodifiable(_attachments);
 
-  Future<void> pickFromCamera() async {
-    final picked = await ImagePicker().pickImage(
-      source: ImageSource.camera,
-      imageQuality: 85,
-    );
-    if (picked == null) return;
-    _attachments.add(
-      AttachmentItem(path: picked.path, type: AttachmentType.image),
-    );
-    notifyListeners();
+  /// Opens Google ML Kit's document scanner (VisionKit on iOS) — a
+  /// fullscreen native flow with its own live edge detection, cropping,
+  /// filtering and multi-page capture, so none of that needs building here.
+  /// Returns true if the scan genuinely failed (not just cancelled), so the
+  /// caller can surface a toast.
+  Future<bool> pickFromCamera() async {
+    try {
+      final result = await FlutterDocScanner().getScannedDocumentAsImages(
+        page: 10,
+      );
+      if (result == null || result.images.isEmpty) return false;
+      final dir = await getTemporaryDirectory();
+      for (var i = 0; i < result.images.length; i++) {
+        final path = await _localizeScan(result.images[i], dir.path, i);
+        _attachments.add(
+          AttachmentItem(path: path, type: AttachmentType.image),
+        );
+      }
+      notifyListeners();
+      return false;
+    } on DocScanException catch (e) {
+      return e.code != DocScanException.codeCancelled;
+    }
+  }
+
+  /// Each scanned page comes back as either a content:// URI (ML Kit's own
+  /// FileProvider-backed cache) or a file:// URI — either way, `File()`
+  /// can't be handed the raw URI string directly: a content:// URI isn't a
+  /// real filesystem path at all, and a file:// URI's `file://` prefix is
+  /// part of the string, not something `File()` strips on its own. iOS
+  /// returns a plain path with no scheme, which needs no conversion.
+  Future<String> _localizeScan(
+    String uriOrPath,
+    String tempDirPath,
+    int i,
+  ) async {
+    final uri = Uri.tryParse(uriOrPath);
+    if (uri == null || uri.scheme.isEmpty) return uriOrPath;
+    if (uri.scheme == 'file') return uri.toFilePath();
+    if (uri.scheme != 'content') return uriOrPath;
+    final localPath =
+        '$tempDirPath/scan_${DateTime.now().microsecondsSinceEpoch}_$i.jpg';
+    await ContentResolver.resolveContentToFile(uriOrPath, localPath);
+    return localPath;
   }
 
   /// Multi-select — matches the reference design's gallery picker, which

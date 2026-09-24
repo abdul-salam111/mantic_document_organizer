@@ -110,7 +110,15 @@
   "gallery": "Galerie",
   "files": "Fichiers",
   "filesImagesNotAllowed": "Les images ne sont pas acceptées ici — utilisez l'appareil photo ou la galerie",
+  "scanFailedToast": "Échec de la numérisation — veuillez réessayer",
   "documentCreatedToast": "« {name} » ajouté",
+
+  "searchDocumentsHint": "Rechercher des documents",
+  "sortBy": "Trier par",
+  "sortNewestFirst": "Plus récents d'abord",
+  "sortOldestFirst": "Plus anciens d'abord",
+  "sortNameAZ": "Nom (A-Z)",
+  "addToFavorites": "Ajouter aux favoris",
 
   "comingSoon": "Bientôt disponible",
   "comingSoonToast": "{name} — bientôt disponible",

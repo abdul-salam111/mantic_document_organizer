@@ -256,11 +256,26 @@
   "@files": {"description": "Add Document screen attachment source button label"},
   "filesImagesNotAllowed": "Images aren't accepted here — use Camera or Gallery instead",
   "@filesImagesNotAllowed": {"description": "Add Document screen warning toast when an image is picked via the Files button"},
+  "scanFailedToast": "Scanning failed — please try again",
+  "@scanFailedToast": {"description": "Add Document screen error toast when the document scanner fails"},
   "documentCreatedToast": "\"{name}\" added",
   "@documentCreatedToast": {
     "description": "Success toast shown after saving a document",
     "placeholders": {"name": {"type": "String"}}
   },
+
+  "searchDocumentsHint": "Search documents",
+  "@searchDocumentsHint": {"description": "Category Documents screen search field placeholder"},
+  "sortBy": "Sort by",
+  "@sortBy": {"description": "Category Documents screen sort menu button tooltip"},
+  "sortNewestFirst": "Newest first",
+  "@sortNewestFirst": {"description": "Category Documents screen sort option"},
+  "sortOldestFirst": "Oldest first",
+  "@sortOldestFirst": {"description": "Category Documents screen sort option"},
+  "sortNameAZ": "Name (A-Z)",
+  "@sortNameAZ": {"description": "Category Documents screen sort option"},
+  "addToFavorites": "Add to favorites",
+  "@addToFavorites": {"description": "Tooltip on a document tile's outline-heart button"},
 
   "comingSoon": "Coming soon",
   "@comingSoon": {"description": "Generic placeholder subtitle for an unbuilt screen"},

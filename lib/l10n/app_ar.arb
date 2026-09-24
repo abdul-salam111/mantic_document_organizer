@@ -110,7 +110,15 @@
   "gallery": "المعرض",
   "files": "الملفات",
   "filesImagesNotAllowed": "الصور غير مقبولة هنا — استخدم الكاميرا أو المعرض",
+  "scanFailedToast": "فشل المسح — يرجى المحاولة مرة أخرى",
   "documentCreatedToast": "تمت إضافة \"{name}\"",
+
+  "searchDocumentsHint": "ابحث عن المستندات",
+  "sortBy": "ترتيب حسب",
+  "sortNewestFirst": "الأحدث أولاً",
+  "sortOldestFirst": "الأقدم أولاً",
+  "sortNameAZ": "الاسم (أ-ي)",
+  "addToFavorites": "إضافة إلى المفضلة",
 
   "comingSoon": "قريبًا",
   "comingSoonToast": "{name} — قريبًا",

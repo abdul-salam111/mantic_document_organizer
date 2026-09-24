@@ -18,6 +18,7 @@ import '../../features/navbar/navbar_exports.dart';
 import '../../features/onboarding/onboarding_exports.dart';
 import '../../features/settings/settings_exports.dart';
 import '../../features/splash/splash_exports.dart';
+import '../../features/documents/presentation/category_documents/category_documents_exports.dart';
 
 // GENERATED_IMPORTS_START
 
@@ -33,6 +34,7 @@ Future<void> setupLocator() async {
   await searchDependencies();
   await favoritesDependencies();
   await profileDependencies();
+  await documentsDependencies();
   await addDocumentDependencies();
   await navbarDependencies();
   await onboardingDependencies();
@@ -40,6 +42,7 @@ Future<void> setupLocator() async {
   await settingsDependencies();
   await addCategoryDependencies();
   await manageCategoriesDependencies();
+  await categoryDocumentsDependencies();
   // GENERATED_SETUP_CALLS_START
 
   // GENERATED_SETUP_CALLS_END
@@ -145,30 +148,35 @@ Future<void> profileDependencies() async {
   sl.registerFactory<ProfileViewModel>(() => ProfileViewModel());
 }
 
-/// Add Document Feature Dependencies
+/// Documents Feature Dependencies
 ///
 /// The DataSource/Repository/UseCase below are the original brick-
 /// scaffolded REST plumbing (unused for now — see CLAUDE.md's "Known
 /// mismatches" section) and stay registered/untouched for whenever a
-/// real sqflite repository replaces them; AddDocumentViewModel itself
-/// writes straight into the shared local stores instead.
-Future<void> addDocumentDependencies() async {
+/// real sqflite repository replaces them. Shared by every page under
+/// lib/features/documents/ (add_document, category_documents, ...) —
+/// registered once here rather than once per page — since each page's
+/// ViewModel writes straight into the shared local stores instead of
+/// actually calling this REST layer.
+Future<void> documentsDependencies() async {
   // DataSource
-  sl.registerLazySingleton<IRemoteAddDocumentDataSource>(
-    () => RemoteAddDocumentDataSourceImpl(dioHelper: sl()),
+  sl.registerLazySingleton<IRemoteDocumentDataSource>(
+    () => RemoteDocumentDataSourceImpl(dioHelper: sl()),
   );
 
   // Repository
-  sl.registerLazySingleton<IAddDocumentRepository>(
-    () => AddDocumentRepositoryImpl(dataSource: sl()),
+  sl.registerLazySingleton<IDocumentRepository>(
+    () => DocumentRepositoryImpl(dataSource: sl()),
   );
 
   // UseCase
-  sl.registerLazySingleton<AddDocumentUsecase>(
-    () => AddDocumentUsecase(repository: sl()),
+  sl.registerLazySingleton<DocumentUsecase>(
+    () => DocumentUsecase(repository: sl()),
   );
+}
 
-  // ViewModel
+/// Add Document Page Dependencies
+Future<void> addDocumentDependencies() async {
   sl.registerFactory<AddDocumentViewModel>(
     () => AddDocumentViewModel(categoryStore: sl(), documentStore: sl()),
   );
@@ -205,6 +213,13 @@ Future<void> addCategoryDependencies() async {
 Future<void> manageCategoriesDependencies() async {
   sl.registerFactory<ManageCategoriesViewModel>(
     () => ManageCategoriesViewModel(categoryStore: sl()),
+  );
+}
+
+/// Category Documents Page Dependencies
+Future<void> categoryDocumentsDependencies() async {
+  sl.registerFactory<CategoryDocumentsViewModel>(
+    () => CategoryDocumentsViewModel(documentStore: sl()),
   );
 }
 

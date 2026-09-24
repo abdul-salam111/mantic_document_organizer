@@ -110,7 +110,15 @@
   "gallery": "Galería",
   "files": "Archivos",
   "filesImagesNotAllowed": "Las imágenes no se aceptan aquí — usa la cámara o la galería",
+  "scanFailedToast": "Error al escanear — inténtalo de nuevo",
   "documentCreatedToast": "\"{name}\" agregado",
+
+  "searchDocumentsHint": "Buscar documentos",
+  "sortBy": "Ordenar por",
+  "sortNewestFirst": "Más recientes primero",
+  "sortOldestFirst": "Más antiguos primero",
+  "sortNameAZ": "Nombre (A-Z)",
+  "addToFavorites": "Añadir a favoritos",
 
   "comingSoon": "Próximamente",
   "comingSoonToast": "{name} — próximamente",

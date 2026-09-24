@@ -708,11 +708,53 @@ abstract class AppLocalizations {
   /// **'Images aren\'t accepted here — use Camera or Gallery instead'**
   String get filesImagesNotAllowed;
 
+  /// Add Document screen error toast when the document scanner fails
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning failed — please try again'**
+  String get scanFailedToast;
+
   /// Success toast shown after saving a document
   ///
   /// In en, this message translates to:
   /// **'\"{name}\" added'**
   String documentCreatedToast(String name);
+
+  /// Category Documents screen search field placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Search documents'**
+  String get searchDocumentsHint;
+
+  /// Category Documents screen sort menu button tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by'**
+  String get sortBy;
+
+  /// Category Documents screen sort option
+  ///
+  /// In en, this message translates to:
+  /// **'Newest first'**
+  String get sortNewestFirst;
+
+  /// Category Documents screen sort option
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest first'**
+  String get sortOldestFirst;
+
+  /// Category Documents screen sort option
+  ///
+  /// In en, this message translates to:
+  /// **'Name (A-Z)'**
+  String get sortNameAZ;
+
+  /// Tooltip on a document tile's outline-heart button
+  ///
+  /// In en, this message translates to:
+  /// **'Add to favorites'**
+  String get addToFavorites;
 
   /// Generic placeholder subtitle for an unbuilt screen
   ///

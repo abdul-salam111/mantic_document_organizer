@@ -13,6 +13,7 @@ class RoutePaths {
   static const String profile = "/profile";
   static const String addCategory = "/add-category";
   static const String manageCategories = "/manage-categories";
+  static const String categoryDocuments = "/category-documents";
 
   // GENERATED_ROUTE_PATHS_START
 
