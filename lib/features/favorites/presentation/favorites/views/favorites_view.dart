@@ -24,11 +24,20 @@ class FavoritesView extends StatelessWidget {
           onBackPressed: () => context.read<NavbarViewModel>().selectTab(0),
           actions: [
             Consumer<FavoritesViewModel>(
+              builder: (context, vm, _) => ViewModeToggle(
+                isGridView: vm.isGridView,
+                onChanged: vm.setGridView,
+                onAppBar: true,
+              ),
+            ),
+            widthBox(10),
+            Consumer<FavoritesViewModel>(
               builder: (context, vm, _) => DocumentSortMenuButton(
                 selected: vm.sort,
                 onSelected: vm.setSort,
               ),
             ),
+            widthBox(6),
           ],
         ),
         body: SafeArea(
@@ -51,18 +60,6 @@ class FavoritesView extends StatelessWidget {
                         context,
                       ).searchDocumentsHint,
                       onChanged: vm.updateQuery,
-                    ),
-                  ),
-                  Padding(
-                    padding: const .fromLTRB(10, 10, 10, 0),
-                    child: Row(
-                      children: [
-                        const Spacer(),
-                        ViewModeToggle(
-                          isGridView: vm.isGridView,
-                          onChanged: vm.setGridView,
-                        ),
-                      ],
                     ),
                   ),
                   heightBox(10),

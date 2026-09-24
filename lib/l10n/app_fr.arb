@@ -19,6 +19,7 @@
   "uncategorized": "Sans catégorie",
   "newCategory": "Nouvelle catégorie",
   "fileCount": "{count, plural, one{{count} fichier} other{{count} fichiers}}",
+  "resultsCount": "{count, plural, one{{count} résultat} other{{count} résultats}}",
   "profileTooltip": "Profil",
 
   "allDocsTitle": "Documents",

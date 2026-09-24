@@ -192,6 +192,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{{count} file} other{{count} files}}'**
   String fileCount(int count);
 
+  /// Search result count shown next to sort/view controls once a query is typed
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} result} other{{count} results}}'**
+  String resultsCount(int count);
+
   /// Tooltip on Home's header profile icon button
   ///
   /// In en, this message translates to:

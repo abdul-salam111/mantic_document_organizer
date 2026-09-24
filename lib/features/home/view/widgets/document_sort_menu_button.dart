@@ -13,17 +13,26 @@ class DocumentSortMenuButton extends StatelessWidget {
   final DocumentSort selected;
   final ValueChanged<DocumentSort> onSelected;
 
+  /// Set false when this sits on a light page body instead of a
+  /// primary-colored `CustomAppBar` — the default white icon would
+  /// otherwise be invisible there.
+  final bool onAppBar;
+
   const DocumentSortMenuButton({
     super.key,
     required this.selected,
     required this.onSelected,
+    this.onAppBar = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<DocumentSort>(
       tooltip: AppLocalizations.of(context).sortBy,
-      icon: Icon(Iconsax.sort, color: context.white),
+      icon: Icon(
+        Iconsax.sort,
+        color: onAppBar ? context.white : context.textPrimary,
+      ),
       onSelected: onSelected,
       itemBuilder: (context) => [
         _item(

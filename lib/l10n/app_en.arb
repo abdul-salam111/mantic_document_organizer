@@ -37,6 +37,11 @@
     "description": "File count shown under a category",
     "placeholders": {"count": {"type": "int"}}
   },
+  "resultsCount": "{count, plural, one{{count} result} other{{count} results}}",
+  "@resultsCount": {
+    "description": "Search result count shown next to sort/view controls once a query is typed",
+    "placeholders": {"count": {"type": "int"}}
+  },
   "profileTooltip": "Profile",
   "@profileTooltip": {"description": "Tooltip on Home's header profile icon button"},
 

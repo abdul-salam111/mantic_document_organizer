@@ -9,6 +9,7 @@ import '../../../../../core/widgets/widgets_exports.dart';
 // barrel re-exports NavbarView, which imports every tab feature
 // (including this one), so importing it here would create an import cycle.
 import '../../../../navbar/viewmodel/navbar_viewmodel.dart';
+import '../../../../home/home_exports.dart';
 import '../viewmodels/search_viewmodel.dart';
 
 class SearchView extends StatelessWidget {
@@ -58,45 +59,103 @@ class _CategoryTabs extends StatelessWidget {
     final categories = vm.categoryTabs;
     return DefaultTabController(
       length: categories.length,
-      child: Column(
-        crossAxisAlignment: .start,
-        children: [
-          TabBar(
-            isScrollable: true,
-            tabAlignment: .start,
-            dividerColor: context.transparent,
-            padding: EdgeInsets.zero,
-            labelPadding: const .symmetric(horizontal: 6),
-            indicatorSize: .tab,
-            indicator: BoxDecoration(
-              color: context.primaryAccent,
-              borderRadius: .circular(20),
-            ),
-            labelColor: context.white,
-            unselectedLabelColor: context.textSecondary,
-            labelStyle: context.labelLarge.copyWith(fontWeight: .w600),
-            unselectedLabelStyle: context.labelLarge,
-            tabs: [
-              for (final category in categories)
-                Tab(
-                  height: 36,
-                  child: Padding(
-                    padding: const .symmetric(horizontal: 10),
-                    child: Text(_categoryLabel(context, category)),
+      child: Builder(
+        builder: (context) {
+          // TabBar's own `indicator` only decorates the selected tab —
+          // unselected tabs get an outline here by listening to the
+          // controller directly and giving every non-selected Tab its own
+          // bordered container, so they read as outlined chips rather than
+          // bare text.
+          final controller = DefaultTabController.of(context);
+          return Column(
+            crossAxisAlignment: .start,
+            children: [
+              AnimatedBuilder(
+                animation: controller,
+                builder: (context, _) => TabBar(
+                  isScrollable: true,
+                  tabAlignment: .start,
+                  dividerColor: context.transparent,
+                  padding: EdgeInsets.zero,
+                  labelPadding: const .symmetric(horizontal: 4),
+                  indicatorSize: .tab,
+                  indicator: BoxDecoration(
+                    color: context.primaryAccent,
+                    borderRadius: .circular(16),
                   ),
+                  labelColor: context.white,
+                  unselectedLabelColor: context.textSecondary,
+                  labelStyle: context.labelSmall.copyWith(fontWeight: .w600),
+                  unselectedLabelStyle: context.labelSmall,
+                  tabs: [
+                    for (var i = 0; i < categories.length; i++)
+                      Tab(
+                        height: 28,
+                        child: Container(
+                          alignment: .center,
+                          padding: const .symmetric(horizontal: 8),
+                          decoration: BoxDecoration(
+                            borderRadius: .circular(16),
+                            border: controller.index == i
+                                ? null
+                                : Border.all(color: context.border),
+                          ),
+                          child: Text(_categoryLabel(context, categories[i])),
+                        ),
+                      ),
+                  ],
                 ),
+              ),
+              heightBox(10),
+              // Rebuilds on tab switch too (not just vm changes) since the
+              // result count is scoped to whichever category is selected.
+              AnimatedBuilder(
+                animation: controller,
+                builder: (context, _) {
+                  final count = vm
+                      .documentsFor(categories[controller.index])
+                      .length;
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          vm.query.trim().isEmpty
+                              ? AppLocalizations.of(context).fileCount(count)
+                              : AppLocalizations.of(
+                                  context,
+                                ).resultsCount(count),
+                          style: context.labelSmall.copyWith(
+                            color: context.textSecondary,
+                          ),
+                        ),
+                      ),
+                      ViewModeToggle(
+                        isGridView: vm.isGridView,
+                        onChanged: vm.setGridView,
+                        onAppBar: false,
+                      ),
+                      widthBox(10),
+                      DocumentSortMenuButton(
+                        selected: vm.sort,
+                        onSelected: vm.setSort,
+                        onAppBar: false,
+                      ),
+                    ],
+                  );
+                },
+              ),
+              heightBox(10),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    for (final category in categories)
+                      _DocumentList(vm: vm, category: category),
+                  ],
+                ),
+              ),
             ],
-          ),
-          heightBox(14),
-          Expanded(
-            child: TabBarView(
-              children: [
-                for (final category in categories)
-                  _DocumentList(vm: vm, category: category),
-              ],
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -134,77 +193,43 @@ class _DocumentList extends StatelessWidget {
       );
     }
 
+    if (vm.isGridView) {
+      return GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 0.85,
+        ),
+        itemCount: documents.length,
+        itemBuilder: (context, index) {
+          final document = documents[index];
+          return DocumentGridTile(
+            document: document,
+            accentColor: categoryIconColor(context, document.category),
+            onTap: () => AppToastsUtils.info(
+              AppLocalizations.of(context).comingSoonToast(document.title),
+            ),
+            onToggleFavorite: () => vm.toggleFavorite(document),
+          );
+        },
+      );
+    }
+
     return ListView.separated(
       itemCount: documents.length,
       separatorBuilder: (context, index) => heightBox(10),
-      itemBuilder: (context, index) =>
-          _SearchResultTile(item: documents[index]),
-    );
-  }
-}
-
-class _SearchResultTile extends StatelessWidget {
-  final SearchResultItem item;
-
-  const _SearchResultTile({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: .circular(12),
-      onTap: () => AppToastsUtils.info(
-        AppLocalizations.of(context).comingSoonToast(item.name),
-      ),
-      child: Container(
-        padding: const .symmetric(horizontal: 14, vertical: 14),
-        decoration: BoxDecoration(
-          color: context.surfaceElevated,
-          borderRadius: .circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: context.shadow,
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              alignment: .center,
-              decoration: BoxDecoration(
-                color: context.primary.withValues(alpha: 0.1),
-                borderRadius: .circular(10),
-              ),
-              child: FaIcon(item.icon, size: 18, color: context.primary),
-            ),
-            widthBox(14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: .start,
-                children: [
-                  Text(
-                    item.name,
-                    maxLines: 1,
-                    overflow: .ellipsis,
-                    style: context.bodyMedium.copyWith(fontWeight: .w600),
-                  ),
-                  heightBox(2),
-                  Text(
-                    item.category,
-                    style: context.labelSmall.copyWith(
-                      color: context.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(Iconsax.arrow_right_3, size: 16, color: context.textSecondary),
-          ],
-        ),
-      ),
+      itemBuilder: (context, index) {
+        final document = documents[index];
+        return DocumentListTile(
+          document: document,
+          accentColor: categoryIconColor(context, document.category),
+          onTap: () => AppToastsUtils.info(
+            AppLocalizations.of(context).comingSoonToast(document.title),
+          ),
+          onToggleFavorite: () => vm.toggleFavorite(document),
+        );
+      },
     );
   }
 }

@@ -19,6 +19,7 @@
   "uncategorized": "بدون تصنيف",
   "newCategory": "فئة جديدة",
   "fileCount": "{count, plural, one{{count} ملف} other{{count} ملفات}}",
+  "resultsCount": "{count, plural, one{{count} نتيجة} other{{count} نتائج}}",
   "profileTooltip": "الملف الشخصي",
 
   "allDocsTitle": "المستندات",

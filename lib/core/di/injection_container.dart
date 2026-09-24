@@ -116,7 +116,7 @@ Future<void> searchDependencies() async {
 
   // ViewModel
   sl.registerFactory<SearchViewModel>(
-    () => SearchViewModel(searchUsecase: sl()),
+    () => SearchViewModel(categoryStore: sl(), documentStore: sl()),
   );
 }
 

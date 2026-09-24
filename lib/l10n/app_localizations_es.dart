@@ -65,6 +65,17 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String resultsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count resultados',
+      one: '$count resultado',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get profileTooltip => 'Perfil';
 
   @override
