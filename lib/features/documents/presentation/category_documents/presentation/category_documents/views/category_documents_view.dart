@@ -9,9 +9,7 @@ import '../../../../../../../routes/routes_exports.dart';
 import '../../../../../../home/home_exports.dart';
 import '../viewmodels/category_documents_viewmodel.dart';
 
-/// Opened by tapping a category tile on Home — lists every [DocumentItem]
-/// whose `category` matches [category].name, read live from the shared
-/// [DocumentLocalStore] (see CategoryDocumentsViewModel).
+
 class CategoryDocumentsView extends StatelessWidget {
   final CategoryItem category;
 
@@ -30,25 +28,50 @@ class CategoryDocumentsView extends StatelessWidget {
           final color =
               category.color ?? categoryIconColor(context, category.name);
           return Scaffold(
-            appBar: CustomAppBar(
-              title: category.name,
-              actions: [
-                DocumentSortMenuButton(
-                  selected: vm.sort,
-                  onSelected: vm.setSort,
-                ),
-              ],
-            ),
+            appBar: CustomAppBar(title: category.name),
             body: SafeArea(
               child: Column(
                 children: [
                   Padding(
                     padding: const .fromLTRB(10, 16, 10, 0),
-                    child: CustomSearchField(
-                      hintText: AppLocalizations.of(
-                        context,
-                      ).searchDocumentsHint,
-                      onChanged: vm.updateQuery,
+                    child: Column(
+                      children: [
+                        CustomSearchField(
+                          hintText: AppLocalizations.of(
+                            context,
+                          ).searchDocumentsHint,
+                          onChanged: vm.updateQuery,
+                        ),
+                        heightBox(10),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                vm.query.trim().isEmpty
+                                    ? AppLocalizations.of(
+                                        context,
+                                      ).fileCount(vm.documents.length)
+                                    : AppLocalizations.of(
+                                        context,
+                                      ).resultsCount(vm.documents.length),
+                                style: context.labelSmall.copyWith(
+                                  color: context.textSecondary,
+                                ),
+                              ),
+                            ),
+                            ViewModeToggle(
+                              isGridView: vm.isGridView,
+                              onChanged: vm.setGridView,
+                              onAppBar: false,
+                            ),
+                            DocumentSortMenuButton(
+                              selected: vm.sort,
+                              onSelected: vm.setSort,
+                              onAppBar: false,
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                   heightBox(10),
@@ -99,6 +122,31 @@ class _DocumentList extends StatelessWidget {
                   context,
                 ).nothingMatchesQueryInCategory(vm.query, vm.category.name),
         ),
+      );
+    }
+
+    if (vm.isGridView) {
+      return GridView.builder(
+        padding: const .fromLTRB(10, 0, 10, 90),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 0.85,
+        ),
+        itemCount: documents.length,
+        itemBuilder: (context, index) {
+          final document = documents[index];
+          return DocumentGridTile(
+            document: document,
+            accentColor: color,
+            onTap: () => AppNavigator.pushNamed(
+              RouteNames.documentViewer,
+              extra: document,
+            ),
+            onToggleFavorite: () => vm.toggleFavorite(document),
+          );
+        },
       );
     }
 

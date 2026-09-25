@@ -8,6 +8,7 @@ import '../../../core/widgets/widgets_exports.dart';
 import '../../../routes/routes_exports.dart';
 import '../../navbar/viewmodel/navbar_viewmodel.dart';
 import '../viewmodel/home_viewmodel.dart';
+import 'widgets/document_cover_thumbnail.dart';
 import 'widgets/view_mode_toggle.dart';
 
 class HomeView extends StatelessWidget {
@@ -381,15 +382,15 @@ class _RecentFileCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = categoryIconColor(context, document.category);
     return InkWell(
-      borderRadius: .circular(14),
+      borderRadius: .circular(10),
       onTap: () =>
           AppNavigator.pushNamed(RouteNames.documentViewer, extra: document),
       child: Container(
         width: 210,
-        padding: .all(9),
+        padding: .all(6),
         decoration: BoxDecoration(
           color: context.surfaceElevated,
-          borderRadius: .circular(13),
+          borderRadius: .circular(10),
           boxShadow: [
             BoxShadow(
               color: context.shadow,
@@ -400,15 +401,12 @@ class _RecentFileCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(
-              height: 52,
-              width: 52,
-              alignment: .center,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                borderRadius: .circular(9),
-              ),
-              child: FaIcon(document.icon, size: 22, color: color),
+            DocumentCoverThumbnail(
+              document: document,
+              color: color,
+              size: 52,
+              borderRadius: 9,
+              iconSize: 22,
             ),
             widthBox(10),
             Expanded(
@@ -424,7 +422,7 @@ class _RecentFileCard extends StatelessWidget {
                   ),
                   heightBox(2),
                   Text(
-                    '${document.category} • ${document.createdAt.timeAgo}',
+                    '${document.category} • ${document.createdAt.timeAgoShort}',
                     maxLines: 1,
                     overflow: .ellipsis,
                     style: context.labelSmall.copyWith(

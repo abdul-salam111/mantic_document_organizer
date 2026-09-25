@@ -5,6 +5,7 @@ import '../../../../core/theme/theme_exports.dart';
 import '../../../../core/utils/utils_exports.dart';
 import '../../../../core/widgets/widgets_exports.dart';
 import '../../viewmodel/home_viewmodel.dart';
+import 'document_cover_thumbnail.dart';
 
 /// Compact card rendering for a single [DocumentItem] — the grid-layout
 /// counterpart to [DocumentListTile], for screens with a grid/list view
@@ -46,15 +47,12 @@ class DocumentGridTile extends StatelessWidget {
           children: [
             Row(
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  alignment: .center,
-                  decoration: BoxDecoration(
-                    color: accentColor.withValues(alpha: 0.12),
-                    borderRadius: .circular(10),
-                  ),
-                  child: FaIcon(document.icon, size: 17, color: accentColor),
+                DocumentCoverThumbnail(
+                  document: document,
+                  color: accentColor,
+                  size: 40,
+                  borderRadius: 10,
+                  iconSize: 17,
                 ),
                 const Spacer(),
                 InkWell(

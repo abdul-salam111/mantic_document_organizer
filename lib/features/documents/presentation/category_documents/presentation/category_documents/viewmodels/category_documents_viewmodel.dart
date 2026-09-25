@@ -25,6 +25,14 @@ class CategoryDocumentsViewModel extends ChangeNotifier {
     _category = category;
   }
 
+  bool isGridView = false;
+
+  void setGridView(bool value) {
+    if (isGridView == value) return;
+    isGridView = value;
+    notifyListeners();
+  }
+
   String _query = '';
   String get query => _query;
 

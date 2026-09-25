@@ -15,11 +15,6 @@ import '../viewmodels/document_viewer_viewmodel.dart';
 
 enum _DocumentAction { edit, share, rename, move, delete }
 
-/// Opened by tapping a document anywhere in the app (Favorites, All Docs,
-/// Category Documents, Home's Recent Files). Shows every attached
-/// image/file as a swipeable, pinch-zoomable page, plus the document's
-/// category/tags/expiry, and lets the user favorite, share, rename, move
-/// (recategorize), or delete it.
 class DocumentViewerView extends StatelessWidget {
   final DocumentItem document;
 

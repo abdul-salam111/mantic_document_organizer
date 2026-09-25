@@ -7,10 +7,6 @@ import '../../../core/security/security_exports.dart';
 import '../../../core/theme/theme_exports.dart';
 import '../../../core/utils/utils_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
-// Imports the viewmodel directly rather than navbar_exports.dart — the
-// barrel re-exports NavbarView, which imports every tab feature
-// (including this one), so importing it here would create an import cycle.
-import '../../navbar/viewmodel/navbar_viewmodel.dart';
 import '../../../routes/routes_exports.dart';
 import '../viewmodel/settings_viewmodel.dart';
 
@@ -31,10 +27,7 @@ class SettingsView extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => sl<SettingsViewModel>(),
       child: Scaffold(
-        appBar: CustomAppBar(
-          title: AppLocalizations.of(context).settings,
-          onBackPressed: () => context.read<NavbarViewModel>().selectTab(0),
-        ),
+        appBar: CustomAppBar(title: AppLocalizations.of(context).settings),
         body: ListView(
           padding: const .fromLTRB(16, 20, 16, 32),
           children: [

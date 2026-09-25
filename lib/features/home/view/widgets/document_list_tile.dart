@@ -6,6 +6,7 @@ import '../../../../core/utils/utils_exports.dart';
 import '../../../../core/widgets/widgets_exports.dart';
 import '../../viewmodel/home_viewmodel.dart';
 import 'document_chips.dart';
+import 'document_cover_thumbnail.dart';
 
 /// Row rendering for a single [DocumentItem] — icon, title, file count +
 /// relative time, tags, an expiry badge when applicable, and a favorite
@@ -32,13 +33,13 @@ class DocumentListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: .circular(14),
+      borderRadius: .circular(10),
       onTap: onTap,
       child: Container(
-        padding: const .all(12),
+        padding: const .all(6),
         decoration: BoxDecoration(
           color: context.surfaceElevated,
-          borderRadius: .circular(14),
+          borderRadius: .circular(10),
           boxShadow: [
             BoxShadow(
               color: context.shadow,
@@ -50,15 +51,12 @@ class DocumentListTile extends StatelessWidget {
         child: Row(
           crossAxisAlignment: .start,
           children: [
-            Container(
-              width: 44,
-              height: 44,
-              alignment: .center,
-              decoration: BoxDecoration(
-                color: accentColor.withValues(alpha: 0.12),
-                borderRadius: .circular(11),
-              ),
-              child: FaIcon(document.icon, size: 19, color: accentColor),
+            DocumentCoverThumbnail(
+              document: document,
+              color: accentColor,
+              size: 80,
+              borderRadius: 11,
+              iconSize: 19,
             ),
             widthBox(12),
             Expanded(
@@ -97,7 +95,7 @@ class DocumentListTile extends StatelessWidget {
                       ),
                       widthBox(8),
                       Text(
-                        document.createdAt.timeAgo,
+                        document.createdAt.timeAgoShort,
                         style: context.labelSmall.copyWith(
                           color: context.textSecondary,
                         ),

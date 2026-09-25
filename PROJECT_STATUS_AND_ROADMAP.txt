@@ -26,13 +26,6 @@ SECTION 4 — THINGS THAT LOOK FINISHED BUT ARE STUBS
 These are UI elements that exist, look correct, and do nothing (or the wrong
 thing) when tapped. A user WILL find these within their first few minutes:
 
-- Tapping ANY document, anywhere in the app (Favorites, All Docs, Category
-  Documents, presumably Home's Recent strip too) shows a "coming soon" toast.
-  There is no document viewer screen at all. This means once a document is
-  saved, it can never be opened, re-viewed, exported, shared, renamed, or
-  individually deleted. Combined with Section 1 (nothing persists anyway),
-  this makes the app currently "write-only" — you can add documents, but you
-  can never really use them again.
 - Profile → Trash: toast stub. No screen, no soft-delete field on the
   Document model, no restore flow. The spec explicitly calls for 30-day
   soft-delete with restore — none of that plumbing exists yet.
