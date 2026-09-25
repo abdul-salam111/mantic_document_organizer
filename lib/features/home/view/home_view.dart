@@ -102,7 +102,7 @@ class HomeView extends StatelessWidget {
                             ),
                             heightBox(7),
                             SizedBox(
-                              height: 92,
+                              height: 80,
                               child: ListView.separated(
                                 scrollDirection: .horizontal,
                                 clipBehavior: Clip.none,
@@ -378,12 +378,13 @@ Color categoryIconColor(BuildContext context, String categoryName) {
   }
 }
 
-/// A recent file's cover fills the whole card edge-to-edge (same flush
-/// treatment as [DocumentGridTile]) with the title readable over it via a
-/// bottom gradient scrim, instead of the cover competing with the category
-/// name for space in a cramped icon-plus-two-lines row. The category name
-/// itself is dropped in favor of its icon as a small badge — a category is
-/// recognized faster by its color+icon than read as text at this size.
+/// Cover on the left (flush to the card's edges, no inset border, so it
+/// doesn't read as an undersized icon floating in whitespace), title +
+/// metadata on the right. The favorite toggle sits directly on the cover
+/// itself (via a nested Stack) with a dark scrim behind it so it stays
+/// legible against arbitrary photo content. The category name is dropped
+/// in favor of its icon as a small badge in the bottom-right corner —
+/// recognized faster by color+icon than read as text at this size.
 class _RecentFileCard extends StatelessWidget {
   final DocumentItem document;
   final VoidCallback onToggleFavorite;
@@ -392,6 +393,8 @@ class _RecentFileCard extends StatelessWidget {
     required this.document,
     required this.onToggleFavorite,
   });
+
+  static const double _height = 80;
 
   @override
   Widget build(BuildContext context) {
@@ -402,9 +405,12 @@ class _RecentFileCard extends StatelessWidget {
           AppNavigator.pushNamed(RouteNames.documentViewer, extra: document),
       child: Container(
         width: 210,
+        height: _height,
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
+          color: context.surfaceElevated,
           borderRadius: .circular(14),
+          border: Border.all(color: context.border),
           boxShadow: [
             BoxShadow(
               color: context.shadow,
@@ -414,52 +420,68 @@ class _RecentFileCard extends StatelessWidget {
           ],
         ),
         child: Stack(
-          fit: .expand,
           children: [
-            DocumentCoverThumbnail(
-              document: document,
-              color: color,
-              width: double.infinity,
-              height: double.infinity,
-              borderRadius: 0,
-              iconSize: 26,
-            ),
-            const Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: .topCenter,
-                    end: .bottomCenter,
-                    colors: [Colors.transparent, Color(0xB3000000)],
-                    stops: [0.5, 1],
+            Row(
+              crossAxisAlignment: .stretch,
+              children: [
+                SizedBox(
+                  width: _height,
+                  height: _height,
+                  child: Stack(
+                    children: [
+                      Padding(
+                        padding: const .all(4),
+                        child: DocumentCoverThumbnail(
+                          document: document,
+                          color: color,
+                          width: _height - 8,
+                          height: _height - 8,
+                          borderRadius: 8,
+                          iconSize: 24,
+                        ),
+                      ),
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: _RecentFileFavoriteBadge(
+                          isFavorite: document.isFavorite,
+                          onTap: onToggleFavorite,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ),
-            Positioned(
-              left: 8,
-              right: 34,
-              bottom: 8,
-              child: Text(
-                document.title,
-                maxLines: 1,
-                overflow: .ellipsis,
-                style: context.bodySmall.copyWith(
-                  color: context.white,
-                  fontWeight: .w700,
+                Expanded(
+                  child: Padding(
+                    padding: const .fromLTRB(10, 8, 36, 8),
+                    child: Column(
+                      crossAxisAlignment: .start,
+                      mainAxisAlignment: .spaceBetween,
+                      children: [
+                        Text(
+                          document.title,
+                          maxLines: 1,
+                          overflow: .ellipsis,
+                          style: context.bodySmall.copyWith(fontWeight: .w700),
+                        ),
+                        _MetaLineWithIcon(
+                          icon: Iconsax.document,
+                          text: AppLocalizations.of(
+                            context,
+                          ).fileCount(document.filePaths.length),
+                        ),
+                        _MetaLineWithIcon(
+                          icon: Iconsax.timer_1,
+                          text: document.createdAt.timeAgoShort,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
             Positioned(
               top: 6,
-              right: 6,
-              child: _RecentFileFavoriteBadge(
-                isFavorite: document.isFavorite,
-                onTap: onToggleFavorite,
-              ),
-            ),
-            Positioned(
-              bottom: 6,
               right: 6,
               child: _RecentFileCategoryBadge(
                 iconKey: document.iconKey,
@@ -473,8 +495,9 @@ class _RecentFileCard extends StatelessWidget {
   }
 }
 
-/// Translucent scrim circle so the heart reads against arbitrary photo
-/// content — matches [DocumentGridTile]'s floating favorite button.
+/// Sits directly on top of the cover image, so it needs a dark scrim
+/// behind it (not the flat soft-fill [DocumentListTile]'s favorite button
+/// uses) to stay legible against arbitrary photo content.
 class _RecentFileFavoriteBadge extends StatelessWidget {
   final bool isFavorite;
   final VoidCallback onTap;
@@ -492,10 +515,10 @@ class _RecentFileFavoriteBadge extends StatelessWidget {
           : AppLocalizations.of(context).addToFavorites,
       child: InkWell(
         onTap: onTap,
-        borderRadius: .circular(13),
+        borderRadius: .circular(12),
         child: Container(
-          width: 26,
-          height: 26,
+          width: 24,
+          height: 24,
           alignment: .center,
           decoration: BoxDecoration(
             color: context.black.withValues(alpha: 0.45),
@@ -508,6 +531,34 @@ class _RecentFileFavoriteBadge extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// A small leading icon paired with a metadata line — used for the file
+/// count and relative-time rows so they scan faster than plain text.
+class _MetaLineWithIcon extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _MetaLineWithIcon({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: .min,
+      children: [
+        Icon(icon, size: 12, color: context.textSecondary),
+        widthBox(4),
+        Flexible(
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow: .ellipsis,
+            style: context.labelSmall.copyWith(color: context.textSecondary),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -526,8 +577,11 @@ class _RecentFileCategoryBadge extends StatelessWidget {
       width: 22,
       height: 22,
       alignment: .center,
-      decoration: BoxDecoration(color: color, shape: .circle),
-      child: FaIcon(iconForKey(iconKey), size: 11, color: context.white),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        shape: .circle,
+      ),
+      child: FaIcon(iconForKey(iconKey), size: 11, color: color),
     );
   }
 }

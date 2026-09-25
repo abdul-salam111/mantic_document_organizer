@@ -101,12 +101,12 @@ class DocumentViewerView extends StatelessWidget {
               ],
             ),
             body: SafeArea(
-              child: Column(
+              child: Stack(
                 children: [
-                  Expanded(
+                  Positioned.fill(
                     child: _PageArea(vm: vm, document: current),
                   ),
-                  _DocumentInfoPanel(document: current, color: color),
+                  _DraggableInfoSheet(document: current, color: color),
                 ],
               ),
             ),
@@ -562,6 +562,61 @@ class _PageCounterBadge extends StatelessWidget {
   }
 }
 
+/// The details panel that used to sit statically below the page preview is
+/// now a [DraggableScrollableSheet] floating on top of it — rounded top
+/// corners like a real bottom sheet, and draggable so the user can pull it
+/// up to read the full details (tags, expiry, ...) without leaving the
+/// preview. [DraggableScrollableSheet] anchors itself to the bottom of
+/// whatever [Stack] it's placed in, so no [Positioned] wrapper is needed.
+class _DraggableInfoSheet extends StatelessWidget {
+  final DocumentItem document;
+  final Color color;
+
+  const _DraggableInfoSheet({required this.document, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.24,
+      minChildSize: 0.16,
+      maxChildSize: 0.65,
+      builder: (context, scrollController) {
+        return Container(
+          decoration: BoxDecoration(
+            color: context.surfaceElevated,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            boxShadow: [
+              BoxShadow(
+                color: context.shadow,
+                blurRadius: 12,
+                offset: const Offset(0, -2),
+              ),
+            ],
+          ),
+          child: ListView(
+            controller: scrollController,
+            padding: EdgeInsets.zero,
+            children: [
+              Center(
+                child: Container(
+                  margin: const .symmetric(vertical: 10),
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: context.border,
+                    borderRadius: .circular(2),
+                  ),
+                ),
+              ),
+              _DocumentInfoPanel(document: document, color: color),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _DocumentInfoPanel extends StatelessWidget {
   final DocumentItem document;
   final Color color;
@@ -573,13 +628,8 @@ class _DocumentInfoPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const .fromLTRB(16, 14, 16, 16),
-      decoration: BoxDecoration(
-        color: context.surfaceElevated,
-        border: Border(top: BorderSide(color: context.divider)),
-      ),
+    return Padding(
+      padding: const .fromLTRB(16, 0, 16, 20),
       child: Column(
         crossAxisAlignment: .start,
         children: [

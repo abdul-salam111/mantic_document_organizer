@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/constants/constants_exports.dart';
 import '../../../../core/localization/localization_exports.dart';
 import '../../../../core/theme/theme_exports.dart';
 import '../../../../core/utils/utils_exports.dart';
@@ -100,13 +101,10 @@ class DocumentGridTile extends StatelessWidget {
                     heightBox(6),
                     Row(
                       children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: BoxDecoration(
-                            color: accentColor,
-                            shape: .circle,
-                          ),
+                        FaIcon(
+                          iconForKey(document.iconKey),
+                          size: 11,
+                          color: accentColor,
                         ),
                         widthBox(6),
                         Expanded(
@@ -123,13 +121,44 @@ class DocumentGridTile extends StatelessWidget {
                       ],
                     ),
                     const Spacer(),
-                    Text(
-                      '${AppLocalizations.of(context).fileCount(document.filePaths.length)} · ${document.createdAt.timeAgoShort}',
-                      maxLines: 1,
-                      overflow: .ellipsis,
-                      style: context.labelSmall.copyWith(
-                        color: context.textSecondary,
-                      ),
+                    Row(
+                      children: [
+                        Icon(
+                          Iconsax.document,
+                          size: 12,
+                          color: context.textSecondary,
+                        ),
+                        widthBox(4),
+                        Flexible(
+                          child: Text(
+                            AppLocalizations.of(
+                              context,
+                            ).fileCount(document.filePaths.length),
+                            maxLines: 1,
+                            overflow: .ellipsis,
+                            style: context.labelSmall.copyWith(
+                              color: context.textSecondary,
+                            ),
+                          ),
+                        ),
+                        widthBox(8),
+                        Icon(
+                          Iconsax.timer_1,
+                          size: 12,
+                          color: context.textSecondary,
+                        ),
+                        widthBox(4),
+                        Flexible(
+                          child: Text(
+                            document.createdAt.timeAgoShort,
+                            maxLines: 1,
+                            overflow: .ellipsis,
+                            style: context.labelSmall.copyWith(
+                              color: context.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
