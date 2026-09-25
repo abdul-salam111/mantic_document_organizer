@@ -485,6 +485,32 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get aiAssistantTitle => 'اسأل Mantic';
+
+  @override
+  String get aiAssistantInputHint => 'اسأل عن مستنداتك...';
+
+  @override
+  String get aiAssistantEmptyTitle => 'اسألني أي شيء عن مستنداتك';
+
+  @override
+  String get aiAssistantEmptySubtitle =>
+      'يمكنني البحث فيما قمت بمسحه ضوئيًا واستخراج الإجابة — جرّب أحد هذه الأسئلة، أو اكتب سؤالك الخاص.';
+
+  @override
+  String get aiAssistantExample1 => 'متى تنتهي صلاحية بطاقة هويتي؟';
+
+  @override
+  String get aiAssistantExample2 => 'أرني فواتير الشهر الماضي';
+
+  @override
+  String get aiAssistantExample3 => 'ما كانت قيمة آخر فاتورة كهرباء؟';
+
+  @override
+  String get aiAssistantGenericError =>
+      'تعذّر الوصول إلى المساعد الذكي — تحقق من اتصالك وحاول مرة أخرى.';
+
+  @override
   String get comingSoon => 'قريبًا';
 
   @override

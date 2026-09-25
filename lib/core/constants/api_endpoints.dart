@@ -10,4 +10,5 @@ class ApiEndPoints {
   static const String search = "${baseUrl}search";
   static const String favorites = "${baseUrl}favorites";
   static const String addDocument = "${baseUrl}documents";
+  static const String aiAssistant = "${baseUrl}ai-assistant";
 }

@@ -346,6 +346,23 @@
     "placeholders": {"date": {"type": "String"}}
   },
 
+  "aiAssistantTitle": "Ask Mantic",
+  "@aiAssistantTitle": {"description": "AI Assistant screen app bar title"},
+  "aiAssistantInputHint": "Ask about your documents...",
+  "@aiAssistantInputHint": {"description": "AI Assistant screen chat input placeholder"},
+  "aiAssistantEmptyTitle": "Ask me anything about your documents",
+  "@aiAssistantEmptyTitle": {"description": "AI Assistant screen empty-state heading, shown before the first message"},
+  "aiAssistantEmptySubtitle": "I can look through what you've scanned and pull out the answer — try one of these, or type your own question.",
+  "@aiAssistantEmptySubtitle": {"description": "AI Assistant screen empty-state subtitle"},
+  "aiAssistantExample1": "When does my ID card expire?",
+  "@aiAssistantExample1": {"description": "AI Assistant screen tappable example question"},
+  "aiAssistantExample2": "Show me last month's invoices",
+  "@aiAssistantExample2": {"description": "AI Assistant screen tappable example question"},
+  "aiAssistantExample3": "What was my last electricity bill?",
+  "@aiAssistantExample3": {"description": "AI Assistant screen tappable example question"},
+  "aiAssistantGenericError": "I couldn't reach the AI assistant — check your connection and try again.",
+  "@aiAssistantGenericError": {"description": "AI Assistant screen fallback chat bubble shown when the AI call fails for any reason (offline, API error, bad response)"},
+
   "comingSoon": "Coming soon",
   "@comingSoon": {"description": "Generic placeholder subtitle for an unbuilt screen"},
   "comingSoonToast": "{name} — coming soon",

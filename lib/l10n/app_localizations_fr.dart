@@ -490,6 +490,35 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get aiAssistantTitle => 'Demander à Mantic';
+
+  @override
+  String get aiAssistantInputHint => 'Posez une question sur vos documents...';
+
+  @override
+  String get aiAssistantEmptyTitle =>
+      'Posez-moi une question sur vos documents';
+
+  @override
+  String get aiAssistantEmptySubtitle =>
+      'Je peux parcourir ce que vous avez numérisé et trouver la réponse — essayez l\'une de ces questions, ou posez la vôtre.';
+
+  @override
+  String get aiAssistantExample1 =>
+      'Quand ma carte d\'identité expire-t-elle ?';
+
+  @override
+  String get aiAssistantExample2 => 'Montre-moi les factures du mois dernier';
+
+  @override
+  String get aiAssistantExample3 =>
+      'Quelle était ma dernière facture d\'électricité ?';
+
+  @override
+  String get aiAssistantGenericError =>
+      'Impossible de contacter l\'assistant IA — vérifiez votre connexion et réessayez.';
+
+  @override
   String get comingSoon => 'Bientôt disponible';
 
   @override

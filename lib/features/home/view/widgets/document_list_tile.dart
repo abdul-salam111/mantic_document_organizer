@@ -9,8 +9,8 @@ import 'document_chips.dart';
 import 'document_cover_thumbnail.dart';
 
 /// Row rendering for a single [DocumentItem] — cover thumbnail, a
-/// category-colored accent bar, title, file count + relative time, tags,
-/// an expiry badge when applicable, and a favorite toggle. Shared by every
+/// category-colored accent bar, title, file count + relative time, an
+/// expiry badge when applicable, and a favorite toggle. Shared by every
 /// screen listing documents in a list layout (category_documents,
 /// favorites, ...) instead of each screen carrying its own copy.
 class DocumentListTile extends StatelessWidget {
@@ -89,21 +89,9 @@ class DocumentListTile extends StatelessWidget {
                               text:
                                   '${AppLocalizations.of(context).fileCount(document.filePaths.length)} · ${document.createdAt.timeAgoShort}',
                             ),
-                            if (document.tags.isNotEmpty ||
-                                _showExpiryChip) ...[
+                            if (_showExpiryChip) ...[
                               heightBox(8),
-                              Wrap(
-                                spacing: 6,
-                                runSpacing: 6,
-                                children: [
-                                  if (_showExpiryChip)
-                                    ExpiryChip(
-                                      expiryDate: document.expiryDate!,
-                                    ),
-                                  for (final tag in document.tags)
-                                    TagChip(tag: tag),
-                                ],
-                              ),
+                              ExpiryChip(expiryDate: document.expiryDate!),
                             ],
                           ],
                         ),

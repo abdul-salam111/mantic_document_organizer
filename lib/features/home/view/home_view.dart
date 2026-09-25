@@ -20,6 +20,11 @@ class HomeView extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => sl<HomeViewModel>(),
       child: Scaffold(
+        // Home's own Scaffold, separate from the shared bottom nav's
+        // centered "+" (that one lives in MainBottomNavbar, outside this
+        // Scaffold entirely — see FAB doc comment below), so this doesn't
+        // need to coordinate with it beyond clearing it visually.
+        floatingActionButton: const _AiAssistantButton(),
         body: SafeArea(
           child: Consumer<HomeViewModel>(
             builder: (context, vm, _) {
@@ -154,6 +159,48 @@ class HomeView extends StatelessWidget {
                 ],
               );
             },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Opens the AI chat assistant. Home's own Scaffold has no
+/// `bottomNavigationBar` of its own (the pill-shaped bar + centered "+"
+/// live in the outer NavbarView shell, below this screen's IndexedStack
+/// entry), so a default-positioned FAB would sit too low, near/behind
+/// that shared bar — the bottom padding here lifts it clear.
+class _AiAssistantButton extends StatelessWidget {
+  const _AiAssistantButton();
+
+  static const double _size = 52;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const .only(bottom: 76),
+      child: Tooltip(
+        message: AppLocalizations.of(context).aiAssistantTitle,
+        child: InkWell(
+          borderRadius: .circular(_size / 2),
+          onTap: () => AppNavigator.pushNamed(RouteNames.aiAssistant),
+          child: Container(
+            width: _size,
+            height: _size,
+            alignment: .center,
+            decoration: BoxDecoration(
+              color: context.primary,
+              shape: .circle,
+              boxShadow: [
+                BoxShadow(
+                  color: context.shadow,
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Icon(Iconsax.magicpen, color: context.white, size: 22),
           ),
         ),
       ),

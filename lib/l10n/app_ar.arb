@@ -143,6 +143,15 @@
   "noPreviewAvailable": "المعاينة غير متاحة لهذا النوع من الملفات",
   "addedOn": "أُضيف في {date}",
 
+  "aiAssistantTitle": "اسأل Mantic",
+  "aiAssistantInputHint": "اسأل عن مستنداتك...",
+  "aiAssistantEmptyTitle": "اسألني أي شيء عن مستنداتك",
+  "aiAssistantEmptySubtitle": "يمكنني البحث فيما قمت بمسحه ضوئيًا واستخراج الإجابة — جرّب أحد هذه الأسئلة، أو اكتب سؤالك الخاص.",
+  "aiAssistantExample1": "متى تنتهي صلاحية بطاقة هويتي؟",
+  "aiAssistantExample2": "أرني فواتير الشهر الماضي",
+  "aiAssistantExample3": "ما كانت قيمة آخر فاتورة كهرباء؟",
+  "aiAssistantGenericError": "تعذّر الوصول إلى المساعد الذكي — تحقق من اتصالك وحاول مرة أخرى.",
+
   "comingSoon": "قريبًا",
   "comingSoonToast": "{name} — قريبًا",
 

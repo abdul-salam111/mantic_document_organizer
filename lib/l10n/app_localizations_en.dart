@@ -487,6 +487,32 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get aiAssistantTitle => 'Ask Mantic';
+
+  @override
+  String get aiAssistantInputHint => 'Ask about your documents...';
+
+  @override
+  String get aiAssistantEmptyTitle => 'Ask me anything about your documents';
+
+  @override
+  String get aiAssistantEmptySubtitle =>
+      'I can look through what you\'ve scanned and pull out the answer — try one of these, or type your own question.';
+
+  @override
+  String get aiAssistantExample1 => 'When does my ID card expire?';
+
+  @override
+  String get aiAssistantExample2 => 'Show me last month\'s invoices';
+
+  @override
+  String get aiAssistantExample3 => 'What was my last electricity bill?';
+
+  @override
+  String get aiAssistantGenericError =>
+      'I couldn\'t reach the AI assistant — check your connection and try again.';
+
+  @override
   String get comingSoon => 'Coming soon';
 
   @override

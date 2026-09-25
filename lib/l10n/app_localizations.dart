@@ -888,6 +888,54 @@ abstract class AppLocalizations {
   /// **'Added {date}'**
   String addedOn(String date);
 
+  /// AI Assistant screen app bar title
+  ///
+  /// In en, this message translates to:
+  /// **'Ask Mantic'**
+  String get aiAssistantTitle;
+
+  /// AI Assistant screen chat input placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Ask about your documents...'**
+  String get aiAssistantInputHint;
+
+  /// AI Assistant screen empty-state heading, shown before the first message
+  ///
+  /// In en, this message translates to:
+  /// **'Ask me anything about your documents'**
+  String get aiAssistantEmptyTitle;
+
+  /// AI Assistant screen empty-state subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'I can look through what you\'ve scanned and pull out the answer — try one of these, or type your own question.'**
+  String get aiAssistantEmptySubtitle;
+
+  /// AI Assistant screen tappable example question
+  ///
+  /// In en, this message translates to:
+  /// **'When does my ID card expire?'**
+  String get aiAssistantExample1;
+
+  /// AI Assistant screen tappable example question
+  ///
+  /// In en, this message translates to:
+  /// **'Show me last month\'s invoices'**
+  String get aiAssistantExample2;
+
+  /// AI Assistant screen tappable example question
+  ///
+  /// In en, this message translates to:
+  /// **'What was my last electricity bill?'**
+  String get aiAssistantExample3;
+
+  /// AI Assistant screen fallback chat bubble shown when the AI call fails for any reason (offline, API error, bad response)
+  ///
+  /// In en, this message translates to:
+  /// **'I couldn\'t reach the AI assistant — check your connection and try again.'**
+  String get aiAssistantGenericError;
+
   /// Generic placeholder subtitle for an unbuilt screen
   ///
   /// In en, this message translates to:

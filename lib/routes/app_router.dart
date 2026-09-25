@@ -22,6 +22,8 @@ import '../features/documents/presentation/document_viewer/document_viewer_expor
 
 // GENERATED_IMPORTS_START
 
+import '../features/ai_assistant/ai_assistant_exports.dart';
+
 // GENERATED_IMPORTS_END
 
 class AppNavigator {
@@ -135,6 +137,11 @@ class AppRoutes {
       ),
 
       // GENERATED_ROUTES_START
+      GoRoute(
+        path: RoutePaths.aiAssistant,
+        name: RouteNames.aiAssistant,
+        builder: (context, state) => const AiAssistantView(),
+      ),
       // GENERATED_ROUTES_END
     ],
   );

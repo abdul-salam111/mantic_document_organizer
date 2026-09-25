@@ -25,6 +25,8 @@ import '../../features/documents/presentation/document_viewer/document_viewer_ex
 
 // GENERATED_IMPORTS_START
 
+import '../../features/ai_assistant/ai_assistant_exports.dart';
+
 // GENERATED_IMPORTS_END
 
 final sl = GetIt.instance;
@@ -49,6 +51,7 @@ Future<void> setupLocator() async {
   await documentViewerDependencies();
   // GENERATED_SETUP_CALLS_START
 
+  await aiAssistantDependencies();
   // GENERATED_SETUP_CALLS_END
 }
 
@@ -66,6 +69,7 @@ Future<void> coreDependencies() async {
     dispose: (service) => service.dispose(),
   );
   sl.registerLazySingleton(() => AiDocumentService(sl()));
+  sl.registerLazySingleton(() => AiChatService(sl()));
 }
 
 /// Auth Feature Dependencies
@@ -243,6 +247,35 @@ Future<void> categoryDocumentsDependencies() async {
 Future<void> documentViewerDependencies() async {
   sl.registerFactory<DocumentViewerViewModel>(
     () => DocumentViewerViewModel(documentStore: sl(), categoryStore: sl()),
+  );
+}
+
+/// AiAssistant Feature Dependencies
+///
+/// The DataSource/Repository/UseCase below are the original brick-
+/// scaffolded REST plumbing — unused, kept registered for consistency with
+/// documentsDependencies()'s equivalent note. This feature's actual
+/// "backend" is the OpenRouter call inside AiChatService (lib/core/ai) —
+/// AiAssistantViewModel talks to that plus DocumentLocalStore directly.
+Future<void> aiAssistantDependencies() async {
+  // DataSource
+  sl.registerLazySingleton<IRemoteAiAssistantDataSource>(
+    () => RemoteAiAssistantDataSourceImpl(dioHelper: sl()),
+  );
+
+  // Repository
+  sl.registerLazySingleton<IAiAssistantRepository>(
+    () => AiAssistantRepositoryImpl(dataSource: sl()),
+  );
+
+  // UseCase
+  sl.registerLazySingleton<AiAssistantUsecase>(
+    () => AiAssistantUsecase(repository: sl()),
+  );
+
+  // ViewModel
+  sl.registerFactory<AiAssistantViewModel>(
+    () => AiAssistantViewModel(documentStore: sl(), aiChatService: sl()),
   );
 }
 

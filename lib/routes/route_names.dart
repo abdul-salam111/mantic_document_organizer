@@ -14,5 +14,6 @@ class RouteNames {
 
   // GENERATED_ROUTE_NAMES_START
 
+  static const String aiAssistant = "aiAssistant";
   // GENERATED_ROUTE_NAMES_END
 }

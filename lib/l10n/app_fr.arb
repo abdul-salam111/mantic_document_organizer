@@ -143,6 +143,15 @@
   "noPreviewAvailable": "Aperçu non disponible pour ce type de fichier",
   "addedOn": "Ajouté le {date}",
 
+  "aiAssistantTitle": "Demander à Mantic",
+  "aiAssistantInputHint": "Posez une question sur vos documents...",
+  "aiAssistantEmptyTitle": "Posez-moi une question sur vos documents",
+  "aiAssistantEmptySubtitle": "Je peux parcourir ce que vous avez numérisé et trouver la réponse — essayez l'une de ces questions, ou posez la vôtre.",
+  "aiAssistantExample1": "Quand ma carte d'identité expire-t-elle ?",
+  "aiAssistantExample2": "Montre-moi les factures du mois dernier",
+  "aiAssistantExample3": "Quelle était ma dernière facture d'électricité ?",
+  "aiAssistantGenericError": "Impossible de contacter l'assistant IA — vérifiez votre connexion et réessayez.",
+
   "comingSoon": "Bientôt disponible",
   "comingSoonToast": "{name} — bientôt disponible",
 
