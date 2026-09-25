@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:pdfx/pdfx.dart';
 
+import '../../../../core/constants/constants_exports.dart';
 import '../../../../core/widgets/widgets_exports.dart';
 import '../../viewmodel/home_viewmodel.dart';
 
@@ -38,7 +39,7 @@ class DocumentCoverThumbnail extends StatelessWidget {
       color: color.withValues(alpha: 0.12),
       borderRadius: .circular(borderRadius),
     ),
-    child: FaIcon(document.icon, size: iconSize, color: color),
+    child: FaIcon(iconForKey(document.iconKey), size: iconSize, color: color),
   );
 
   @override

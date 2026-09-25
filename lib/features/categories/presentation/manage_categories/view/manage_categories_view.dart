@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/constants/constants_exports.dart';
 import '../../../../../core/di/di_exports.dart';
 import '../../../../../core/localization/localization_exports.dart';
 import '../../../../../core/theme/theme_exports.dart';
@@ -257,7 +258,11 @@ class _CategoryRow extends StatelessWidget {
                 height: 44,
                 alignment: .center,
                 decoration: BoxDecoration(color: color, shape: .circle),
-                child: FaIcon(category.icon, size: 18, color: context.white),
+                child: FaIcon(
+                  iconForKey(category.iconKey),
+                  size: 18,
+                  color: context.white,
+                ),
               ),
             widthBox(12),
             Expanded(

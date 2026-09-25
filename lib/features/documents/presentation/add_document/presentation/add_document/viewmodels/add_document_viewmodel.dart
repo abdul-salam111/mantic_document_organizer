@@ -1,8 +1,9 @@
+import 'dart:io';
+
 import 'package:content_resolver/content_resolver.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_doc_scanner/flutter_doc_scanner.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -171,6 +172,36 @@ class AddDocumentViewModel extends ChangeNotifier {
   final List<AttachmentItem> _attachments = [];
   List<AttachmentItem> get attachments => List.unmodifiable(_attachments);
 
+  /// Every attachment source (scanner, gallery, file browser) hands back a
+  /// path that's only guaranteed to live in a cache/temp location the OS is
+  /// free to reclaim at any time — none of them write into this app's own
+  /// permanent storage on their own. [_persistAttachment] copies into
+  /// `<app documents>/documents/` so a saved document's files actually
+  /// survive (see ICON_TYPE_AND_ATTACHMENT_STORAGE_NOTES.txt for the full
+  /// reasoning). Computed once per pick call and passed down rather than
+  /// re-resolved per file.
+  Future<Directory> _attachmentsDirectory() async {
+    final appDocuments = await getApplicationDocumentsDirectory();
+    final dir = Directory('${appDocuments.path}/documents');
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+    return dir;
+  }
+
+  Future<String> _persistAttachment(
+    String sourcePath,
+    Directory dir,
+    int index,
+  ) async {
+    final dotIndex = sourcePath.lastIndexOf('.');
+    final extension = dotIndex == -1 ? '' : sourcePath.substring(dotIndex);
+    final destinationPath =
+        '${dir.path}/doc_${DateTime.now().microsecondsSinceEpoch}_$index$extension';
+    await File(sourcePath).copy(destinationPath);
+    return destinationPath;
+  }
+
   /// Opens Google ML Kit's document scanner (VisionKit on iOS) — a
   /// fullscreen native flow with its own live edge detection, cropping,
   /// filtering and multi-page capture, so none of that needs building here.
@@ -182,9 +213,9 @@ class AddDocumentViewModel extends ChangeNotifier {
         page: 10,
       );
       if (result == null || result.images.isEmpty) return false;
-      final dir = await getTemporaryDirectory();
+      final dir = await _attachmentsDirectory();
       for (var i = 0; i < result.images.length; i++) {
-        final path = await _localizeScan(result.images[i], dir.path, i);
+        final path = await _localizeScan(result.images[i], dir, i);
         _attachments.add(
           AttachmentItem(path: path, type: AttachmentType.image),
         );
@@ -201,20 +232,27 @@ class AddDocumentViewModel extends ChangeNotifier {
   /// can't be handed the raw URI string directly: a content:// URI isn't a
   /// real filesystem path at all, and a file:// URI's `file://` prefix is
   /// part of the string, not something `File()` strips on its own. iOS
-  /// returns a plain path with no scheme, which needs no conversion.
+  /// returns a plain path with no scheme, which needs no conversion. Either
+  /// way, the result is written straight into [documentsDir] — this is the
+  /// one attachment source that already copied its source file, so it
+  /// writes its permanent copy directly instead of copying twice.
   Future<String> _localizeScan(
     String uriOrPath,
-    String tempDirPath,
+    Directory documentsDir,
     int i,
   ) async {
+    final destinationPath =
+        '${documentsDir.path}/scan_${DateTime.now().microsecondsSinceEpoch}_$i.jpg';
     final uri = Uri.tryParse(uriOrPath);
-    if (uri == null || uri.scheme.isEmpty) return uriOrPath;
-    if (uri.scheme == 'file') return uri.toFilePath();
-    if (uri.scheme != 'content') return uriOrPath;
-    final localPath =
-        '$tempDirPath/scan_${DateTime.now().microsecondsSinceEpoch}_$i.jpg';
-    await ContentResolver.resolveContentToFile(uriOrPath, localPath);
-    return localPath;
+    if (uri != null && uri.scheme == 'content') {
+      await ContentResolver.resolveContentToFile(uriOrPath, destinationPath);
+      return destinationPath;
+    }
+    final sourcePath = (uri != null && uri.scheme == 'file')
+        ? uri.toFilePath()
+        : uriOrPath;
+    await File(sourcePath).copy(destinationPath);
+    return destinationPath;
   }
 
   /// Multi-select — matches the reference design's gallery picker, which
@@ -222,11 +260,11 @@ class AddDocumentViewModel extends ChangeNotifier {
   Future<void> pickFromGallery() async {
     final picked = await ImagePicker().pickMultiImage(imageQuality: 85);
     if (picked.isEmpty) return;
-    _attachments.addAll(
-      picked.map(
-        (f) => AttachmentItem(path: f.path, type: AttachmentType.image),
-      ),
-    );
+    final dir = await _attachmentsDirectory();
+    for (var i = 0; i < picked.length; i++) {
+      final path = await _persistAttachment(picked[i].path, dir, i);
+      _attachments.add(AttachmentItem(path: path, type: AttachmentType.image));
+    }
     notifyListeners();
   }
 
@@ -295,14 +333,19 @@ class AddDocumentViewModel extends ChangeNotifier {
     );
     if (result == null) return false;
     var skippedImage = false;
-    for (final file in result.files) {
+    final dir = await _attachmentsDirectory();
+    for (var i = 0; i < result.files.length; i++) {
+      final file = result.files[i];
       final path = file.path;
       if (path == null) continue;
       if (_isImage(file)) {
         skippedImage = true;
         continue;
       }
-      _attachments.add(AttachmentItem(path: path, type: AttachmentType.file));
+      final persistedPath = await _persistAttachment(path, dir, i);
+      _attachments.add(
+        AttachmentItem(path: persistedPath, type: AttachmentType.file),
+      );
     }
     notifyListeners();
     return skippedImage;
@@ -321,7 +364,7 @@ class AddDocumentViewModel extends ChangeNotifier {
       title: titleController.text.trim(),
       category: category?.name ?? 'Uncategorized',
       categoryId: category?.id ?? uncategorizedCategoryId,
-      icon: category?.icon ?? FontAwesomeIcons.folder,
+      iconKey: category?.iconKey ?? 'solidFolder',
       tags: _tags,
       filePaths: [for (final a in _attachments) a.path],
       createdAt: original?.createdAt ?? DateTime.now(),

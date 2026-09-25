@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import '../../../../../core/constants/constants_exports.dart';
 import '../../../../../core/di/di_exports.dart';
 import '../../../../../core/theme/theme_utils.dart';
 import '../../../../../core/utils/utils_exports.dart';
@@ -8,7 +9,6 @@ import '../../../../../l10n/app_localizations.dart';
 import '../../../../../routes/routes_exports.dart';
 import '../../../../home/home_exports.dart';
 import '../viewmodel/add_category_viewmodel.dart';
-import 'widgets/icon_catalog.dart';
 
 /// Also used as the manage_categories feature's edit screen — pass
 /// [category] to prefill the form and switch into edit mode.
@@ -73,7 +73,7 @@ class AddCategoryView extends StatelessWidget {
                       selectedIcon: vm.selectedIcon,
                       activeColor: vm.selectedColor,
                       onTap: () async {
-                        final picked = await showModalBottomSheet<FaIconData>(
+                        final picked = await showModalBottomSheet<String>(
                           context: context,
                           isScrollControlled: true,
                           backgroundColor: context.surfaceElevated,
@@ -234,8 +234,9 @@ class _IconPickerTrigger extends StatelessWidget {
 }
 
 /// Full-catalog icon picker (1400+ FontAwesome solid icons — see
-/// widgets/icon_catalog.dart) shown as a searchable modal sheet, since a
-/// set that large only stays usable with a search field, not an inline grid.
+/// core/constants/icon_catalog.dart) shown as a searchable modal sheet,
+/// since a set that large only stays usable with a search field, not an
+/// inline grid.
 class _IconPickerSheet extends StatefulWidget {
   final FaIconData selectedIcon;
   final Color activeColor;
@@ -251,7 +252,8 @@ class _IconPickerSheet extends StatefulWidget {
 
 class _IconPickerSheetState extends State<_IconPickerSheet> {
   final TextEditingController _searchController = TextEditingController();
-  List<({FaIconData icon, String keywords})> _results = kIconCatalog;
+  List<({FaIconData icon, String name, String keywords})> _results =
+      kIconCatalog;
 
   void _onSearchChanged(String query) {
     final normalized = query.trim().toLowerCase();
@@ -332,7 +334,7 @@ class _IconPickerSheetState extends State<_IconPickerSheet> {
                             icon: entry.icon,
                             isSelected: entry.icon == widget.selectedIcon,
                             activeColor: widget.activeColor,
-                            onTap: () => Navigator.of(context).pop(entry.icon),
+                            onTap: () => Navigator.of(context).pop(entry.name),
                           );
                         },
                       ),

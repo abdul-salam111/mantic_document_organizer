@@ -79,22 +79,6 @@ not started:
   working fine) rather than leaving it as a lingering "someday" migration.
 
 
-================================================================================
-SECTION 6 — TESTING REALITY CHECK
-================================================================================
-
-6 test files, ~374 lines total. What's covered: app-boot smoke test, theme
-toggle, one textfield-capitalization check, a couple of date/validator unit
-tests, two widget-rendering checks, and genuinely solid coverage of the Dio
-retry interceptor. What's NOT covered: not a single ViewModel (Home, Add
-Document, Search, Favorites, Category Documents, Profile), not the
-CategoryLocalStore/DocumentLocalStore logic itself, not the repository layer.
-Three of the existing widget tests currently fail against the app's real
-behavior (they assert the app boots to the sign-in screen, but Splash
-actually routes to Home — this baseline has been failing throughout recent
-development and should be fixed or deleted, since a red test suite trains
-everyone to ignore it).
-
 
 ================================================================================
 SECTION 7 — RECOMMENDED ORDER OF WORK
@@ -205,26 +189,4 @@ doesn't exist yet. Piling more ideas on top of an app that currently can't
 save a document past a restart would be the wrong kind of ambitious.
 
 
-================================================================================
-SECTION 9 — CLOSING, HONEST TAKE
-================================================================================
 
-The UI/UX work is genuinely good — consistent, thoughtful, and further along
-than the underlying data layer, which is an unusual (but not bad) place to
-be this early. The architecture is clean enough that adding sqflite,
-OCR, notifications, and the document viewer should slot in without fighting
-the existing code.
-
-But right now, if someone installed this app today, scanned their passport,
-and came back tomorrow, it would be gone, and even before that, they'd
-never have been able to open it again to look at it. That's the honest
-state of the product. Everything else in this document is secondary to
-fixing that.
-
-None of this is a criticism of the pace or the choices made so far — building
-the UI and interaction model first, on top of a realistic in-memory
-placeholder, is a completely reasonable way to iterate quickly on product
-feel before locking in a schema. But it's exactly the kind of thing that's
-easy to keep deferring in favor of the next visible screen, so calling it out
-explicitly, as asked: this is the next real milestone, not another screen.
-================================================================================

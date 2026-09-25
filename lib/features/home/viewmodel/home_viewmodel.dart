@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 /// Sentinel [CategoryItem.id] for documents saved with no category
 /// selected — stable across locales/renames, unlike matching on the
@@ -59,13 +58,19 @@ bool isPdfPath(String path) => path.toLowerCase().endsWith('.pdf');
 class CategoryItem {
   final String id;
   final String name;
-  final FaIconData icon;
+
+  /// A stable `FontAwesomeIcons` identifier (e.g. `'buildingColumns'`),
+  /// not the icon itself — `FaIconData` is a UI-framework type and can't be
+  /// persisted, so it's resolved to one only at render time via
+  /// `iconForKey` (core/constants/icon_catalog.dart). See
+  /// ICON_TYPE_AND_ATTACHMENT_STORAGE_NOTES.txt for the full reasoning.
+  final String iconKey;
   final Color? color;
 
   const CategoryItem({
     required this.id,
     required this.name,
-    required this.icon,
+    required this.iconKey,
     this.color,
   });
 }
@@ -90,7 +95,10 @@ class DocumentItem {
   final String title;
   final String category;
   final String categoryId;
-  final FaIconData icon;
+
+  /// See [CategoryItem.iconKey] — same "stable string, resolved at render
+  /// time" reasoning applies here.
+  final String iconKey;
   final List<String> tags;
   final bool isFavorite;
   final List<String> filePaths;
@@ -103,7 +111,7 @@ class DocumentItem {
     required this.title,
     required this.category,
     required this.categoryId,
-    required this.icon,
+    required this.iconKey,
     required this.createdAt,
     this.tags = const [],
     this.isFavorite = false,
@@ -116,14 +124,14 @@ class DocumentItem {
     String? title,
     String? category,
     String? categoryId,
-    FaIconData? icon,
+    String? iconKey,
     bool? isFavorite,
   }) => DocumentItem(
     id: id,
     title: title ?? this.title,
     category: category ?? this.category,
     categoryId: categoryId ?? this.categoryId,
-    icon: icon ?? this.icon,
+    iconKey: iconKey ?? this.iconKey,
     createdAt: createdAt,
     tags: tags,
     isFavorite: isFavorite ?? this.isFavorite,
@@ -205,76 +213,64 @@ class DocumentLocalStore extends ChangeNotifier {
 /// vanishing once that screen is popped.
 class CategoryLocalStore extends ChangeNotifier {
   final List<CategoryItem> _categories = [
-    const CategoryItem(
-      id: 'bank',
-      name: 'Bank',
-      icon: FontAwesomeIcons.buildingColumns,
-    ),
+    const CategoryItem(id: 'bank', name: 'Bank', iconKey: 'buildingColumns'),
     const CategoryItem(
       id: 'business_card',
       name: 'Business Card',
-      icon: FontAwesomeIcons.addressCard,
+      // solidAddressCard, not addressCard — the picker catalog only
+      // carries solid-style icons (see icon_catalog.dart), and addressCard
+      // is only available there as its solid variant.
+      iconKey: 'solidAddressCard',
     ),
     const CategoryItem(
       id: 'contracts',
       name: 'Contracts',
-      icon: FontAwesomeIcons.fileContract,
+      iconKey: 'fileContract',
     ),
     const CategoryItem(
       id: 'driving_license',
       name: 'Driving License',
-      icon: FontAwesomeIcons.idCardClip,
+      iconKey: 'idCardClip',
     ),
     const CategoryItem(
       id: 'education',
       name: 'Education',
-      icon: FontAwesomeIcons.graduationCap,
+      iconKey: 'graduationCap',
     ),
     const CategoryItem(
       id: 'electricity_gas',
       name: 'Electricity/Gas',
-      icon: FontAwesomeIcons.boltLightning,
+      iconKey: 'boltLightning',
     ),
     const CategoryItem(
       id: 'id_card',
       name: 'ID Card',
-      icon: FontAwesomeIcons.idCard,
+      // solidIdCard, not idCard — see the business_card entry above.
+      iconKey: 'solidIdCard',
     ),
     const CategoryItem(
       id: 'insurance',
       name: 'Insurance',
-      icon: FontAwesomeIcons.shieldHalved,
+      iconKey: 'shieldHalved',
     ),
     const CategoryItem(
       id: 'invoices',
       name: 'Invoices',
-      icon: FontAwesomeIcons.fileInvoice,
+      iconKey: 'fileInvoice',
     ),
-    const CategoryItem(
-      id: 'medical',
-      name: 'Medical',
-      icon: FontAwesomeIcons.stethoscope,
-    ),
-    const CategoryItem(
-      id: 'passports',
-      name: 'Passports',
-      icon: FontAwesomeIcons.passport,
-    ),
+    const CategoryItem(id: 'medical', name: 'Medical', iconKey: 'stethoscope'),
+    const CategoryItem(id: 'passports', name: 'Passports', iconKey: 'passport'),
     const CategoryItem(
       id: 'products',
       name: 'Products',
-      icon: FontAwesomeIcons.boxesStacked,
+      iconKey: 'boxesStacked',
     ),
     const CategoryItem(
       id: 'tax_documents',
       name: 'Tax Documents',
-      icon: FontAwesomeIcons.fileInvoiceDollar,
+      iconKey: 'fileInvoiceDollar',
     ),
-    const CategoryItem(
-      id: 'tickets',
-      name: 'Tickets',
-      icon: FontAwesomeIcons.ticket,
-    ),
+    const CategoryItem(id: 'tickets', name: 'Tickets', iconKey: 'ticket'),
   ];
 
   List<CategoryItem> get categories => List.unmodifiable(_categories);

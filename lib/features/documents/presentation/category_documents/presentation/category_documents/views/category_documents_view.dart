@@ -9,7 +9,6 @@ import '../../../../../../../routes/routes_exports.dart';
 import '../../../../../../home/home_exports.dart';
 import '../viewmodels/category_documents_viewmodel.dart';
 
-
 class CategoryDocumentsView extends StatelessWidget {
   final CategoryItem category;
 

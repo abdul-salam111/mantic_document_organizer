@@ -27,13 +27,13 @@ class DocumentGridTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: .circular(14),
+      borderRadius: .circular(10),
       onTap: onTap,
       child: Container(
         padding: const .all(12),
         decoration: BoxDecoration(
           color: context.surfaceElevated,
-          borderRadius: .circular(14),
+          borderRadius: .circular(10),
           boxShadow: [
             BoxShadow(
               color: context.shadow,
@@ -50,7 +50,7 @@ class DocumentGridTile extends StatelessWidget {
                 DocumentCoverThumbnail(
                   document: document,
                   color: accentColor,
-                  size: 40,
+                  size: 80,
                   borderRadius: 10,
                   iconSize: 17,
                 ),

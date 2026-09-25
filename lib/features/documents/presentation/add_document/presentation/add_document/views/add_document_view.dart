@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../../../../core/constants/constants_exports.dart';
 import '../../../../../../../core/di/di_exports.dart';
 import '../../../../../../../core/localization/localization_exports.dart';
 import '../../../../../../../core/theme/theme_exports.dart';
@@ -360,7 +361,11 @@ class _CategoryPickerTrigger extends StatelessWidget {
               decoration: BoxDecoration(color: color, shape: .circle),
               child: category == null
                   ? Icon(Iconsax.category, size: 16, color: context.white)
-                  : FaIcon(category.icon, size: 16, color: context.white),
+                  : FaIcon(
+                      iconForKey(category.iconKey),
+                      size: 16,
+                      color: context.white,
+                    ),
             ),
             widthBox(12),
             Expanded(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../../../../../core/constants/constants_exports.dart';
 import '../../../../../core/theme/theme_exports.dart';
 import '../../../../home/home_exports.dart';
 
@@ -23,8 +24,12 @@ class AddCategoryViewModel extends ChangeNotifier {
   CategoryItem? _editingCategory;
   bool get isEditing => _editingCategory != null;
 
-  FaIconData _selectedIcon = FontAwesomeIcons.folder;
-  FaIconData get selectedIcon => _selectedIcon;
+  String _selectedIconKey = 'solidFolder';
+
+  /// Resolved on demand from [_selectedIconKey] rather than stored
+  /// separately — the icon key is the only thing that ever gets persisted
+  /// (see [CategoryItem.iconKey]), so there's exactly one source of truth.
+  FaIconData get selectedIcon => iconForKey(_selectedIconKey);
 
   Color _selectedColor = AppColors.primary;
   Color get selectedColor => _selectedColor;
@@ -37,13 +42,13 @@ class AddCategoryViewModel extends ChangeNotifier {
   void startEditing(CategoryItem category, Color fallbackColor) {
     _editingCategory = category;
     nameController.text = category.name;
-    _selectedIcon = category.icon;
+    _selectedIconKey = category.iconKey;
     _selectedColor = category.color ?? fallbackColor;
   }
 
-  void selectIcon(FaIconData icon) {
-    if (_selectedIcon == icon) return;
-    _selectedIcon = icon;
+  void selectIcon(String iconKey) {
+    if (_selectedIconKey == iconKey) return;
+    _selectedIconKey = iconKey;
     notifyListeners();
   }
 
@@ -61,7 +66,7 @@ class AddCategoryViewModel extends ChangeNotifier {
     final item = CategoryItem(
       id: editing?.id ?? generateLocalId(),
       name: nameController.text.trim(),
-      icon: _selectedIcon,
+      iconKey: _selectedIconKey,
       color: _selectedColor,
     );
     if (editing != null) {

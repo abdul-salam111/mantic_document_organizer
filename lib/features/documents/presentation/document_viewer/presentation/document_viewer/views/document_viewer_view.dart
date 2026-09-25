@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:pdfx/pdfx.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../../../../../core/constants/constants_exports.dart';
 import '../../../../../../../core/di/di_exports.dart';
 import '../../../../../../../core/localization/localization_exports.dart';
 import '../../../../../../../core/theme/theme_exports.dart';
@@ -592,7 +593,11 @@ class _DocumentInfoPanel extends StatelessWidget {
                   color: color.withValues(alpha: 0.12),
                   borderRadius: .circular(8),
                 ),
-                child: FaIcon(document.icon, size: 14, color: color),
+                child: FaIcon(
+                  iconForKey(document.iconKey),
+                  size: 14,
+                  color: color,
+                ),
               ),
               widthBox(8),
               Expanded(

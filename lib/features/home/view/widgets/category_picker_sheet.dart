@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/constants/constants_exports.dart';
 import '../../../../core/localization/localization_exports.dart';
 import '../../../../core/theme/theme_exports.dart';
 import '../../../../core/utils/utils_exports.dart';
@@ -83,7 +84,7 @@ class CategoryPickerSheet extends StatelessWidget {
                                 shape: .circle,
                               ),
                               child: FaIcon(
-                                category.icon,
+                                iconForKey(category.iconKey),
                                 size: 14,
                                 color: context.white,
                               ),

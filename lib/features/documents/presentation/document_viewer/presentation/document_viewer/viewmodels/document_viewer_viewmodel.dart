@@ -72,7 +72,7 @@ class DocumentViewerViewModel extends ChangeNotifier {
       current.copyWith(
         category: category.name,
         categoryId: category.id,
-        icon: category.icon,
+        iconKey: category.iconKey,
       ),
     );
   }

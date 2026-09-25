@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/constants/constants_exports.dart';
 import '../../../core/di/di_exports.dart';
 import '../../../core/localization/localization_exports.dart';
 import '../../../core/theme/theme_exports.dart';
@@ -164,7 +165,7 @@ Widget _categoryTileAt(
       id: category.id,
       name: category.name,
       fileCount: vm.documentCountFor(category.id),
-      icon: category.icon,
+      iconKey: category.iconKey,
       isGridView: isGridView,
       colorKey: category.name,
       color: category.color,
@@ -174,13 +175,13 @@ Widget _categoryTileAt(
       id: uncategorizedCategoryId,
       name: AppLocalizations.of(context).uncategorized,
       fileCount: vm.documentCountFor(uncategorizedCategoryId),
-      icon: FontAwesomeIcons.folder,
+      iconKey: 'solidFolder',
       isGridView: isGridView,
     );
   } else {
     tile = _CategoryTile(
       name: AppLocalizations.of(context).newCategory,
-      icon: FontAwesomeIcons.circlePlus,
+      iconKey: 'circlePlus',
       isAddNew: true,
       isGridView: isGridView,
     );
@@ -443,7 +444,7 @@ class _CategoryTile extends StatelessWidget {
   final String? id;
   final String name;
   final int? fileCount;
-  final FaIconData icon;
+  final String iconKey;
   final bool isAddNew;
   final bool isGridView;
   final String? colorKey;
@@ -452,7 +453,7 @@ class _CategoryTile extends StatelessWidget {
   const _CategoryTile({
     this.id,
     required this.name,
-    required this.icon,
+    required this.iconKey,
     this.fileCount,
     this.isAddNew = false,
     this.isGridView = true,
@@ -483,7 +484,7 @@ class _CategoryTile extends StatelessWidget {
           extra: CategoryItem(
             id: id ?? uncategorizedCategoryId,
             name: name,
-            icon: icon,
+            iconKey: iconKey,
             color: color,
           ),
         );
@@ -517,7 +518,7 @@ class _CategoryTile extends StatelessWidget {
           child: Column(
             mainAxisAlignment: .center,
             children: [
-              FaIcon(icon, size: 22, color: _iconColor(context)),
+              FaIcon(iconForKey(iconKey), size: 22, color: _iconColor(context)),
               heightBox(6),
               Text(
                 name,
@@ -561,7 +562,7 @@ class _CategoryTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          FaIcon(icon, size: 22, color: _iconColor(context)),
+          FaIcon(iconForKey(iconKey), size: 22, color: _iconColor(context)),
           widthBox(14),
           Expanded(
             child: Column(
