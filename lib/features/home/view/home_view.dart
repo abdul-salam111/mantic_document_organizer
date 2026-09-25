@@ -102,17 +102,21 @@ class HomeView extends StatelessWidget {
                             ),
                             heightBox(7),
                             SizedBox(
-                              height: 74,
+                              height: 92,
                               child: ListView.separated(
                                 scrollDirection: .horizontal,
                                 clipBehavior: Clip.none,
                                 itemCount: vm.recentFiles.length,
                                 separatorBuilder: (context, index) =>
                                     widthBox(12),
-                                itemBuilder: (context, index) =>
-                                    _RecentFileCard(
-                                      document: vm.recentFiles[index],
-                                    ),
+                                itemBuilder: (context, index) {
+                                  final document = vm.recentFiles[index];
+                                  return _RecentFileCard(
+                                    document: document,
+                                    onToggleFavorite: () =>
+                                        vm.toggleFavorite(document),
+                                  );
+                                },
                               ),
                             ),
                             heightBox(20),
@@ -374,24 +378,33 @@ Color categoryIconColor(BuildContext context, String categoryName) {
   }
 }
 
+/// A recent file's cover fills the whole card edge-to-edge (same flush
+/// treatment as [DocumentGridTile]) with the title readable over it via a
+/// bottom gradient scrim, instead of the cover competing with the category
+/// name for space in a cramped icon-plus-two-lines row. The category name
+/// itself is dropped in favor of its icon as a small badge — a category is
+/// recognized faster by its color+icon than read as text at this size.
 class _RecentFileCard extends StatelessWidget {
   final DocumentItem document;
+  final VoidCallback onToggleFavorite;
 
-  const _RecentFileCard({required this.document});
+  const _RecentFileCard({
+    required this.document,
+    required this.onToggleFavorite,
+  });
 
   @override
   Widget build(BuildContext context) {
     final color = categoryIconColor(context, document.category);
     return InkWell(
-      borderRadius: .circular(10),
+      borderRadius: .circular(14),
       onTap: () =>
           AppNavigator.pushNamed(RouteNames.documentViewer, extra: document),
       child: Container(
         width: 210,
-        padding: .all(6),
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          color: context.surfaceElevated,
-          borderRadius: .circular(10),
+          borderRadius: .circular(14),
           boxShadow: [
             BoxShadow(
               color: context.shadow,
@@ -400,42 +413,121 @@ class _RecentFileCard extends StatelessWidget {
             ),
           ],
         ),
-        child: Row(
+        child: Stack(
+          fit: .expand,
           children: [
             DocumentCoverThumbnail(
               document: document,
               color: color,
-              size: 52,
-              borderRadius: 9,
-              iconSize: 22,
+              width: double.infinity,
+              height: double.infinity,
+              borderRadius: 0,
+              iconSize: 26,
             ),
-            widthBox(10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: .start,
-                mainAxisAlignment: .center,
-                children: [
-                  Text(
-                    document.title,
-                    maxLines: 1,
-                    overflow: .ellipsis,
-                    style: context.bodySmall.copyWith(fontWeight: .w600),
+            const Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: .topCenter,
+                    end: .bottomCenter,
+                    colors: [Colors.transparent, Color(0xB3000000)],
+                    stops: [0.5, 1],
                   ),
-                  heightBox(2),
-                  Text(
-                    '${document.category} • ${document.createdAt.timeAgoShort}',
-                    maxLines: 1,
-                    overflow: .ellipsis,
-                    style: context.labelSmall.copyWith(
-                      color: context.textSecondary,
-                    ),
-                  ),
-                ],
+                ),
+              ),
+            ),
+            Positioned(
+              left: 8,
+              right: 34,
+              bottom: 8,
+              child: Text(
+                document.title,
+                maxLines: 1,
+                overflow: .ellipsis,
+                style: context.bodySmall.copyWith(
+                  color: context.white,
+                  fontWeight: .w700,
+                ),
+              ),
+            ),
+            Positioned(
+              top: 6,
+              right: 6,
+              child: _RecentFileFavoriteBadge(
+                isFavorite: document.isFavorite,
+                onTap: onToggleFavorite,
+              ),
+            ),
+            Positioned(
+              bottom: 6,
+              right: 6,
+              child: _RecentFileCategoryBadge(
+                iconKey: document.iconKey,
+                color: color,
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Translucent scrim circle so the heart reads against arbitrary photo
+/// content — matches [DocumentGridTile]'s floating favorite button.
+class _RecentFileFavoriteBadge extends StatelessWidget {
+  final bool isFavorite;
+  final VoidCallback onTap;
+
+  const _RecentFileFavoriteBadge({
+    required this.isFavorite,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: isFavorite
+          ? AppLocalizations.of(context).removeFromFavorites
+          : AppLocalizations.of(context).addToFavorites,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: .circular(13),
+        child: Container(
+          width: 26,
+          height: 26,
+          alignment: .center,
+          decoration: BoxDecoration(
+            color: context.black.withValues(alpha: 0.45),
+            shape: .circle,
+          ),
+          child: Icon(
+            isFavorite ? Iconsax.heart5 : Iconsax.heart,
+            size: 14,
+            color: isFavorite ? context.errorAccent : context.white,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The category's icon standing in for its name — recognizable at a glance
+/// without needing to read text at this card size.
+class _RecentFileCategoryBadge extends StatelessWidget {
+  final String iconKey;
+  final Color color;
+
+  const _RecentFileCategoryBadge({required this.iconKey, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 22,
+      height: 22,
+      alignment: .center,
+      decoration: BoxDecoration(color: color, shape: .circle),
+      child: FaIcon(iconForKey(iconKey), size: 11, color: context.white),
     );
   }
 }

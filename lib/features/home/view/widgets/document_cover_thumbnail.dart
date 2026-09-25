@@ -18,7 +18,8 @@ import '../../viewmodel/home_viewmodel.dart';
 class DocumentCoverThumbnail extends StatelessWidget {
   final DocumentItem document;
   final Color color;
-  final double size;
+  final double width;
+  final double height;
   final double borderRadius;
   final double iconSize;
 
@@ -26,14 +27,15 @@ class DocumentCoverThumbnail extends StatelessWidget {
     super.key,
     required this.document,
     required this.color,
-    required this.size,
+    required this.width,
+    required this.height,
     required this.borderRadius,
     required this.iconSize,
   });
 
   Widget _iconFallback() => Container(
-    width: size,
-    height: size,
+    width: width,
+    height: height,
     alignment: .center,
     decoration: BoxDecoration(
       color: color.withValues(alpha: 0.12),
@@ -52,8 +54,8 @@ class DocumentCoverThumbnail extends StatelessWidget {
         borderRadius: .circular(borderRadius),
         child: Image.file(
           File(path),
-          width: size,
-          height: size,
+          width: width,
+          height: height,
           fit: .cover,
           errorBuilder: (context, error, stackTrace) => _iconFallback(),
         ),
@@ -64,8 +66,8 @@ class DocumentCoverThumbnail extends StatelessWidget {
       return ClipRRect(
         borderRadius: .circular(borderRadius),
         child: SizedBox(
-          width: size,
-          height: size,
+          width: width,
+          height: height,
           child: _PdfCover(path: path, fallback: _iconFallback()),
         ),
       );

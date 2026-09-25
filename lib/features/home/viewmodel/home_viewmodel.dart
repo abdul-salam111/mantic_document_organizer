@@ -355,6 +355,9 @@ class HomeViewModel extends ChangeNotifier {
   List<DocumentItem> get recentFiles =>
       _documentStore.documents.take(_recentFilesLimit).toList();
 
+  void toggleFavorite(DocumentItem document) =>
+      _documentStore.toggleFavorite(document);
+
   @override
   void dispose() {
     _categoryStore.removeListener(notifyListeners);
