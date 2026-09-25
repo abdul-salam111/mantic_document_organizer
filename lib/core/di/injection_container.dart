@@ -2,8 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../features/categories/presentation/add_category/viewmodel/add_category_viewmodel.dart';
+import '../ai/ai_exports.dart';
 import '../localization/localization_exports.dart';
 import '../networks/networks_exports.dart';
+import '../ocr/ocr_exports.dart';
 import '../security/security_exports.dart';
 import '../theme/theme_exports.dart';
 import '../../features/auth/auth_exports.dart';
@@ -59,6 +61,11 @@ Future<void> coreDependencies() async {
   sl.registerLazySingleton(() => ThemeController());
   sl.registerLazySingleton(() => LocaleController());
   sl.registerLazySingleton(() => SecurityController());
+  sl.registerLazySingleton(
+    () => OcrService(),
+    dispose: (service) => service.dispose(),
+  );
+  sl.registerLazySingleton(() => AiDocumentService(sl()));
 }
 
 /// Auth Feature Dependencies
@@ -182,7 +189,12 @@ Future<void> documentsDependencies() async {
 /// Add Document Page Dependencies
 Future<void> addDocumentDependencies() async {
   sl.registerFactory<AddDocumentViewModel>(
-    () => AddDocumentViewModel(categoryStore: sl(), documentStore: sl()),
+    () => AddDocumentViewModel(
+      categoryStore: sl(),
+      documentStore: sl(),
+      ocrService: sl(),
+      aiService: sl(),
+    ),
   );
 }
 

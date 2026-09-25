@@ -396,6 +396,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attachments => 'Pièces jointes';
 
   @override
+  String get extractingTextStatus => 'Extraction du texte…';
+
+  @override
+  String get organizingWithAiStatus => 'Organisation avec l\'IA…';
+
+  @override
   String get camera => 'Appareil photo';
 
   @override

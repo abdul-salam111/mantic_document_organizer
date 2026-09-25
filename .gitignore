@@ -49,3 +49,7 @@ app.*.map.json
 # whichever machine last ran that command, which breaks for every other
 # clone. See TEMPLATE_REVIEW.txt §1.4.
 mason-lock.json
+
+# Local secrets (OpenRouter API key, etc.) — never commit. See .env.example
+# for the required variable names.
+.env

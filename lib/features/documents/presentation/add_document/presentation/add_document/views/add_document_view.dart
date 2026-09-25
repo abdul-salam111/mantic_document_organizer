@@ -191,6 +191,38 @@ class _AttachmentSection extends StatelessWidget {
             ],
           ),
         ],
+        if (vm.isProcessingOcr || vm.isAnalyzing) ...[
+          heightBox(12),
+          _OcrAiStatusLine(
+            label: vm.isProcessingOcr
+                ? AppLocalizations.of(context).extractingTextStatus
+                : AppLocalizations.of(context).organizingWithAiStatus,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// Never blocks the form — attachments, title, and every other field stay
+/// fully interactive while this shows. Only appears while
+/// [AddDocumentViewModel.isProcessingOcr]/[AddDocumentViewModel.isAnalyzing]
+/// is true, so it disappears on its own once the pipeline settles.
+class _OcrAiStatusLine extends StatelessWidget {
+  final String label;
+
+  const _OcrAiStatusLine({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const LoadingIndicator(size: 14),
+        widthBox(8),
+        Text(
+          label,
+          style: context.labelSmall.copyWith(color: context.textSecondary),
+        ),
       ],
     );
   }

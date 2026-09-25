@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'core/di/di_exports.dart';
 import 'core/localization/localization_exports.dart';
@@ -28,6 +29,16 @@ void main() {
         _reportError(error, stack);
         return true; // handled — don't crash the app
       };
+
+      // Best-effort: a missing/unreadable .env (e.g. a fresh clone that
+      // hasn't copied .env.example yet) must never block app startup —
+      // AiDocumentService treats a missing OPENROUTER_API_KEY as "skip AI,
+      // OCR-only" exactly like being offline, not as a fatal error.
+      try {
+        await dotenv.load(fileName: '.env');
+      } catch (_) {
+        // Ignore — see comment above.
+      }
 
       await setupLocator();
       await sl<ThemeController>().loadTheme();

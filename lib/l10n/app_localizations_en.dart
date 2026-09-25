@@ -394,6 +394,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attachments => 'Attachments';
 
   @override
+  String get extractingTextStatus => 'Extracting text…';
+
+  @override
+  String get organizingWithAiStatus => 'Organizing with AI…';
+
+  @override
   String get camera => 'Camera';
 
   @override

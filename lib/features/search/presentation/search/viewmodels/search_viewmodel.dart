@@ -77,7 +77,9 @@ class SearchViewModel extends ChangeNotifier {
           q.isEmpty ||
           d.title.toLowerCase().contains(q) ||
           d.category.toLowerCase().contains(q) ||
-          d.tags.any((tag) => tag.contains(q));
+          d.tags.any((tag) => tag.contains(q)) ||
+          d.description.toLowerCase().contains(q) ||
+          d.ocrText.toLowerCase().contains(q);
       return matchesCategory && matchesQuery;
     }).toList();
     return filtered.sortedBy(_sort);

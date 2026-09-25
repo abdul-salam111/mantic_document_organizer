@@ -673,6 +673,10 @@ class _DocumentInfoPanel extends StatelessWidget {
             AppLocalizations.of(context).addedOn(document.createdAt.formatted),
             style: context.labelSmall.copyWith(color: context.textSecondary),
           ),
+          if (document.description.trim().isNotEmpty) ...[
+            heightBox(12),
+            Text(document.description.trim(), style: context.bodyMedium),
+          ],
           if (document.tags.isNotEmpty || _showExpiryChip) ...[
             heightBox(10),
             Wrap(

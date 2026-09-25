@@ -1,24 +1,4 @@
 
-
-TWO SMALLER THINGS TO CHECK WHEN THE FUNCTIONAL PASS STARTS (not urgent):
-
-- DocumentItem/CategoryItem store FaIconData (a UI type) directly on what
-  will become the domain entity — technically conflicts with this repo's
-  own architecture rule ("never let a non-domain type escape the repository
-  boundary" in CLAUDE.md). Should become a string/enum key mapped to
-  FaIconData in the presentation layer only — fine to leave as-is for now.
-- Not yet verified whether scanned-page filePaths get copied into permanent
-  app storage (path_provider's app documents directory) or point at a
-  cache/temp directory the OS can reclaim. Worth confirming before
-  persistence lands — a surviving database row pointing at a deleted file is
-  a worse bug than the app simply being empty.
-
-EVERYTHING ELSE IS SAFE TO DEFER: field_schema, is_essential, deleted_at,
-ocr_text, detected_dates, embedding — all additive fields, not identity/
-reference changes, so none of them create rework if left for the
-"make it functional" pass.
-
-
 ================================================================================
 SECTION 4 — THINGS THAT LOOK FINISHED BUT ARE STUBS
 ================================================================================

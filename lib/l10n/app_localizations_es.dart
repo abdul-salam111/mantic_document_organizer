@@ -396,6 +396,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get attachments => 'Adjuntos';
 
   @override
+  String get extractingTextStatus => 'Extrayendo texto…';
+
+  @override
+  String get organizingWithAiStatus => 'Organizando con IA…';
+
+  @override
   String get camera => 'Cámara';
 
   @override

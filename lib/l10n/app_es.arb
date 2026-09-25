@@ -114,6 +114,8 @@
   "expiresOn": "Caduca el {date}",
   "tapToSetExpiryDate": "Toca para establecer la fecha y hora de caducidad",
   "attachments": "Adjuntos",
+  "extractingTextStatus": "Extrayendo texto…",
+  "organizingWithAiStatus": "Organizando con IA…",
   "camera": "Cámara",
   "gallery": "Galería",
   "files": "Archivos",

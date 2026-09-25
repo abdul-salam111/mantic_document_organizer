@@ -392,6 +392,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attachments => 'المرفقات';
 
   @override
+  String get extractingTextStatus => 'استخراج النص…';
+
+  @override
+  String get organizingWithAiStatus => 'التنظيم باستخدام الذكاء الاصطناعي…';
+
+  @override
   String get camera => 'الكاميرا';
 
   @override

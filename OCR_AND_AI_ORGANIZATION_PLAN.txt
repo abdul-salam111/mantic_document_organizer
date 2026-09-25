@@ -1,0 +1,338 @@
+OCR + AI DOCUMENT AUTO-ORGANIZATION (Phase 2 MVP, revised)
+======================================================================
+
+This supersedes the earlier OCR_AND_STRUCTURED_FIELDS_PLAN.txt (deleted --
+no per-category manual field entry; the system does the work instead).
+
+CONTEXT
+-------
+A DocumentItem today only carries a title, tags, category, an optional
+manual expiry date, and file paths -- capturing what the document actually
+says requires opening it again every time. This plan: after the user scans
+or picks attachments, on-device OCR extracts the text, and -- if online --
+that text is sent to an AI model (via OpenRouter) which organizes it into a
+summary, and suggests the document's title, category, and expiry date. All
+of it lands pre-filled on the Add Document form; the user reviews and taps
+Save rather than typing everything by hand. Offline, the pipeline still
+runs OCR (fully on-device, no connectivity needed) and stores the raw text
+for search, but skips AI organization entirely -- title/category/expiry
+stay manual, exactly like today.
+
+CONFIRMED DECISIONS
+--------------------
+- AI provider: OPENROUTER (https://openrouter.ai/api/v1/chat/completions,
+  OpenAI-compatible chat completions shape), not a direct Gemini API call
+  -- lets the underlying model be swapped via config without changing the
+  integration.
+- API key storage: a local .env file, GIT-IGNORED, loaded at startup via
+  flutter_dotenv. A committed .env.example documents the required variable
+  name with a placeholder value. The real key is never written into any
+  committed file.
+- The AI call is ONLINE-ONLY and best-effort: any failure (offline, API
+  error, malformed response) silently falls back to "OCR text saved, no AI
+  organization" -- never blocks Save, matches this app's offline-first
+  rule (CLAUDE.md: "No part of the core app should ever gate on a
+  signed-in user" -- the same spirit extends to connectivity for core
+  document capture).
+- AI suggestions PRE-FILL editable form fields, they don't silently
+  finalize anything -- the user still lands on the Add Document form and
+  taps Save themselves.
+- Runs only for NEW documents (not when editing an existing one) --
+  editing shouldn't silently clobber already-curated data with a fresh AI
+  pass.
+
+Still explicitly out of scope: sqflite migration (builds against the
+existing in-memory DocumentLocalStore, same as every other feature so
+far), push notifications, automatic category-suggestion-only heuristics
+(the AI call now subsumes that).
+
+1. ENTITY CHANGES
+------------------
+File: lib/features/home/viewmodel/home_viewmodel.dart
+
+DocumentItem (lines 93-141): add two fields only --
+
+    final String description; // default '' -- AI-organized summary (or blank if AI never ran)
+    final String ocrText;     // default '' -- raw extracted text, search-only, never shown in the viewer
+
+Extend copyWith() (lines 123-141) with optional overrides for both.
+Existing copyWith() call sites (toggleFavorite, rename, moveToCategory)
+don't touch these fields and keep working unchanged. No
+fields/detectedDates/suggestedFieldLabels -- dropped from the earlier plan.
+No JSON (de)serialization needed -- no persistence layer yet.
+
+2. OCRSERVICE (unchanged from the prior plan -- still needed)
+----------------------------------------------------------------
+New files lib/core/ocr/ocr_service.dart + lib/core/ocr/ocr_exports.dart,
+mirroring lib/core/security/security_controller.dart's shape: a plain
+service class hiding google_mlkit_text_recognition's SDK types entirely --
+callers only ever see String.
+
+    class OcrService {
+      final _recognizer = TextRecognizer(script: TextRecognitionScript.latin);
+
+      // Never throws -- '' on any failure or unsupported file type.
+      Future<String> extractText(String path) async { ... }
+
+      void dispose() => _recognizer.close();
+    }
+
+  - isImagePath(path) -> InputImage.fromFilePath(path) ->
+    _recognizer.processImage() -> .text.
+  - isPdfPath(path) -> reuse document_cover_thumbnail.dart's _PdfCover
+    pattern: PdfDocument.openFile -> getPage(n) -> render(width:, height:)
+    -> close page -> close document, ONE PAGE AT A TIME, NEVER
+    CONCURRENTLY (this codebase already documents Android disallows
+    parallel PDF rendering). Render each page to a scratch temp file
+    (getTemporaryDirectory()), OCR via InputImage.fromFilePath(), delete
+    after. Cap at the first 5 pages; join with a blank line between pages.
+  - Anything else -> ''. Every branch wrapped in try/catch returning ''.
+
+Add google_mlkit_text_recognition via `flutter pub add`. Register in
+injection_container.dart's coreDependencies() (same tier as
+SecurityController): sl.registerLazySingleton(() => OcrService());
+
+3. AIDOCUMENTSERVICE (new -- replaces the old regex date-scanner entirely)
+-------------------------------------------------------------------------
+New files lib/core/ai/ai_document_service.dart + lib/core/ai/ai_exports.dart.
+Reuses the EXISTING DioHelper (lib/core/networks/network_manager/dio_helper.dart)
+rather than a new HTTP client -- postApi() already has Bearer-auth support
+(isAuthRequired/authToken, a perfect fit for OpenRouter's auth model) and
+already throws NoInternetException when offline via its own cached
+connectivity check (_ensureConnected()), which is exactly the signal this
+service needs to skip AI cleanly.
+
+    class AiDocumentSuggestion {
+      final String? title;
+      final String? categoryName;   // must match an existing category name, else null
+      final String description;     // organized summary
+      final bool isExpirable;
+      final DateTime? expiryDate;
+
+      const AiDocumentSuggestion({ ... });
+    }
+
+    class AiDocumentService {
+      final DioHelper _dioHelper;
+      AiDocumentService(this._dioHelper);
+
+      // Returns null on ANY failure (offline, API error, malformed JSON) --
+      // callers treat null as "skip AI enrichment, OCR text still saved."
+      Future<AiDocumentSuggestion?> analyze({
+        required String ocrText,
+        required List<String> availableCategories,
+      }) async {
+        if (ocrText.trim().isEmpty) return null;
+        try {
+          final response = await _dioHelper.postApi(
+            url: 'https://openrouter.ai/api/v1/chat/completions',
+            isAuthRequired: true,
+            authToken: dotenv.env['OPENROUTER_API_KEY'],
+            requestBody: {
+              'model': '<flash-tier model slug -- verify current slug at
+                openrouter.ai/models at implementation time, e.g. a
+                "google/gemini-...-flash" entry>',
+              'messages': [
+                {'role': 'system', 'content': '<instructs the model to act
+                  as a document-organizing assistant, return ONLY a JSON
+                  object matching the exact shape below, pick "category"
+                  only from the provided list or null, use ISO yyyy-MM-dd
+                  for expiryDate or null, keep "description" concise and
+                  factual>'},
+                {'role': 'user', 'content': 'Categories: ${availableCategories.join(", ")}\n\nDocument text:\n$ocrText'},
+              ],
+              'response_format': {'type': 'json_object'},
+            },
+          );
+          // parse response['choices'][0]['message']['content'] as JSON,
+          // defensively -- any parse failure/missing key -> return null.
+          ...
+        } catch (_) {
+          return null; // NoInternetException, AppException subtypes, parse errors -- all treated the same
+        }
+      }
+    }
+
+Register in coreDependencies(): sl.registerLazySingleton(() => AiDocumentService(sl()));
+
+Prompt/response contract: ask for strict JSON via response_format:
+{type: "json_object"} (broadly supported across OpenRouter models, unlike
+full json_schema mode which only some providers support) -- the system
+prompt spells out the exact expected keys (title, category, description,
+isExpirable, expiryDate) since json_object mode guarantees valid JSON but
+not a specific shape. Parse defensively (jsonDecode in a try/catch;
+missing/wrong-typed keys just leave that suggestion field null) so a model
+that doesn't fully comply degrades gracefully instead of crashing the flow.
+
+Category matching: the prompt is given the exact list of existing category
+names (built-ins + any custom ones, from CategoryLocalStore) and told to
+pick one verbatim or return null -- never invent a new one. The caller
+matches the returned name back to a CategoryItem case-insensitively via
+_categoryStore.categories; no match -> leave uncategorized, exactly like
+not picking a category manually today.
+
+4. .ENV / API KEY WIRING
+--------------------------
+- Add flutter_dotenv to pubspec.yaml.
+- Add .env to .gitignore.
+- Create .env.example (committed) with OPENROUTER_API_KEY=your_key_here.
+- Create the real .env (untracked) with the key the user provided, during
+  implementation -- never written into any committed file.
+- Declare .env under pubspec.yaml's flutter: assets: so flutter_dotenv can
+  load it -- note: bundling .env as an asset means it's technically
+  extractable from a release APK by anyone who unpacks it. Acceptable for
+  this project's current stage; a future hardening pass could move this
+  behind a backend proxy instead of shipping the key client-side at all.
+- Load in main.dart before runApp: await dotenv.load(fileName: ".env");
+
+5. ADDDOCUMENTVIEWMODEL -- PIPELINE WIRING
+---------------------------------------------
+Trigger: once per attachment BATCH (not per individual attachment) -- after
+pickFromCamera/pickFromGallery/pickFile finishes adding this round's
+attachments and their OCR text resolves, kick off exactly one
+AiDocumentService.analyze() call (only when !isEditing, i.e. new documents
+only). This matches "after scanning or selecting images... when we come
+back" -- one pipeline run per return-to-the-form, not one per image.
+
+Keep the OCR side exactly as designed before: a Future<void> _ocrChain that
+every new attachment's OCR call is appended onto (_ocrChain =
+_ocrChain.then((_) => _processAttachment(a))), keeping PDF rendering
+strictly sequential even across rapid-fire Camera -> Gallery -> Files
+picks. Track OCR text PER ATTACHMENT PATH (Map<String, String>
+_ocrTextByPath) so removing an attachment drops its contribution; the
+aggregate ocrText getter joins all current attachments' text.
+
+After each pick method's attachments are added and _ocrChain settles, call
+the AI service once with the aggregate OCR text so far. On a non-null
+result:
+  - titleController.text = suggestion.title ONLY IF the title field is
+    still empty (don't clobber something the user already typed while OCR
+    was running).
+  - Resolve suggestion.categoryName against _categoryStore.categories and
+    call selectCategory(...) ONLY IF no category is selected yet.
+  - descriptionController.text = suggestion.description (new field, see
+    below) ONLY IF still empty.
+  - If suggestion.isExpirable and _isExpirable is still false, call the
+    existing setExpirable(true) + setExpiryDate(suggestion.expiryDate) --
+    same "don't overwrite something already set" guard.
+
+Loading state: a single inline status line near the Attachments section
+("Extracting text..." while _ocrChain runs, then "Organizing with AI..."
+while the analyze call is in flight, using LoadingIndicator -- not a
+blocking popup) -- the rest of the form stays interactive throughout, and
+nothing gates Save on this finishing.
+
+submit() gains description: descriptionController.text.trim() and ocrText:
+ocrText (the aggregate getter) on the constructed DocumentItem.
+startEditing() seeds descriptionController/the base OCR text from the
+existing document. dispose() gains descriptionController.dispose().
+
+6. ADD DOCUMENT UI
+--------------------
+Current order (add_document_view.dart lines 61-79): _AttachmentSection ->
+Title -> _CategoryPickerTrigger -> _TagsField -> _ExpirableToggle -> Save.
+New order:
+
+    _AttachmentSection (+ inline OCR/AI status line) -> Title -> Description ->
+    _CategoryPickerTrigger -> _TagsField -> _ExpirableToggle -> Save
+
+  - Description: one more CustomTextFormField (multiline, 3-4 lines,
+    optional, no validator), bound to a new descriptionController --
+    pre-filled by AI when available, always user-editable.
+  - No structured-fields section, no expiry-suggestion chip -- the AI
+    result pre-fills the EXISTING title/category/expiry controls directly
+    instead of layering a separate suggestion-acceptance UI on top of them.
+  - New l10n keys in all 4 arb files (app_en/ar/es/fr.arb); flutter
+    gen-l10n regenerates automatically.
+
+7. DOCUMENT VIEWER UI
+------------------------
+_DocumentInfoPanel in document_viewer_view.dart (rendered inside the
+DraggableScrollableSheet): insert a description paragraph right after the
+"added on" line, shown only if document.description.trim().isNotEmpty. Raw
+ocrText is still never shown in the viewer -- it exists purely for search
+and as the AI call's input.
+
+8. SEARCH INTEGRATION
+------------------------
+search_viewmodel.dart's documentsFor() -- extend matchesQuery:
+
+    final matchesQuery =
+        q.isEmpty ||
+        d.title.toLowerCase().contains(q) ||
+        d.category.toLowerCase().contains(q) ||
+        d.tags.any((tag) => tag.contains(q)) ||
+        d.description.toLowerCase().contains(q) ||
+        d.ocrText.toLowerCase().contains(q);
+
+(Flagged, not part of this plan: category_documents_viewmodel.dart and
+favorites_viewmodel.dart have their own narrower match expressions --
+worth the same extension as a follow-up.)
+
+9. SEQUENCING & VERIFICATION
+-------------------------------
+Build bottom-up, checking `flutter analyze --fatal-infos` after each step:
+
+  1. Entities -- description/ocrText fields, both defaulting empty. Safe
+     first step.
+  2. .env wiring -- dependency, .gitignore, .env.example, real .env,
+     main.dart load call. Sanity-check dotenv.env['OPENROUTER_API_KEY']
+     resolves before building anything on top of it.
+  3. OcrService -- implement, register in DI. Sanity-check standalone
+     against one real image and one real PDF.
+  4. AiDocumentService -- implement, register in DI. Sanity-check
+     standalone with a hand-written OCR-shaped string against the real
+     OpenRouter endpoint before wiring into the ViewModel -- confirm the
+     model slug actually returns usable JSON.
+  5. Wire into AddDocumentViewModel -- _ocrChain, per-path OCR map,
+     description controller, AI-call trigger + guarded prefill logic,
+     startEditing/submit updates.
+  6. add_document_view.dart -- description field, inline status line, new
+     l10n keys.
+  7. document_viewer_view.dart -- render description, empty-hidden.
+  8. search_viewmodel.dart -- extend documentsFor().
+  9. Manual verification pass:
+     - Online + image attachment with real document text -> status line
+       shows extracting then organizing, title/category/description/
+       expiry all end up pre-filled and still editable, Save works.
+     - Offline (airplane mode) -> OCR still runs (text saved to ocrText),
+       no AI call attempted, no crash, no hang, form stays fully manual
+       as today.
+     - Multi-page PDF -> sequential render doesn't crash, capped at 5
+       pages.
+     - User types a title before OCR/AI finishes -> AI's suggested title
+       does NOT overwrite it.
+     - Edit an existing document -> no AI call fires at all, existing
+       description shown/editable as-is.
+     - Malformed/empty AI response (simulate by temporarily breaking the
+       API key) -> falls back to OCR-only, no crash.
+     - Search a keyword only present in ocrText -> surfaces in Search
+       results.
+     - Finish with `flutter analyze --fatal-infos` and `flutter test`
+       against baseline (2 pre-existing warnings, 11 passing/3
+       pre-existing-failing sign-in tests).
+
+DONE MEANS: OCR always runs and never blocks Save; AI enrichment only ever
+happens online, for new documents, and only pre-fills fields the user
+hasn't already touched; a failed/offline AI call is indistinguishable from
+"user just didn't get a suggestion" -- never an error state; Search
+matches the 2 new sources; the API key never appears in git history or any
+committed file; analyze/tests are clean against baseline.
+
+CRITICAL FILES
+--------------
+- lib/features/home/viewmodel/home_viewmodel.dart (entities)
+- lib/core/ocr/ocr_service.dart (new)
+- lib/core/ai/ai_document_service.dart (new)
+- lib/core/networks/network_manager/dio_helper.dart (reused as-is for the
+  OpenRouter call)
+- lib/core/di/injection_container.dart (OcrService/AiDocumentService
+  registration)
+- lib/main.dart (dotenv.load)
+- .env (new, git-ignored) / .env.example (new, committed) / .gitignore
+- pubspec.yaml (flutter_dotenv, google_mlkit_text_recognition, .env asset)
+- lib/features/documents/presentation/add_document/presentation/add_document/viewmodels/add_document_viewmodel.dart
+- lib/features/documents/presentation/add_document/presentation/add_document/views/add_document_view.dart
+- lib/features/documents/presentation/document_viewer/presentation/document_viewer/views/document_viewer_view.dart
+- lib/features/search/presentation/search/viewmodels/search_viewmodel.dart
+- lib/l10n/app_en.arb (+ ar/es/fr)

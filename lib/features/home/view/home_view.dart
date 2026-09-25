@@ -72,6 +72,12 @@ class HomeView extends StatelessWidget {
                             hintText: AppLocalizations.of(
                               context,
                             ).homeSearchHint,
+                            readOnly: true,
+                            // Search isn't a tab of its own — it's opened
+                            // from here. Index 1 = Search, per NavbarView's
+                            // _tabs order (same target as "See All" below).
+                            onTap: () =>
+                                context.read<NavbarViewModel>().selectTab(1),
                           ),
                           heightBox(14),
                           if (vm.recentFiles.isNotEmpty) ...[

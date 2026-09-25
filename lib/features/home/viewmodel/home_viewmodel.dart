@@ -106,6 +106,17 @@ class DocumentItem {
   final bool isExpirable;
   final DateTime? expiryDate;
 
+  /// AI-organized summary of the document's content (see [AiDocumentService]
+  /// in core/ai) — blank if AI enrichment never ran (offline, or the call
+  /// failed) or if OCR found nothing to organize. Always user-editable.
+  final String description;
+
+  /// Raw on-device OCR output for every attachment, concatenated — never
+  /// shown directly in the UI; exists purely as search input and as the
+  /// source text handed to the AI service. Blank for documents with no
+  /// text-bearing attachments.
+  final String ocrText;
+
   const DocumentItem({
     required this.id,
     required this.title,
@@ -118,6 +129,8 @@ class DocumentItem {
     this.filePaths = const [],
     this.isExpirable = false,
     this.expiryDate,
+    this.description = '',
+    this.ocrText = '',
   });
 
   DocumentItem copyWith({
@@ -126,6 +139,8 @@ class DocumentItem {
     String? categoryId,
     String? iconKey,
     bool? isFavorite,
+    String? description,
+    String? ocrText,
   }) => DocumentItem(
     id: id,
     title: title ?? this.title,
@@ -138,6 +153,8 @@ class DocumentItem {
     filePaths: filePaths,
     isExpirable: isExpirable,
     expiryDate: expiryDate,
+    description: description ?? this.description,
+    ocrText: ocrText ?? this.ocrText,
   );
 }
 

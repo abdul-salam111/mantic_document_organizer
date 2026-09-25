@@ -114,6 +114,8 @@
   "expiresOn": "Expire le {date}",
   "tapToSetExpiryDate": "Appuyez pour définir la date et l'heure d'expiration",
   "attachments": "Pièces jointes",
+  "extractingTextStatus": "Extraction du texte…",
+  "organizingWithAiStatus": "Organisation avec l'IA…",
   "camera": "Appareil photo",
   "gallery": "Galerie",
   "files": "Fichiers",

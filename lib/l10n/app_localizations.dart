@@ -732,6 +732,18 @@ abstract class AppLocalizations {
   /// **'Attachments'**
   String get attachments;
 
+  /// Add Document screen inline status while on-device OCR is running
+  ///
+  /// In en, this message translates to:
+  /// **'Extracting text…'**
+  String get extractingTextStatus;
+
+  /// Add Document screen inline status while the AI suggestion call is running
+  ///
+  /// In en, this message translates to:
+  /// **'Organizing with AI…'**
+  String get organizingWithAiStatus;
+
   /// Add Document screen attachment source button label
   ///
   /// In en, this message translates to:
