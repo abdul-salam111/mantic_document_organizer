@@ -67,6 +67,13 @@ android {
             } else {
                 signingConfigs.getByName("debug")
             }
+            // Without this, proguard-rules.pro is never consulted by R8 —
+            // see that file for why it's needed (google_mlkit_text_recognition
+            // references optional script classes this app doesn't bundle).
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 }
