@@ -132,6 +132,8 @@
   "addToFavorites": "Añadir a favoritos",
 
   "share": "Compartir",
+  "exportAsPdf": "Exportar como PDF",
+  "exportPdfFailedToast": "No se pudo crear el PDF. Inténtalo de nuevo.",
   "rename": "Renombrar",
   "move": "Mover",
   "renameDocument": "Renombrar documento",

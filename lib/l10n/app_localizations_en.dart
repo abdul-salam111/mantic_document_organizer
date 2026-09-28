@@ -447,6 +447,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get share => 'Share';
 
   @override
+  String get exportAsPdf => 'Export as PDF';
+
+  @override
+  String get exportPdfFailedToast => 'Couldn\'t create PDF. Please try again.';
+
+  @override
   String get rename => 'Rename';
 
   @override

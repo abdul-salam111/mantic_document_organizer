@@ -3,6 +3,7 @@
 export 'apptoast_utils.dart';
 export 'currency_utils.dart';
 export 'date_utils.dart';
+export 'document_pdf_exporter.dart';
 export 'extensions.dart';
 export 'file_picker.dart';
 export 'math_utils.dart';

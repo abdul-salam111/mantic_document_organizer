@@ -449,6 +449,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get share => 'Partager';
 
   @override
+  String get exportAsPdf => 'Exporter en PDF';
+
+  @override
+  String get exportPdfFailedToast =>
+      'Impossible de créer le PDF. Veuillez réessayer.';
+
+  @override
   String get rename => 'Renommer';
 
   @override

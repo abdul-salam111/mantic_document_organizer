@@ -132,6 +132,8 @@
   "addToFavorites": "إضافة إلى المفضلة",
 
   "share": "مشاركة",
+  "exportAsPdf": "تصدير كملف PDF",
+  "exportPdfFailedToast": "تعذر إنشاء ملف PDF. يرجى المحاولة مرة أخرى.",
   "rename": "إعادة تسمية",
   "move": "نقل",
   "renameDocument": "إعادة تسمية المستند",

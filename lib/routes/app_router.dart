@@ -146,10 +146,36 @@ class AppRoutes {
       GoRoute(
         path: RoutePaths.aiAssistant,
         name: RouteNames.aiAssistant,
-        builder: (context, state) => const AiAssistantView(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const AiAssistantView(),
+          transitionDuration: const Duration(milliseconds: 380),
+          reverseTransitionDuration: const Duration(milliseconds: 280),
+          transitionsBuilder: _fadeScaleTransition,
+        ),
       ),
       // GENERATED_ROUTES_END
     ],
+  );
+}
+
+/// Fade + subtle scale-up used for [RouteNames.aiAssistant] — reads like
+/// the search field expanding into the chat screen instead of go_router's
+/// default platform slide, which feels like an unrelated new page rather
+/// than a continuation of the tap that opened it.
+Widget _fadeScaleTransition(
+  BuildContext context,
+  Animation<double> animation,
+  Animation<double> secondaryAnimation,
+  Widget child,
+) {
+  final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+  return FadeTransition(
+    opacity: curved,
+    child: ScaleTransition(
+      scale: Tween<double>(begin: 0.94, end: 1).animate(curved),
+      child: child,
+    ),
   );
 }
 

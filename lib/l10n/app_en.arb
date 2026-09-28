@@ -310,6 +310,10 @@
 
   "share": "Share",
   "@share": {"description": "Document Viewer app bar action tooltip / unsupported-file-preview button label"},
+  "exportAsPdf": "Export as PDF",
+  "@exportAsPdf": {"description": "Document Viewer overflow menu entry — combines the document's image pages into a single PDF, then opens the share sheet"},
+  "exportPdfFailedToast": "Couldn't create PDF. Please try again.",
+  "@exportPdfFailedToast": {"description": "Error toast shown when generating a document's PDF export fails"},
   "rename": "Rename",
   "@rename": {"description": "Document Viewer overflow menu entry"},
   "move": "Move",

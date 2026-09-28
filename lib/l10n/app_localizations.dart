@@ -828,6 +828,18 @@ abstract class AppLocalizations {
   /// **'Share'**
   String get share;
 
+  /// Document Viewer overflow menu entry — combines the document's image pages into a single PDF, then opens the share sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Export as PDF'**
+  String get exportAsPdf;
+
+  /// Error toast shown when generating a document's PDF export fails
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t create PDF. Please try again.'**
+  String get exportPdfFailedToast;
+
   /// Document Viewer overflow menu entry
   ///
   /// In en, this message translates to:

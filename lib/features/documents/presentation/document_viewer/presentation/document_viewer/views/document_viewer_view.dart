@@ -14,7 +14,7 @@ import '../../../../../../../routes/routes_exports.dart';
 import '../../../../../../home/home_exports.dart';
 import '../viewmodels/document_viewer_viewmodel.dart';
 
-enum _DocumentAction { edit, share, rename, move, delete }
+enum _DocumentAction { edit, share, exportPdf, rename, move, delete }
 
 class DocumentViewerView extends StatelessWidget {
   final DocumentItem document;
@@ -73,6 +73,14 @@ class DocumentViewerView extends StatelessWidget {
                           label: AppLocalizations.of(context).share,
                         ),
                       ),
+                    if (current.filePaths.any(isImagePath))
+                      PopupMenuItem(
+                        value: _DocumentAction.exportPdf,
+                        child: _MenuRow(
+                          icon: Iconsax.document_download,
+                          label: AppLocalizations.of(context).exportAsPdf,
+                        ),
+                      ),
                     PopupMenuItem(
                       value: _DocumentAction.rename,
                       child: _MenuRow(
@@ -122,6 +130,17 @@ class DocumentViewerView extends StatelessWidget {
     );
   }
 
+  Future<void> _exportAsPdf(BuildContext context, DocumentItem current) async {
+    try {
+      final pdfPath = await DocumentPdfExporter.export(current);
+      await SharePlus.instance.share(ShareParams(files: [XFile(pdfPath)]));
+    } catch (_) {
+      if (context.mounted) {
+        AppToastsUtils.error(AppLocalizations.of(context).exportPdfFailedToast);
+      }
+    }
+  }
+
   Future<void> _handleAction(
     BuildContext context,
     DocumentViewerViewModel vm,
@@ -134,6 +153,8 @@ class DocumentViewerView extends StatelessWidget {
         return Future.value();
       case _DocumentAction.share:
         return _shareAll(current);
+      case _DocumentAction.exportPdf:
+        return _exportAsPdf(context, current);
       case _DocumentAction.rename:
         return _showRenameDialog(context, vm, current);
       case _DocumentAction.move:
