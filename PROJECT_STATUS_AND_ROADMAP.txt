@@ -6,9 +6,6 @@ SECTION 4 — THINGS THAT LOOK FINISHED BUT ARE STUBS
 These are UI elements that exist, look correct, and do nothing (or the wrong
 thing) when tapped. A user WILL find these within their first few minutes:
 
-- Profile → Trash: toast stub. No screen, no soft-delete field on the
-  Document model, no restore flow. The spec explicitly calls for 30-day
-  soft-delete with restore — none of that plumbing exists yet.
 - Profile → "Set up backup": routes to the plain sign-in screen. There is no
   Google sign-in, no Drive integration, nothing backup-specific happens after
   sign-in.
@@ -30,15 +27,10 @@ SECTION 5 — SPEC FEATURES THAT DON'T EXIST YET AT ALL
 Comparing against project_doc.md (your own technical spec), these are simply
 not started:
 
-- Local database (sqflite) — see Section 1.
-- OCR (on-device text extraction from scanned pages). Zero text-recognition
-  code anywhere. This blocks: full-text search over document content,
-  auto-categorization from scanned text, and automatic deadline/date
-  detection — all three are OCR-dependent per the spec.
-- Auto-categorization and deadline detection (Phase 2) — dependent on OCR.
-- Expiry/deadline local notifications. The Add Document form DOES capture an
-  expiry date/time today, but nothing ever reads it to remind the user. This
-  is a real gap: you're collecting data you don't act on.
+- Expiry/deadline local notifications. The Add Document form captures an
+  expiry date/time (auto-detected via AI from OCR text), but nothing ever
+  reads it to remind the user. This is a real gap: you're collecting data
+  you don't act on.
 - Custom per-category fields (field_schema). The spec calls for category-
   specific structured fields (e.g. Driving License: license no., DOB, valid
   till). Today every document has the same generic shape (title, category,
@@ -46,10 +38,9 @@ not started:
 - Document-completeness progress bar ("3 of 5 important documents added") on
   Home and Profile — not implemented; no is_essential concept exists on
   Category at all.
-- PDF generation/export for scanned documents.
-- AI features (Phase 3): no Anthropic/OpenAI integration, no embeddings, no
-  AI search, no auto-summaries, no similar-document clustering. Entirely
-  unbuilt, which is expected — this is explicitly your Phase 3.
+- AI embeddings and similar-document clustering (Phase 3) — AI chat search,
+  auto-summaries, auto-categorization, and deadline detection are already
+  live via OpenRouter; embeddings/clustering specifically are not built.
 - Backup/sync/Google Drive (Phase 1's optional backup + Phase 4's full sync):
   no google_sign_in, no Drive SDK, nothing.
 - Shared vaults, voice notes (Phase 4): not started, expected at this stage.
@@ -67,41 +58,16 @@ SECTION 7 — RECOMMENDED ORDER OF WORK
 This is the realistic path from "impressive demo" to "app people can
 actually rely on," in the order I'd tackle it:
 
-1. PERSISTENCE (sqflite). Nothing else below is worth much until this lands.
-   Model Category/Document/Page/Tag in real tables per the existing spec,
-   swap CategoryLocalStore/DocumentLocalStore to read/write through it
-   instead of a plain List. This is mechanical but non-trivial — budget real
-   time for it, including a migration story for anyone testing pre-release.
+1. EXPIRY NOTIFICATIONS. You already collect (and AI-detect) expiry dates;
+   wiring flutter_local_notifications to remind users before something
+   lapses is a comparatively small amount of work for a genuinely
+   high-value, very "sellable" feature (passport/visa/insurance renewal
+   reminders are one of the most obvious reasons someone would want this
+   app at all).
 
-2. DOCUMENT VIEWER + DELETE/TRASH. Close the loop: right now you can create
-   but never open, remove, or recover a document. This is the second
-   highest-priority gap — a document manager where documents disappear into
-   a void the moment you tap them is not yet a usable product. Trash with
-   restore is also a safety net users will expect before they trust the app
-   with anything important.
-
-3. EXPIRY NOTIFICATIONS. You already collect expiry dates; wiring
-   flutter_local_notifications to remind users before something lapses is a
-   comparatively small amount of work for a genuinely high-value, very
-   "sellable" feature (passport/visa/insurance renewal reminders are one of
-   the most obvious reasons someone would want this app at all).
-
-4. OCR + LOCAL FULL-TEXT SEARCH. This is what turns "photo organizer" into
-   "document organizer" — being able to search "insurance policy number
-   4471" and find the right scan, without remembering which folder you put
-   it in, is the single biggest differentiator this product has over a
-   generic gallery/files app. It's also entirely on-device per your own
-   spec, so it doesn't need the backend.
-
-5. BACKUP (Google Drive). Once the above is solid, this is what protects
-   users from losing everything if they lose their phone — arguably the
-   second most important trust feature after "the app doesn't lose your
-   data while you're using it."
-
-6. AI SEARCH / SUMMARIES. Genuinely valuable, but it's the most expensive
-   (ongoing API cost, backend dependency, more moving parts) and least
-   urgent relative to the gaps above. Correctly sequenced last in your own
-   spec, and I'd agree with that.
+2. BACKUP (Google Drive). This is what protects users from losing everything
+   if they lose their phone — arguably the second most important trust
+   feature after "the app doesn't lose your data while you're using it."
 
 
 ================================================================================
@@ -127,7 +93,7 @@ HIGH IMPACT, LOW-TO-MEDIUM EFFORT:
   hand and needs to capture it before it gets lost.
 - "Expiring soon" digest. A single weekly (not per-document-spammy) local
   notification: "3 documents expire this month" — links straight to a
-  filtered list. Builds on the expiry-notification work in Section 7 step 3
+  filtered list. Builds on the expiry-notification work in Section 7 step 1
   for almost no extra cost, and gives people a reason to open the app
   regularly instead of only when they need something.
 - Local export/backup-to-zip. Before full Google Drive sync exists, even a
@@ -161,12 +127,11 @@ completeness — don't let these distract from Sections 1–7):
   out of the app.
 - On-device duplicate-scan detection (flag "you already scanned this").
 
-WORTH ACTIVELY NOT BUILDING RIGHT NOW: anything AI-adjacent beyond what's
-already in Phase 3 of your spec. It's tempting to keep adding "smart"
-features, but every one below Section 7 step 4 depends on OCR existing
-first, and every AI feature depends on a live backend + API cost that
-doesn't exist yet. Piling more ideas on top of an app that currently can't
-save a document past a restart would be the wrong kind of ambitious.
+WORTH ACTIVELY NOT BUILDING RIGHT NOW: further AI-adjacent features beyond
+what's already live (chat search, auto-summaries, auto-categorization,
+deadline detection). Embeddings/similar-document clustering specifically
+still depend on ongoing API cost with no clear demand yet — keep those
+behind the higher-priority gaps in Section 7.
 
 
 
