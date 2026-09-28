@@ -155,6 +155,10 @@
   "emptyTrashConfirm": "{count, plural, one{Supprimer définitivement 1 élément de la corbeille ?} other{Supprimer définitivement les {count} éléments de la corbeille ?}} Cette action est irréversible.",
   "trashEmptiedToast": "Corbeille vidée",
   "noPreviewAvailable": "Aperçu non disponible pour ce type de fichier",
+  "documentExpiringSoonTitle": "Document bientôt expiré",
+  "documentExpiringSoonBody": "« {title} » expire dans {days} jours",
+  "documentExpiresTodayTitle": "Le document expire aujourd'hui",
+  "documentExpiresTodayBody": "« {title} » expire aujourd'hui",
   "addedOn": "Ajouté le {date}",
 
   "aiAssistantTitle": "Demander à Mantic",

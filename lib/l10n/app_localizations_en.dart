@@ -548,6 +548,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noPreviewAvailable => 'Preview not available for this file type';
 
   @override
+  String get documentExpiringSoonTitle => 'Document expiring soon';
+
+  @override
+  String documentExpiringSoonBody(String title, int days) {
+    return '\"$title\" expires in $days days';
+  }
+
+  @override
+  String get documentExpiresTodayTitle => 'Document expires today';
+
+  @override
+  String documentExpiresTodayBody(String title) {
+    return '\"$title\" expires today';
+  }
+
+  @override
   String addedOn(String date) {
     return 'Added $date';
   }

@@ -155,6 +155,10 @@
   "emptyTrashConfirm": "{count, plural, one{¿Eliminar definitivamente 1 elemento de la papelera?} other{¿Eliminar definitivamente los {count} elementos de la papelera?}} Esta acción no se puede deshacer.",
   "trashEmptiedToast": "Papelera vaciada",
   "noPreviewAvailable": "Vista previa no disponible para este tipo de archivo",
+  "documentExpiringSoonTitle": "Documento por vencer",
+  "documentExpiringSoonBody": "\"{title}\" vence en {days} días",
+  "documentExpiresTodayTitle": "El documento vence hoy",
+  "documentExpiresTodayBody": "\"{title}\" vence hoy",
   "addedOn": "Añadido el {date}",
 
   "aiAssistantTitle": "Pregunta a Mantic",

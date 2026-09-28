@@ -6,6 +6,7 @@ import '../ai/ai_exports.dart';
 import '../database/database_exports.dart';
 import '../localization/localization_exports.dart';
 import '../networks/networks_exports.dart';
+import '../notifications/notifications_exports.dart';
 import '../ocr/ocr_exports.dart';
 import '../security/security_exports.dart';
 import '../theme/theme_exports.dart';
@@ -74,6 +75,7 @@ Future<void> coreDependencies() async {
   sl.registerLazySingleton(() => AiDocumentService(sl()));
   sl.registerLazySingleton(() => AiChatService(sl()));
   sl.registerLazySingleton(() => AppDatabase());
+  sl.registerLazySingleton(() => ExpiryNotificationService());
 }
 
 /// Auth Feature Dependencies
@@ -108,7 +110,9 @@ Future<void> authDependencies() async {
 /// Home Feature Dependencies
 Future<void> homeDependencies() async {
   sl.registerLazySingleton<CategoryLocalStore>(() => CategoryLocalStore(sl()));
-  sl.registerLazySingleton<DocumentLocalStore>(() => DocumentLocalStore(sl()));
+  sl.registerLazySingleton<DocumentLocalStore>(
+    () => DocumentLocalStore(sl(), sl()),
+  );
   sl.registerFactory<HomeViewModel>(
     () => HomeViewModel(categoryStore: sl(), documentStore: sl()),
   );

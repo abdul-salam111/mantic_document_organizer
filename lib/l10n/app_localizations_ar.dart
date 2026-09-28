@@ -547,6 +547,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get noPreviewAvailable => 'المعاينة غير متاحة لهذا النوع من الملفات';
 
   @override
+  String get documentExpiringSoonTitle => 'مستند على وشك الانتهاء';
+
+  @override
+  String documentExpiringSoonBody(String title, int days) {
+    return '\"$title\" تنتهي صلاحيته خلال $days أيام';
+  }
+
+  @override
+  String get documentExpiresTodayTitle => 'ينتهي المستند اليوم';
+
+  @override
+  String documentExpiresTodayBody(String title) {
+    return '\"$title\" تنتهي صلاحيته اليوم';
+  }
+
+  @override
   String addedOn(String date) {
     return 'أُضيف في $date';
   }

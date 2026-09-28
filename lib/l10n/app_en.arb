@@ -383,6 +383,20 @@
   "@trashEmptiedToast": {"description": "Success toast shown after emptying Trash"},
   "noPreviewAvailable": "Preview not available for this file type",
   "@noPreviewAvailable": {"description": "Document Viewer shown for an attachment that isn't an image (e.g. PDF/docx)"},
+  "documentExpiringSoonTitle": "Document expiring soon",
+  "@documentExpiringSoonTitle": {"description": "Title of the local notification shown N days before a document's expiry date"},
+  "documentExpiringSoonBody": "\"{title}\" expires in {days} days",
+  "@documentExpiringSoonBody": {
+    "description": "Body of the local notification shown N days before a document's expiry date",
+    "placeholders": {"title": {"type": "String"}, "days": {"type": "int"}}
+  },
+  "documentExpiresTodayTitle": "Document expires today",
+  "@documentExpiresTodayTitle": {"description": "Title of the local notification shown on a document's expiry date"},
+  "documentExpiresTodayBody": "\"{title}\" expires today",
+  "@documentExpiresTodayBody": {
+    "description": "Body of the local notification shown on a document's expiry date",
+    "placeholders": {"title": {"type": "String"}}
+  },
   "addedOn": "Added {date}",
   "@addedOn": {
     "description": "Document Viewer info panel — when the document was created",

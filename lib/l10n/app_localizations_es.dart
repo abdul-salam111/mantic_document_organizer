@@ -552,6 +552,22 @@ class AppLocalizationsEs extends AppLocalizations {
       'Vista previa no disponible para este tipo de archivo';
 
   @override
+  String get documentExpiringSoonTitle => 'Documento por vencer';
+
+  @override
+  String documentExpiringSoonBody(String title, int days) {
+    return '\"$title\" vence en $days días';
+  }
+
+  @override
+  String get documentExpiresTodayTitle => 'El documento vence hoy';
+
+  @override
+  String documentExpiresTodayBody(String title) {
+    return '\"$title\" vence hoy';
+  }
+
+  @override
   String addedOn(String date) {
     return 'Añadido el $date';
   }

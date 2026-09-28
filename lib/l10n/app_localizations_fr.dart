@@ -552,6 +552,22 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aperçu non disponible pour ce type de fichier';
 
   @override
+  String get documentExpiringSoonTitle => 'Document bientôt expiré';
+
+  @override
+  String documentExpiringSoonBody(String title, int days) {
+    return '« $title » expire dans $days jours';
+  }
+
+  @override
+  String get documentExpiresTodayTitle => 'Le document expire aujourd\'hui';
+
+  @override
+  String documentExpiresTodayBody(String title) {
+    return '« $title » expire aujourd\'hui';
+  }
+
+  @override
   String addedOn(String date) {
     return 'Ajouté le $date';
   }

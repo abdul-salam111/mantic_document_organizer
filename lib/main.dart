@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'core/database/database_exports.dart';
 import 'core/di/di_exports.dart';
 import 'core/localization/localization_exports.dart';
+import 'core/notifications/notifications_exports.dart';
 import 'core/security/security_exports.dart';
 import 'features/home/home_exports.dart';
 import 'routes/routes_exports.dart';
@@ -39,6 +40,10 @@ void main() {
       }
 
       await setupLocator();
+      // Must be ready before DocumentLocalStore.init() below, which
+      // schedules/reconciles every active document's expiry reminders as
+      // soon as it hydrates.
+      await sl<ExpiryNotificationService>().init();
       // Hydrates the in-memory document/category caches from sqflite
       // before the first frame — see AppDatabase/CategoryLocalStore/
       // DocumentLocalStore (core/database, features/home) for why this is
@@ -91,16 +96,25 @@ class MyApp extends StatelessWidget {
             supportedLocales: AppLocalizations.supportedLocales,
             routerConfig: AppRoutes.router,
             debugShowCheckedModeBanner: false,
-            builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
-              value: SystemUiOverlayStyle(
-                statusBarColor: Colors.transparent,
-                statusBarIconBrightness: Theme.of(context).brightness == .dark
-                    ? Brightness.light
-                    : Brightness.dark,
-                statusBarBrightness: Theme.of(context).brightness,
-              ),
-              child: AppLockGate(child: child ?? const SizedBox.shrink()),
-            ),
+            builder: (context, child) {
+              // Re-runs on every locale change (this builder sits below
+              // MaterialApp's own Localizations widget), so newly scheduled
+              // expiry reminders always use the app's current language —
+              // see ExpiryNotificationService.updateLocalizedStrings.
+              sl<ExpiryNotificationService>().updateLocalizedStrings(
+                AppLocalizations.of(context),
+              );
+              return AnnotatedRegion<SystemUiOverlayStyle>(
+                value: SystemUiOverlayStyle(
+                  statusBarColor: Colors.transparent,
+                  statusBarIconBrightness: Theme.of(context).brightness == .dark
+                      ? Brightness.light
+                      : Brightness.dark,
+                  statusBarBrightness: Theme.of(context).brightness,
+                ),
+                child: AppLockGate(child: child ?? const SizedBox.shrink()),
+              );
+            },
           );
         },
       ),

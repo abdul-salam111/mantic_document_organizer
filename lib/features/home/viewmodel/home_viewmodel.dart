@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../core/database/database_exports.dart';
+import '../../../core/notifications/notifications_exports.dart';
 
 /// Sentinel [CategoryItem.id] for documents saved with no category
 /// selected — stable across locales/renames, unlike matching on the
@@ -239,8 +240,9 @@ extension DocumentListSorting on List<DocumentItem> {
 /// before, no async/loading state needed anywhere.
 class DocumentLocalStore extends ChangeNotifier {
   final AppDatabase _db;
+  final ExpiryNotificationService _notifications;
 
-  DocumentLocalStore(this._db);
+  DocumentLocalStore(this._db, this._notifications);
 
   /// How long a soft-deleted document stays recoverable in
   /// [trashedDocuments] before [init] auto-purges it — 30 days matches
@@ -276,12 +278,20 @@ class DocumentLocalStore extends ChangeNotifier {
       ..clear()
       ..addAll(await _db.fetchTrashedDocuments());
     notifyListeners();
+    // Reconciles every active document's expiry reminders against
+    // whatever's actually scheduled on the device — covers both a document
+    // saved before this feature existed (nothing scheduled for it yet) and
+    // a scheduled reminder surviving from a previous install/build.
+    for (final document in _documents) {
+      unawaited(_notifications.scheduleForDocument(document));
+    }
   }
 
   void addDocument(DocumentItem document) {
     _documents.insert(0, document);
     notifyListeners();
     unawaited(_db.upsertDocument(document));
+    unawaited(_notifications.scheduleForDocument(document));
   }
 
   void toggleFavorite(DocumentItem document) {
@@ -301,6 +311,7 @@ class DocumentLocalStore extends ChangeNotifier {
     _documents[index] = updated;
     notifyListeners();
     unawaited(_db.upsertDocument(updated));
+    unawaited(_notifications.scheduleForDocument(updated));
   }
 
   /// Soft delete — moves [id] out of [documents] into [trashedDocuments],
@@ -312,6 +323,10 @@ class DocumentLocalStore extends ChangeNotifier {
     _trashedDocuments.insert(0, trashed);
     notifyListeners();
     unawaited(_db.softDeleteDocument(id, trashed.deletedAt!));
+    // A trashed document's expiry no longer needs acting on — cancel its
+    // reminders rather than let them fire for something the user can't
+    // easily get back to without visiting Trash.
+    unawaited(_notifications.cancelForDocument(id));
   }
 
   /// Moves [id] back from [trashedDocuments] into [documents] — re-inserted
@@ -328,6 +343,7 @@ class DocumentLocalStore extends ChangeNotifier {
     _documents.insert(insertAt == -1 ? _documents.length : insertAt, restored);
     notifyListeners();
     unawaited(_db.restoreDocument(id));
+    unawaited(_notifications.scheduleForDocument(restored));
   }
 
   /// Permanent delete from the trash — unlike [trashDocument], this cannot
@@ -336,6 +352,7 @@ class DocumentLocalStore extends ChangeNotifier {
     _trashedDocuments.removeWhere((d) => d.id == id);
     notifyListeners();
     unawaited(_db.deleteDocument(id));
+    unawaited(_notifications.cancelForDocument(id));
   }
 
   /// Permanently deletes every document currently in [trashedDocuments].
@@ -345,6 +362,9 @@ class DocumentLocalStore extends ChangeNotifier {
     _trashedDocuments.clear();
     notifyListeners();
     unawaited(_db.deleteDocuments(ids));
+    for (final id in ids) {
+      unawaited(_notifications.cancelForDocument(id));
+    }
   }
 
   /// Live document count for a category — replaces any static/cached

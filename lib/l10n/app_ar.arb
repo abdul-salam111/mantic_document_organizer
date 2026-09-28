@@ -155,6 +155,10 @@
   "emptyTrashConfirm": "{count, plural, one{حذف عنصر واحد نهائيًا من سلة المهملات؟} other{حذف جميع العناصر ({count}) نهائيًا من سلة المهملات؟}} لا يمكن التراجع عن هذا الإجراء.",
   "trashEmptiedToast": "تم إفراغ سلة المهملات",
   "noPreviewAvailable": "المعاينة غير متاحة لهذا النوع من الملفات",
+  "documentExpiringSoonTitle": "مستند على وشك الانتهاء",
+  "documentExpiringSoonBody": "\"{title}\" تنتهي صلاحيته خلال {days} أيام",
+  "documentExpiresTodayTitle": "ينتهي المستند اليوم",
+  "documentExpiresTodayBody": "\"{title}\" تنتهي صلاحيته اليوم",
   "addedOn": "أُضيف في {date}",
 
   "aiAssistantTitle": "اسأل Mantic",

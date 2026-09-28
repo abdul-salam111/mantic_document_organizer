@@ -966,6 +966,30 @@ abstract class AppLocalizations {
   /// **'Preview not available for this file type'**
   String get noPreviewAvailable;
 
+  /// Title of the local notification shown N days before a document's expiry date
+  ///
+  /// In en, this message translates to:
+  /// **'Document expiring soon'**
+  String get documentExpiringSoonTitle;
+
+  /// Body of the local notification shown N days before a document's expiry date
+  ///
+  /// In en, this message translates to:
+  /// **'\"{title}\" expires in {days} days'**
+  String documentExpiringSoonBody(String title, int days);
+
+  /// Title of the local notification shown on a document's expiry date
+  ///
+  /// In en, this message translates to:
+  /// **'Document expires today'**
+  String get documentExpiresTodayTitle;
+
+  /// Body of the local notification shown on a document's expiry date
+  ///
+  /// In en, this message translates to:
+  /// **'\"{title}\" expires today'**
+  String documentExpiresTodayBody(String title);
+
   /// Document Viewer info panel — when the document was created
   ///
   /// In en, this message translates to:
