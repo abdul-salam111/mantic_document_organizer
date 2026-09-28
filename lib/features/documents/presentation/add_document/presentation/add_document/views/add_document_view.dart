@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -24,10 +25,16 @@ class AddDocumentView extends StatelessWidget {
   /// existing document on save instead of creating a new one.
   final DocumentItem? editingDocument;
 
+  /// Set when opened via a "Share into Mantic" intent from another app
+  /// (see ShareIntentService/ShareIntentListener) — attaches these files
+  /// immediately, same as a fresh camera/gallery/file pick.
+  final List<String>? initialSharedFilePaths;
+
   const AddDocumentView({
     super.key,
     this.initialCategory,
     this.editingDocument,
+    this.initialSharedFilePaths,
   });
 
   @override
@@ -41,6 +48,10 @@ class AddDocumentView extends StatelessWidget {
         } else {
           final category = initialCategory;
           if (category != null) vm.preselectCategory(category);
+          final sharedPaths = initialSharedFilePaths;
+          if (sharedPaths != null && sharedPaths.isNotEmpty) {
+            unawaited(vm.addSharedFiles(sharedPaths));
+          }
         }
         return vm;
       },

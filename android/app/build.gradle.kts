@@ -23,7 +23,9 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.mantic.document.organizer"
-    compileSdk = 36
+    // receive_sharing_intent ("Share into Mantic" from other apps) requires
+    // at least 37.
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

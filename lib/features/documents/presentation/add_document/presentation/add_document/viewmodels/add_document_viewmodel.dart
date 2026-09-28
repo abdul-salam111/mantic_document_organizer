@@ -497,6 +497,29 @@ class AddDocumentViewModel extends ChangeNotifier {
     return skippedImage;
   }
 
+  /// Ingests files shared into the app from another app (email, WhatsApp,
+  /// Gallery, ... — see ShareIntentService) through the same persist +
+  /// OCR/AI pipeline as the in-app pick methods above, just sourced
+  /// externally instead of from the camera/gallery/file picker.
+  Future<void> addSharedFiles(List<String> sourcePaths) async {
+    if (sourcePaths.isEmpty) return;
+    final dir = await _attachmentsDirectory();
+    final newAttachments = <AttachmentItem>[];
+    for (var i = 0; i < sourcePaths.length; i++) {
+      final persistedPath = await _persistAttachment(sourcePaths[i], dir, i);
+      final attachment = AttachmentItem(
+        path: persistedPath,
+        type: isImagePath(persistedPath)
+            ? AttachmentType.image
+            : AttachmentType.file,
+      );
+      _attachments.add(attachment);
+      newAttachments.add(attachment);
+    }
+    notifyListeners();
+    unawaited(_runOcrAndAi(newAttachments));
+  }
+
   void removeAttachment(AttachmentItem attachment) {
     _attachments.remove(attachment);
     notifyListeners();

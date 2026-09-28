@@ -90,6 +90,7 @@ class AppRoutes {
           return AddDocumentView(
             initialCategory: extra is CategoryItem ? extra : null,
             editingDocument: extra is DocumentItem ? extra : null,
+            initialSharedFilePaths: extra is List<String> ? extra : null,
           );
         },
       ),

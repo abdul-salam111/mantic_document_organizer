@@ -8,6 +8,7 @@ import '../localization/localization_exports.dart';
 import '../networks/networks_exports.dart';
 import '../notifications/notifications_exports.dart';
 import '../ocr/ocr_exports.dart';
+import '../sharing/sharing_exports.dart';
 import '../security/security_exports.dart';
 import '../theme/theme_exports.dart';
 import '../../features/auth/auth_exports.dart';
@@ -76,6 +77,7 @@ Future<void> coreDependencies() async {
   sl.registerLazySingleton(() => AiChatService(sl()));
   sl.registerLazySingleton(() => AppDatabase());
   sl.registerLazySingleton(() => ExpiryNotificationService());
+  sl.registerLazySingleton(() => ShareIntentService());
 }
 
 /// Auth Feature Dependencies
