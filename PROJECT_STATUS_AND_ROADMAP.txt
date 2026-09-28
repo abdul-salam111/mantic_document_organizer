@@ -18,6 +18,10 @@ thing) when tapped. A user WILL find these within their first few minutes:
   fully coded, DI-registered, and completely unused dead code — every real
   screen bypasses them and reads the in-memory store directly. Not urgent to
   remove, but worth knowing they're not actually doing anything.
+- "Share into Mantic" (ShareIntentService) only works on Android — sharing a
+  PDF/photo into the app from iOS does nothing, since the plugin's iOS side
+  needs a Share Extension added in Xcode (App Group, entitlements, Swift
+  Package Manager linking) that can't be set up from a Windows machine.
 
 
 ================================================================================
@@ -70,12 +74,6 @@ whether it's worth it.
 
 HIGH IMPACT, LOW-TO-MEDIUM EFFORT:
 
-- "Share into Mantic" from other apps. Android/iOS share-sheet integration
-  so a PDF emailed to you, or a photo taken in the native camera app, can be
-  sent directly into Mantic's Add Document flow instead of requiring you to
-  open the app first. This matches how people actually receive documents
-  (email attachments, WhatsApp, bank apps) far more often than they proactively
-  open a document-organizer app to go scan something.
 - Home-screen quick-capture shortcut / widget. A single tap from the phone's
   home screen straight into the camera-scan flow, skipping Home entirely.
   Removes friction at exactly the moment someone has a physical paper in
@@ -105,6 +103,7 @@ MEDIUM IMPACT, MEDIUM EFFORT:
   license, insurance), a category-level link out to the relevant official
   renewal site/portal. Small but genuinely reduces friction at the exact
   moment the reminder fires.
+  
 
 LOWER PRIORITY / LONGER HORIZON (fine to leave for later, listed for
 completeness — don't let these distract from Sections 1–7):
