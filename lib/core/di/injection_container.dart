@@ -282,8 +282,10 @@ Future<void> aiAssistantDependencies() async {
     () => AiAssistantUsecase(repository: sl()),
   );
 
-  // ViewModel
-  sl.registerFactory<AiAssistantViewModel>(
+  // ViewModel — a session-lived singleton (not registerFactory), so
+  // navigating away from and back into the AI Assistant screen keeps the
+  // running conversation instead of starting a fresh one every time.
+  sl.registerLazySingleton<AiAssistantViewModel>(
     () => AiAssistantViewModel(documentStore: sl(), aiChatService: sl()),
   );
 }

@@ -20,8 +20,8 @@
   "navFavorites": "Favorites",
   "@navFavorites": {"description": "Bottom nav tab label"},
 
-  "homeSearchHint": "Search categories and documents",
-  "@homeSearchHint": {"description": "Home screen search field placeholder"},
+  "homeSearchHint": "Ask AI about your documents...",
+  "@homeSearchHint": {"description": "Home screen search field placeholder — taps through to the AI Assistant chat, not a keyword filter"},
   "recentFiles": "Recent Files",
   "@recentFiles": {"description": "Home screen section heading"},
   "seeAll": "See all",

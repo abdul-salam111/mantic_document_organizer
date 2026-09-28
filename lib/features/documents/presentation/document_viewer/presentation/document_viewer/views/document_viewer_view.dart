@@ -678,7 +678,10 @@ class _DocumentInfoPanel extends StatelessWidget {
           ),
           if (document.description.trim().isNotEmpty) ...[
             heightBox(12),
-            Text(document.description.trim(), style: context.bodyMedium),
+            SelectableText(
+              document.description.trim(),
+              style: context.bodyMedium,
+            ),
           ],
           if (document.tags.isNotEmpty || _showExpiryChip) ...[
             heightBox(10),

@@ -20,6 +20,15 @@ class AiAssistantView extends StatefulWidget {
 class _AiAssistantViewState extends State<AiAssistantView> {
   final ScrollController _scrollController = ScrollController();
 
+  @override
+  void initState() {
+    super.initState();
+    // Reopening an existing conversation (the ViewModel is a session-lived
+    // singleton — see injection_container.dart) should land on the latest
+    // message, not scrolled back to the top.
+    if (sl<AiAssistantViewModel>().messages.isNotEmpty) _scrollToBottom();
+  }
+
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_scrollController.hasClients) return;
@@ -44,12 +53,14 @@ class _AiAssistantViewState extends State<AiAssistantView> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) {
-        final vm = sl<AiAssistantViewModel>();
-        vm.failureText = AppLocalizations.of(context).aiAssistantGenericError;
-        return vm;
-      },
+    // A session-lived singleton (see injection_container.dart), not a
+    // fresh instance per screen — .value so Provider never disposes it
+    // when this screen is popped, keeping the conversation intact for
+    // next time it's opened.
+    final vm = sl<AiAssistantViewModel>();
+    vm.failureText = AppLocalizations.of(context).aiAssistantGenericError;
+    return ChangeNotifierProvider.value(
+      value: vm,
       child: Scaffold(
         appBar: CustomAppBar(
           title: AppLocalizations.of(context).aiAssistantTitle,
@@ -133,7 +144,7 @@ class _MessageBubble extends StatelessWidget {
                   ? Border.all(color: context.error.withValues(alpha: 0.4))
                   : null,
             ),
-            child: Text(
+            child: SelectableText(
               message.text,
               style: context.bodyMedium.copyWith(color: textColor),
             ),

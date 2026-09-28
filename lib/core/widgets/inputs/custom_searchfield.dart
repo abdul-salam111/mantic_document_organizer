@@ -10,6 +10,7 @@ class CustomSearchField extends StatelessWidget {
   final bool readOnly;
   final Color? fillColor;
   final Color? borderColor;
+  final IconData? prefixIcon;
 
   const CustomSearchField({
     super.key,
@@ -20,6 +21,7 @@ class CustomSearchField extends StatelessWidget {
     this.readOnly = false,
     this.fillColor,
     this.borderColor,
+    this.prefixIcon,
   });
 
   @override
@@ -41,7 +43,7 @@ class CustomSearchField extends StatelessWidget {
         hintText: hintText,
         hintStyle: context.bodySmall.copyWith(color: context.textSecondary),
         prefixIcon: Icon(
-          Iconsax.search_normal,
+          prefixIcon ?? Iconsax.search_normal,
           color: context.grey500,
           size: 20,
         ),

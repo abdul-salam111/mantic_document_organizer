@@ -78,11 +78,13 @@ class HomeView extends StatelessWidget {
                               context,
                             ).homeSearchHint,
                             readOnly: true,
-                            // Search isn't a tab of its own — it's opened
-                            // from here. Index 1 = Search, per NavbarView's
-                            // _tabs order (same target as "See All" below).
+                            prefixIcon: Iconsax.magicpen,
+                            // Routes into the AI chat assistant, not the
+                            // All Docs tab (that's "See All"/the category
+                            // tiles below) — this field is the natural-
+                            // language entry point, not a keyword filter.
                             onTap: () =>
-                                context.read<NavbarViewModel>().selectTab(1),
+                                AppNavigator.pushNamed(RouteNames.aiAssistant),
                           ),
                           heightBox(14),
                           if (vm.recentFiles.isNotEmpty) ...[

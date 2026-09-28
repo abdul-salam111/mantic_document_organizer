@@ -35,7 +35,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navFavorites => 'Favorites';
 
   @override
-  String get homeSearchHint => 'Search categories and documents';
+  String get homeSearchHint => 'Ask AI about your documents...';
 
   @override
   String get recentFiles => 'Recent Files';

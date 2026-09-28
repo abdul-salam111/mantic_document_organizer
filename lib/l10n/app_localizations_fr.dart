@@ -36,7 +36,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navFavorites => 'Favoris';
 
   @override
-  String get homeSearchHint => 'Rechercher des catégories et documents';
+  String get homeSearchHint => 'Demandez à l\'IA à propos de vos documents...';
 
   @override
   String get recentFiles => 'Fichiers récents';

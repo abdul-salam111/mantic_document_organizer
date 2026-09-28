@@ -4,13 +4,14 @@ import '../../../../../core/ai/ai_exports.dart';
 import '../../../../home/home_exports.dart';
 import '../../../domain/entities/chat_message.dart';
 
-/// No conversation persistence exists yet (matches every other feature's
-/// in-memory-only state) — this screen's messages live only for as long as
-/// it stays mounted. Reads [DocumentLocalStore] directly (same as
-/// AddDocumentViewModel/SearchViewModel) rather than through this
-/// feature's brick-scaffolded REST usecase/repository, which stay
-/// registered but unused (see injection_container.dart's
-/// aiAssistantDependencies()) — there's no REST backend for this, the
+/// Registered as an app-session singleton (see injection_container.dart's
+/// aiAssistantDependencies()), not a fresh instance per screen visit — so
+/// [messages] survives navigating away from and back into the AI Assistant
+/// screen. It's still in-memory only: a full app restart clears it, same
+/// as every other feature's state in this app. Reads [DocumentLocalStore]
+/// directly (same as AddDocumentViewModel/SearchViewModel) rather than
+/// through this feature's brick-scaffolded REST usecase/repository, which
+/// stay registered but unused — there's no REST backend for this, the
 /// actual "backend" is the OpenRouter call inside [AiChatService].
 class AiAssistantViewModel extends ChangeNotifier {
   final DocumentLocalStore _documentStore;
@@ -108,11 +109,5 @@ class AiAssistantViewModel extends ChangeNotifier {
       if (document.id == id) return document;
     }
     return null;
-  }
-
-  @override
-  void dispose() {
-    inputController.dispose();
-    super.dispose();
   }
 }

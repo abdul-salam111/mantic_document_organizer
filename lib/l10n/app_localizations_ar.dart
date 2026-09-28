@@ -35,7 +35,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navFavorites => 'المفضلة';
 
   @override
-  String get homeSearchHint => 'ابحث عن الفئات والمستندات';
+  String get homeSearchHint => 'اسأل الذكاء الاصطناعي عن مستنداتك...';
 
   @override
   String get recentFiles => 'الملفات الأخيرة';

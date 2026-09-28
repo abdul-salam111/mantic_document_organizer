@@ -150,10 +150,10 @@ abstract class AppLocalizations {
   /// **'Favorites'**
   String get navFavorites;
 
-  /// Home screen search field placeholder
+  /// Home screen search field placeholder — taps through to the AI Assistant chat, not a keyword filter
   ///
   /// In en, this message translates to:
-  /// **'Search categories and documents'**
+  /// **'Ask AI about your documents...'**
   String get homeSearchHint;
 
   /// Home screen section heading

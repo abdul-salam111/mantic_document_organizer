@@ -50,11 +50,16 @@ class AiChatService {
   static const String _endpoint =
       'https://openrouter.ai/api/v1/chat/completions';
 
-  /// How much of a document's OCR text to fall back to when its AI-written
-  /// [DocumentItem.description] is empty (added before AI enrichment
-  /// existed, added while offline, or the enrichment call itself failed) —
-  /// enough to be useful without ballooning the request for a document
-  /// that otherwise contributes almost nothing to the catalog.
+  /// How much of a document's raw OCR text to fall back to when its
+  /// AI-written [DocumentItem.description] is empty (added before AI
+  /// enrichment existed, added while offline, or the enrichment call itself
+  /// failed) — enough to be useful without ballooning the request for a
+  /// document that otherwise contributes almost nothing to the catalog.
+  /// Only applies to that raw-OCR fallback: [DocumentItem.description]
+  /// itself is never truncated — it's already prompted (see
+  /// [AiDocumentService]'s system prompt) to be a complete, dense summary,
+  /// so cutting it off here could silently drop the exact fact (a contact
+  /// number, an account id) a question is asking about.
   static const int _ocrFallbackChars = 500;
 
   String _isoDate(DateTime date) => date.toIso8601String().split('T').first;
@@ -77,13 +82,15 @@ class AiChatService {
       'include ids that are actually relevant, never pad this list.\n\n'
       'Document catalog (JSON array):\n${jsonEncode(catalog)}';
 
+  String _truncatedOcrText(String text) => text.length > _ocrFallbackChars
+      ? text.substring(0, _ocrFallbackChars)
+      : text;
+
   Map<String, dynamic> _documentJson(DocumentItem document) {
-    final summary = document.description.trim().isNotEmpty
-        ? document.description.trim()
-        : document.ocrText.trim();
-    final description = summary.length > _ocrFallbackChars
-        ? summary.substring(0, _ocrFallbackChars)
-        : summary;
+    final aiDescription = document.description.trim();
+    final description = aiDescription.isNotEmpty
+        ? aiDescription
+        : _truncatedOcrText(document.ocrText.trim());
     return {
       'id': document.id,
       'title': document.title,
