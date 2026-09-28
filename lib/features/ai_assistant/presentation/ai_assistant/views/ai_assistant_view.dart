@@ -264,19 +264,19 @@ class _ExampleChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: .circular(20),
+      borderRadius: .circular(16),
       child: Container(
         alignment: .center,
-        padding: const .symmetric(horizontal: 14),
+        padding: const .symmetric(horizontal: 12),
         decoration: BoxDecoration(
           color: context.primary.withValues(alpha: 0.08),
-          borderRadius: .circular(20),
+          borderRadius: .circular(16),
           border: Border.all(color: context.primary.withValues(alpha: 0.25)),
         ),
         child: Row(
           mainAxisSize: .min,
           children: [
-            Icon(Iconsax.magicpen, size: 14, color: context.primary),
+            Icon(Iconsax.magicpen, size: 12, color: context.primary),
             widthBox(6),
             Text(
               text,
@@ -332,7 +332,7 @@ class _InputBar extends StatelessWidget {
           children: [
             if (examples.isNotEmpty) ...[
               SizedBox(
-                height: 42,
+                height: 32,
                 child: ListView.separated(
                   scrollDirection: .horizontal,
                   padding: const .symmetric(horizontal: 12),
@@ -353,12 +353,11 @@ class _InputBar extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Container(
-                      constraints: const BoxConstraints(minHeight: 48),
-                      padding: const .symmetric(horizontal: 18, vertical: 6),
+                      constraints: const BoxConstraints(minHeight: 40),
+                      padding: const .symmetric(horizontal: 18, vertical: 4),
                       decoration: BoxDecoration(
                         color: context.surfaceElevated,
-                        borderRadius: .circular(26),
-                        border: Border.all(color: context.border),
+                        borderRadius: .circular(20),
                       ),
                       child: TextField(
                         controller: vm.inputController,
