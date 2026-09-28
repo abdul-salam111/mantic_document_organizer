@@ -19,6 +19,7 @@ class AiAssistantView extends StatefulWidget {
 
 class _AiAssistantViewState extends State<AiAssistantView> {
   final ScrollController _scrollController = ScrollController();
+  final FocusNode _inputFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -27,17 +28,31 @@ class _AiAssistantViewState extends State<AiAssistantView> {
     // singleton — see injection_container.dart) should land on the latest
     // message, not scrolled back to the top.
     if (sl<AiAssistantViewModel>().messages.isNotEmpty) _scrollToBottom();
+    _inputFocusNode.addListener(_onInputFocusChange);
+  }
+
+  /// Focusing the input opens the keyboard, shrinking the message list's
+  /// visible height — without this, the latest messages can end up hidden
+  /// behind the keyboard instead of sitting just above it.
+  void _onInputFocusChange() {
+    if (!_inputFocusNode.hasFocus) return;
+    // The keyboard's own show animation takes a moment to finish; scrolling
+    // immediately would compute `maxScrollExtent` against the pre-keyboard
+    // layout and stop short of the true bottom.
+    Future.delayed(const Duration(milliseconds: 260), _animateToBottom);
   }
 
   void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_scrollController.hasClients) return;
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOut,
-      );
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _animateToBottom());
+  }
+
+  void _animateToBottom() {
+    if (!mounted || !_scrollController.hasClients) return;
+    _scrollController.animateTo(
+      _scrollController.position.maxScrollExtent,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+    );
   }
 
   Future<void> _send(AiAssistantViewModel vm) async {
@@ -48,6 +63,7 @@ class _AiAssistantViewState extends State<AiAssistantView> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _inputFocusNode.dispose();
     super.dispose();
   }
 
@@ -90,6 +106,7 @@ class _AiAssistantViewState extends State<AiAssistantView> {
                   ),
                   _InputBar(
                     vm: vm,
+                    focusNode: _inputFocusNode,
                     onSend: () => _send(vm),
                     examples: vm.messages.isEmpty ? examples : const [],
                   ),
@@ -294,6 +311,7 @@ class _ExampleChip extends StatelessWidget {
 
 class _InputBar extends StatelessWidget {
   final AiAssistantViewModel vm;
+  final FocusNode focusNode;
   final VoidCallback onSend;
 
   /// Shown as a horizontally-scrollable chip strip directly above the text
@@ -303,6 +321,7 @@ class _InputBar extends StatelessWidget {
 
   const _InputBar({
     required this.vm,
+    required this.focusNode,
     required this.onSend,
     required this.examples,
   });
@@ -354,13 +373,14 @@ class _InputBar extends StatelessWidget {
                   Expanded(
                     child: Container(
                       constraints: const BoxConstraints(minHeight: 40),
-                      padding: const .symmetric(horizontal: 18, vertical: 4),
+                      padding: const .symmetric(horizontal: 18, vertical: 0),
                       decoration: BoxDecoration(
                         color: context.surfaceElevated,
-                        borderRadius: .circular(20),
+                        borderRadius: .circular(50),
                       ),
                       child: TextField(
                         controller: vm.inputController,
+                        focusNode: focusNode,
                         minLines: 1,
                         maxLines: 4,
                         textCapitalization: .sentences,
@@ -372,6 +392,8 @@ class _InputBar extends StatelessWidget {
                         decoration: InputDecoration(
                           isCollapsed: true,
                           border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
                           hintText: AppLocalizations.of(
                             context,
                           ).aiAssistantInputHint,
@@ -406,7 +428,7 @@ class _SendButton extends StatelessWidget {
 
   const _SendButton({required this.vm, required this.onTap});
 
-  static const double _size = 48;
+  static const double _size = 40;
 
   @override
   Widget build(BuildContext context) {
