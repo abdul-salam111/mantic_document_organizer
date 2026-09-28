@@ -104,6 +104,7 @@ MEDIUM IMPACT, MEDIUM EFFORT:
   renewal site/portal. Small but genuinely reduces friction at the exact
   moment the reminder fires.
   
+  
 
 LOWER PRIORITY / LONGER HORIZON (fine to leave for later, listed for
 completeness — don't let these distract from Sections 1–7):
