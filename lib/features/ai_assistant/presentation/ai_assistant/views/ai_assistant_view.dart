@@ -17,13 +17,15 @@ class AiAssistantView extends StatefulWidget {
   State<AiAssistantView> createState() => _AiAssistantViewState();
 }
 
-class _AiAssistantViewState extends State<AiAssistantView> {
+class _AiAssistantViewState extends State<AiAssistantView>
+    with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
   final FocusNode _inputFocusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Reopening an existing conversation (the ViewModel is a session-lived
     // singleton — see injection_container.dart) should land on the latest
     // message, not scrolled back to the top.
@@ -33,13 +35,25 @@ class _AiAssistantViewState extends State<AiAssistantView> {
 
   /// Focusing the input opens the keyboard, shrinking the message list's
   /// visible height — without this, the latest messages can end up hidden
-  /// behind the keyboard instead of sitting just above it.
+  /// behind the keyboard instead of sitting just above it. Kicks off the
+  /// initial animated scroll; [didChangeMetrics] takes over from there to
+  /// track the keyboard as it finishes opening.
   void _onInputFocusChange() {
+    if (_inputFocusNode.hasFocus) _scrollToBottom();
+  }
+
+  /// The keyboard's show/hide animation resizes the window over several
+  /// frames, calling this on each one — snapping to `maxScrollExtent` every
+  /// time (while the input is focused) keeps the view pinned to the bottom
+  /// as that extent grows, converging on the true post-keyboard position
+  /// instead of guessing a fixed delay that varies by device/OS.
+  @override
+  void didChangeMetrics() {
     if (!_inputFocusNode.hasFocus) return;
-    // The keyboard's own show animation takes a moment to finish; scrolling
-    // immediately would compute `maxScrollExtent` against the pre-keyboard
-    // layout and stop short of the true bottom.
-    Future.delayed(const Duration(milliseconds: 260), _animateToBottom);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    });
   }
 
   void _scrollToBottom() {
@@ -62,6 +76,7 @@ class _AiAssistantViewState extends State<AiAssistantView> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();
     _inputFocusNode.dispose();
     super.dispose();
