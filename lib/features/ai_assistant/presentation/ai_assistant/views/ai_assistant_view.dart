@@ -405,6 +405,7 @@ class _InputBar extends StatelessWidget {
                           color: context.textPrimary,
                         ),
                         decoration: InputDecoration(
+                          fillColor: context.surfaceElevated,
                           isCollapsed: true,
                           border: InputBorder.none,
                           enabledBorder: InputBorder.none,
