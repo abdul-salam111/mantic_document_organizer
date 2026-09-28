@@ -27,10 +27,6 @@ SECTION 5 — SPEC FEATURES THAT DON'T EXIST YET AT ALL
 Comparing against project_doc.md (your own technical spec), these are simply
 not started:
 
-- Expiry/deadline local notifications. The Add Document form captures an
-  expiry date/time (auto-detected via AI from OCR text), but nothing ever
-  reads it to remind the user. This is a real gap: you're collecting data
-  you don't act on.
 - Custom per-category fields (field_schema). The spec calls for category-
   specific structured fields (e.g. Driving License: license no., DOB, valid
   till). Today every document has the same generic shape (title, category,
@@ -58,14 +54,7 @@ SECTION 7 — RECOMMENDED ORDER OF WORK
 This is the realistic path from "impressive demo" to "app people can
 actually rely on," in the order I'd tackle it:
 
-1. EXPIRY NOTIFICATIONS. You already collect (and AI-detect) expiry dates;
-   wiring flutter_local_notifications to remind users before something
-   lapses is a comparatively small amount of work for a genuinely
-   high-value, very "sellable" feature (passport/visa/insurance renewal
-   reminders are one of the most obvious reasons someone would want this
-   app at all).
-
-2. BACKUP (Google Drive). This is what protects users from losing everything
+1. BACKUP (Google Drive). This is what protects users from losing everything
    if they lose their phone — arguably the second most important trust
    feature after "the app doesn't lose your data while you're using it."
 
@@ -93,9 +82,9 @@ HIGH IMPACT, LOW-TO-MEDIUM EFFORT:
   hand and needs to capture it before it gets lost.
 - "Expiring soon" digest. A single weekly (not per-document-spammy) local
   notification: "3 documents expire this month" — links straight to a
-  filtered list. Builds on the expiry-notification work in Section 7 step 1
-  for almost no extra cost, and gives people a reason to open the app
-  regularly instead of only when they need something.
+  filtered list. Builds on the per-document expiry reminders already live
+  (ExpiryNotificationService) for almost no extra cost, and gives people a
+  reason to open the app regularly instead of only when they need something.
 - Local export/backup-to-zip. Before full Google Drive sync exists, even a
   "export everything as a zip of PDFs to a folder I choose" button gives
   privacy-conscious users (or anyone who doesn't want a Google account) a
