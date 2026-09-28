@@ -471,14 +471,74 @@ class AppLocalizationsFr extends AppLocalizations {
   String get deleteDocument => 'Supprimer le document';
 
   @override
-  String deleteDocumentConfirm(String name) {
-    return 'Supprimer « $name » ? Cette action est irréversible.';
+  String deleteDocumentConfirm(String name, int days) {
+    return 'Déplacer « $name » vers la corbeille ? Vous pourrez le restaurer pendant $days jours avant sa suppression définitive.';
   }
 
   @override
-  String documentDeletedToast(String name) {
-    return '« $name » supprimé';
+  String documentTrashedToast(String name) {
+    return '« $name » déplacé vers la corbeille';
   }
+
+  @override
+  String get trashEmptyTitle => 'La corbeille est vide';
+
+  @override
+  String get trashEmptySubtitle =>
+      'Les documents supprimés apparaissent ici jusqu\'à leur restauration ou leur suppression définitive.';
+
+  @override
+  String trashRetentionRemaining(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days jours restants',
+      one: '1 jour restant',
+      zero: 'Supprimé aujourd\'hui',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get restore => 'Restaurer';
+
+  @override
+  String documentRestoredToast(String name) {
+    return '« $name » restauré';
+  }
+
+  @override
+  String get deleteForeverTitle => 'Supprimer définitivement';
+
+  @override
+  String deleteForeverConfirm(String name) {
+    return 'Supprimer « $name » définitivement ? Cette action est irréversible.';
+  }
+
+  @override
+  String documentPermanentlyDeletedToast(String name) {
+    return '« $name » supprimé définitivement';
+  }
+
+  @override
+  String get emptyTrash => 'Vider la corbeille';
+
+  @override
+  String get emptyTrashTitle => 'Vider la corbeille ?';
+
+  @override
+  String emptyTrashConfirm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Supprimer définitivement les $count éléments de la corbeille ?',
+      one: 'Supprimer définitivement 1 élément de la corbeille ?',
+    );
+    return '$_temp0 Cette action est irréversible.';
+  }
+
+  @override
+  String get trashEmptiedToast => 'Corbeille vidée';
 
   @override
   String get noPreviewAvailable =>

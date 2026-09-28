@@ -469,14 +469,74 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteDocument => 'Delete Document';
 
   @override
-  String deleteDocumentConfirm(String name) {
-    return 'Delete \"$name\"? This can\'t be undone.';
+  String deleteDocumentConfirm(String name, int days) {
+    return 'Move \"$name\" to Trash? You can restore it within $days days before it\'s permanently deleted.';
   }
 
   @override
-  String documentDeletedToast(String name) {
-    return '\"$name\" deleted';
+  String documentTrashedToast(String name) {
+    return '\"$name\" moved to Trash';
   }
+
+  @override
+  String get trashEmptyTitle => 'Trash is empty';
+
+  @override
+  String get trashEmptySubtitle =>
+      'Deleted documents appear here until they\'re restored or removed permanently.';
+
+  @override
+  String trashRetentionRemaining(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days left',
+      one: '1 day left',
+      zero: 'Deletes today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get restore => 'Restore';
+
+  @override
+  String documentRestoredToast(String name) {
+    return '\"$name\" restored';
+  }
+
+  @override
+  String get deleteForeverTitle => 'Delete Forever';
+
+  @override
+  String deleteForeverConfirm(String name) {
+    return 'Permanently delete \"$name\"? This can\'t be undone.';
+  }
+
+  @override
+  String documentPermanentlyDeletedToast(String name) {
+    return '\"$name\" permanently deleted';
+  }
+
+  @override
+  String get emptyTrash => 'Empty Trash';
+
+  @override
+  String get emptyTrashTitle => 'Empty Trash?';
+
+  @override
+  String emptyTrashConfirm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Permanently delete all $count items from Trash?',
+      one: 'Permanently delete 1 item from Trash?',
+    );
+    return '$_temp0 This can\'t be undone.';
+  }
+
+  @override
+  String get trashEmptiedToast => 'Trash emptied';
 
   @override
   String get noPreviewAvailable => 'Preview not available for this file type';

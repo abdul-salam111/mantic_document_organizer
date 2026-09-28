@@ -73,12 +73,30 @@ and hasn't been reconciled with it yet:
   Home's own search bar as the spec describes. `SearchView` now also
   shows category tabs (`SearchViewModel.categoryTabs`) for browsing
   by category within "All Docs".
-- **Local database**: no sqflite integration exists yet —
-  `Document`/`Category`/`Page`/`Tag`/`Todo` aren't modeled locally at
-  all. Everything built so far (search/favorites/add_document) talks to
-  the placeholder REST `ApiEndPoints` instead, which doesn't match the
-  offline-first design — those datasources will need to become
-  sqflite-backed repositories instead once this is tackled.
+- **Local database**: `Document`/`Category` are now persisted via sqflite
+  (`lib/core/database/app_database.dart`) — `CategoryLocalStore`/
+  `DocumentLocalStore` (`lib/features/home/viewmodel/home_viewmodel.dart`)
+  keep their original in-memory-cache API (every screen still reads them
+  synchronously) but hydrate from and write through to `AppDatabase`
+  underneath; see `AppDatabase.init()`'s call site in `main.dart` for the
+  startup hydration sequence. This intentionally persists the app's
+  **current actual entity shape** (no `fields`/`field_schema` JSON — that
+  was explicitly dropped in favor of the OCR/AI `description`/`ocrText`
+  pipeline), not the spec's original, since-overridden `Category`/
+  `Document` schema. `Page`/`Tag`-as-a-normalized-entity/`Todo`/`User`
+  still aren't modeled at all (no feature needs them yet). Documents now
+  have a real Trash: `DocumentItem.deletedAt` (soft-delete flag) +
+  `DocumentLocalStore.trashDocument`/`restoreDocument`/
+  `permanentlyDeleteDocument`/`emptyTrash`, a 30-day auto-purge
+  (`DocumentLocalStore.trashRetentionPeriod`, checked once at `init()`),
+  and a real screen (`lib/features/documents/presentation/trash/`)
+  reachable from Profile's "Trash" tile. **Categories are still
+  hard-deleted** (`CategoryLocalStore.removeCategory`/`removeCategories`)
+  — the spec's `deleted_at` was only ever scoped to `Document`, not
+  `Category`, and this wasn't revisited. Everything else built so far
+  (search/favorites/add_document's own REST datasource layer) still talks
+  to the placeholder REST `ApiEndPoints` instead, unrelated to this —
+  those stay inert brick scaffolding, same as before.
 
 Don't treat the existing scaffold as ground truth over the spec when
 they conflict — flag it and ask rather than silently extending the

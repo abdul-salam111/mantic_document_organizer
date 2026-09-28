@@ -19,6 +19,7 @@ import '../features/settings/settings_exports.dart';
 import '../features/splash/splash_exports.dart';
 import '../features/documents/presentation/category_documents/category_documents_exports.dart';
 import '../features/documents/presentation/document_viewer/document_viewer_exports.dart';
+import '../features/documents/presentation/trash/trash_exports.dart';
 
 // GENERATED_IMPORTS_START
 
@@ -134,6 +135,11 @@ class AppRoutes {
         name: RouteNames.documentViewer,
         builder: (context, state) =>
             DocumentViewerView(document: state.extra as DocumentItem),
+      ),
+      GoRoute(
+        path: RoutePaths.trash,
+        name: RouteNames.trash,
+        builder: (context, state) => const TrashView(),
       ),
 
       // GENERATED_ROUTES_START

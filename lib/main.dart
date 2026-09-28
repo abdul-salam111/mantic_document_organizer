@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
+import 'core/database/database_exports.dart';
 import 'core/di/di_exports.dart';
 import 'core/localization/localization_exports.dart';
 import 'core/security/security_exports.dart';
+import 'features/home/home_exports.dart';
 import 'routes/routes_exports.dart';
 import 'core/theme/theme_exports.dart';
 
@@ -30,10 +32,6 @@ void main() {
         return true; // handled — don't crash the app
       };
 
-      // Best-effort: a missing/unreadable .env (e.g. a fresh clone that
-      // hasn't copied .env.example yet) must never block app startup —
-      // AiDocumentService treats a missing OPENROUTER_API_KEY as "skip AI,
-      // OCR-only" exactly like being offline, not as a fatal error.
       try {
         await dotenv.load(fileName: '.env');
       } catch (_) {
@@ -41,6 +39,13 @@ void main() {
       }
 
       await setupLocator();
+      // Hydrates the in-memory document/category caches from sqflite
+      // before the first frame — see AppDatabase/CategoryLocalStore/
+      // DocumentLocalStore (core/database, features/home) for why this is
+      // safe to block runApp() on: it's a local, fast read.
+      await sl<AppDatabase>().init();
+      await sl<CategoryLocalStore>().init();
+      await sl<DocumentLocalStore>().init();
       await sl<ThemeController>().loadTheme();
       await sl<LocaleController>().loadLocale();
       await sl<SecurityController>().loadSecurity();

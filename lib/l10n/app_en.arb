@@ -328,16 +328,55 @@
   },
   "deleteDocument": "Delete Document",
   "@deleteDocument": {"description": "Document Viewer overflow menu entry / confirm dialog title"},
-  "deleteDocumentConfirm": "Delete \"{name}\"? This can't be undone.",
+  "deleteDocumentConfirm": "Move \"{name}\" to Trash? You can restore it within {days} days before it's permanently deleted.",
   "@deleteDocumentConfirm": {
-    "description": "Confirm dialog body shown before deleting a document",
+    "description": "Confirm dialog body shown before moving a document to Trash",
+    "placeholders": {"name": {"type": "String"}, "days": {"type": "int"}}
+  },
+  "documentTrashedToast": "\"{name}\" moved to Trash",
+  "@documentTrashedToast": {
+    "description": "Success toast shown after moving a document to Trash",
     "placeholders": {"name": {"type": "String"}}
   },
-  "documentDeletedToast": "\"{name}\" deleted",
-  "@documentDeletedToast": {
-    "description": "Success toast shown after deleting a document",
+  "trashEmptyTitle": "Trash is empty",
+  "@trashEmptyTitle": {"description": "Trash screen empty state title"},
+  "trashEmptySubtitle": "Deleted documents appear here until they're restored or removed permanently.",
+  "@trashEmptySubtitle": {"description": "Trash screen empty state subtitle"},
+  "trashRetentionRemaining": "{days, plural, =0{Deletes today} =1{1 day left} other{{days} days left}}",
+  "@trashRetentionRemaining": {
+    "description": "Per-item countdown badge in Trash before auto-purge",
+    "placeholders": {"days": {"type": "int"}}
+  },
+  "restore": "Restore",
+  "@restore": {"description": "Trash row action tooltip — restores a document out of Trash"},
+  "documentRestoredToast": "\"{name}\" restored",
+  "@documentRestoredToast": {
+    "description": "Success toast shown after restoring a document from Trash",
     "placeholders": {"name": {"type": "String"}}
   },
+  "deleteForeverTitle": "Delete Forever",
+  "@deleteForeverTitle": {"description": "Trash row action tooltip / confirm dialog title for permanent delete"},
+  "deleteForeverConfirm": "Permanently delete \"{name}\"? This can't be undone.",
+  "@deleteForeverConfirm": {
+    "description": "Confirm dialog body shown before permanently deleting a trashed document",
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "documentPermanentlyDeletedToast": "\"{name}\" permanently deleted",
+  "@documentPermanentlyDeletedToast": {
+    "description": "Success toast shown after permanently deleting a trashed document",
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "emptyTrash": "Empty Trash",
+  "@emptyTrash": {"description": "Trash screen app bar action tooltip / confirm dialog destructive button label"},
+  "emptyTrashTitle": "Empty Trash?",
+  "@emptyTrashTitle": {"description": "Confirm dialog title for emptying Trash"},
+  "emptyTrashConfirm": "{count, plural, one{Permanently delete 1 item from Trash?} other{Permanently delete all {count} items from Trash?}} This can't be undone.",
+  "@emptyTrashConfirm": {
+    "description": "Confirm dialog body shown before emptying Trash",
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "trashEmptiedToast": "Trash emptied",
+  "@trashEmptiedToast": {"description": "Success toast shown after emptying Trash"},
   "noPreviewAvailable": "Preview not available for this file type",
   "@noPreviewAvailable": {"description": "Document Viewer shown for an attachment that isn't an image (e.g. PDF/docx)"},
   "addedOn": "Added {date}",

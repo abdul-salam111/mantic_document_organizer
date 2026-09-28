@@ -40,11 +40,7 @@ class ProfileView extends StatelessWidget {
                     iconColor: context.warning,
                     label: AppLocalizations.of(context).trash,
                     subtitle: AppLocalizations.of(context).trashSubtitle,
-                    onTap: () => AppToastsUtils.info(
-                      AppLocalizations.of(
-                        context,
-                      ).comingSoonToast(AppLocalizations.of(context).trash),
-                    ),
+                    onTap: () => AppNavigator.pushNamed(RouteNames.trash),
                   ),
                   if (vm.isSignedIn) ...[
                     heightBox(20),

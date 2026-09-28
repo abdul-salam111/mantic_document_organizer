@@ -243,7 +243,10 @@ class DocumentViewerView extends StatelessWidget {
         backgroundColor: context.surfaceElevated,
         title: Text(AppLocalizations.of(context).deleteDocument),
         content: Text(
-          AppLocalizations.of(context).deleteDocumentConfirm(current.title),
+          AppLocalizations.of(context).deleteDocumentConfirm(
+            current.title,
+            DocumentLocalStore.trashRetentionPeriod.inDays,
+          ),
         ),
         actions: [
           TextButton(
@@ -264,7 +267,7 @@ class DocumentViewerView extends StatelessWidget {
     vm.delete();
     AppNavigator.pop();
     AppToastsUtils.success(
-      AppLocalizations.of(context).documentDeletedToast(current.title),
+      AppLocalizations.of(context).documentTrashedToast(current.title),
     );
   }
 }

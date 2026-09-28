@@ -471,14 +471,74 @@ class AppLocalizationsEs extends AppLocalizations {
   String get deleteDocument => 'Eliminar documento';
 
   @override
-  String deleteDocumentConfirm(String name) {
-    return '¿Eliminar \"$name\"? Esta acción no se puede deshacer.';
+  String deleteDocumentConfirm(String name, int days) {
+    return '¿Mover \"$name\" a la papelera? Podrás restaurarlo durante $days días antes de que se elimine definitivamente.';
   }
 
   @override
-  String documentDeletedToast(String name) {
-    return '\"$name\" eliminado';
+  String documentTrashedToast(String name) {
+    return '\"$name\" movido a la papelera';
   }
+
+  @override
+  String get trashEmptyTitle => 'La papelera está vacía';
+
+  @override
+  String get trashEmptySubtitle =>
+      'Los documentos eliminados aparecen aquí hasta que se restauran o se eliminan definitivamente.';
+
+  @override
+  String trashRetentionRemaining(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Quedan $days días',
+      one: 'Queda 1 día',
+      zero: 'Se elimina hoy',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get restore => 'Restaurar';
+
+  @override
+  String documentRestoredToast(String name) {
+    return '\"$name\" restaurado';
+  }
+
+  @override
+  String get deleteForeverTitle => 'Eliminar definitivamente';
+
+  @override
+  String deleteForeverConfirm(String name) {
+    return '¿Eliminar \"$name\" definitivamente? Esta acción no se puede deshacer.';
+  }
+
+  @override
+  String documentPermanentlyDeletedToast(String name) {
+    return '\"$name\" eliminado definitivamente';
+  }
+
+  @override
+  String get emptyTrash => 'Vaciar papelera';
+
+  @override
+  String get emptyTrashTitle => '¿Vaciar la papelera?';
+
+  @override
+  String emptyTrashConfirm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '¿Eliminar definitivamente los $count elementos de la papelera?',
+      one: '¿Eliminar definitivamente 1 elemento de la papelera?',
+    );
+    return '$_temp0 Esta acción no se puede deshacer.';
+  }
+
+  @override
+  String get trashEmptiedToast => 'Papelera vaciada';
 
   @override
   String get noPreviewAvailable =>

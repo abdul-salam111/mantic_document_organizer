@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 
 import '../../features/categories/presentation/add_category/viewmodel/add_category_viewmodel.dart';
 import '../ai/ai_exports.dart';
+import '../database/database_exports.dart';
 import '../localization/localization_exports.dart';
 import '../networks/networks_exports.dart';
 import '../ocr/ocr_exports.dart';
@@ -22,6 +23,7 @@ import '../../features/settings/settings_exports.dart';
 import '../../features/splash/splash_exports.dart';
 import '../../features/documents/presentation/category_documents/category_documents_exports.dart';
 import '../../features/documents/presentation/document_viewer/document_viewer_exports.dart';
+import '../../features/documents/presentation/trash/trash_exports.dart';
 
 // GENERATED_IMPORTS_START
 
@@ -49,6 +51,7 @@ Future<void> setupLocator() async {
   await manageCategoriesDependencies();
   await categoryDocumentsDependencies();
   await documentViewerDependencies();
+  await trashDependencies();
   // GENERATED_SETUP_CALLS_START
 
   await aiAssistantDependencies();
@@ -70,6 +73,7 @@ Future<void> coreDependencies() async {
   );
   sl.registerLazySingleton(() => AiDocumentService(sl()));
   sl.registerLazySingleton(() => AiChatService(sl()));
+  sl.registerLazySingleton(() => AppDatabase());
 }
 
 /// Auth Feature Dependencies
@@ -103,8 +107,8 @@ Future<void> authDependencies() async {
 
 /// Home Feature Dependencies
 Future<void> homeDependencies() async {
-  sl.registerLazySingleton<CategoryLocalStore>(() => CategoryLocalStore());
-  sl.registerLazySingleton<DocumentLocalStore>(() => DocumentLocalStore());
+  sl.registerLazySingleton<CategoryLocalStore>(() => CategoryLocalStore(sl()));
+  sl.registerLazySingleton<DocumentLocalStore>(() => DocumentLocalStore(sl()));
   sl.registerFactory<HomeViewModel>(
     () => HomeViewModel(categoryStore: sl(), documentStore: sl()),
   );
@@ -248,6 +252,11 @@ Future<void> documentViewerDependencies() async {
   sl.registerFactory<DocumentViewerViewModel>(
     () => DocumentViewerViewModel(documentStore: sl(), categoryStore: sl()),
   );
+}
+
+/// Trash Page Dependencies
+Future<void> trashDependencies() async {
+  sl.registerFactory<TrashViewModel>(() => TrashViewModel(documentStore: sl()));
 }
 
 /// AiAssistant Feature Dependencies

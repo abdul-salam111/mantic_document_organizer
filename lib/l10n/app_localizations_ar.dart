@@ -467,14 +467,74 @@ class AppLocalizationsAr extends AppLocalizations {
   String get deleteDocument => 'حذف المستند';
 
   @override
-  String deleteDocumentConfirm(String name) {
-    return 'حذف \"$name\"؟ لا يمكن التراجع عن هذا الإجراء.';
+  String deleteDocumentConfirm(String name, int days) {
+    return 'نقل \"$name\" إلى سلة المهملات؟ يمكنك استعادته خلال $days يومًا قبل حذفه نهائيًا.';
   }
 
   @override
-  String documentDeletedToast(String name) {
-    return 'تم حذف \"$name\"';
+  String documentTrashedToast(String name) {
+    return 'تم نقل \"$name\" إلى سلة المهملات';
   }
+
+  @override
+  String get trashEmptyTitle => 'سلة المهملات فارغة';
+
+  @override
+  String get trashEmptySubtitle =>
+      'تظهر المستندات المحذوفة هنا حتى تتم استعادتها أو إزالتها نهائيًا.';
+
+  @override
+  String trashRetentionRemaining(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days أيام متبقية',
+      one: 'يوم واحد متبقٍ',
+      zero: 'يُحذف اليوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get restore => 'استعادة';
+
+  @override
+  String documentRestoredToast(String name) {
+    return 'تم استعادة \"$name\"';
+  }
+
+  @override
+  String get deleteForeverTitle => 'حذف نهائي';
+
+  @override
+  String deleteForeverConfirm(String name) {
+    return 'حذف \"$name\" نهائيًا؟ لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String documentPermanentlyDeletedToast(String name) {
+    return 'تم حذف \"$name\" نهائيًا';
+  }
+
+  @override
+  String get emptyTrash => 'إفراغ سلة المهملات';
+
+  @override
+  String get emptyTrashTitle => 'إفراغ سلة المهملات؟';
+
+  @override
+  String emptyTrashConfirm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'حذف جميع العناصر ($count) نهائيًا من سلة المهملات؟',
+      one: 'حذف عنصر واحد نهائيًا من سلة المهملات؟',
+    );
+    return '$_temp0 لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String get trashEmptiedToast => 'تم إفراغ سلة المهملات';
 
   @override
   String get noPreviewAvailable => 'المعاينة غير متاحة لهذا النوع من الملفات';

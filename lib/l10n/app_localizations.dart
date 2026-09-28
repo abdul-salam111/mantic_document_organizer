@@ -864,17 +864,89 @@ abstract class AppLocalizations {
   /// **'Delete Document'**
   String get deleteDocument;
 
-  /// Confirm dialog body shown before deleting a document
+  /// Confirm dialog body shown before moving a document to Trash
   ///
   /// In en, this message translates to:
-  /// **'Delete \"{name}\"? This can\'t be undone.'**
-  String deleteDocumentConfirm(String name);
+  /// **'Move \"{name}\" to Trash? You can restore it within {days} days before it\'s permanently deleted.'**
+  String deleteDocumentConfirm(String name, int days);
 
-  /// Success toast shown after deleting a document
+  /// Success toast shown after moving a document to Trash
   ///
   /// In en, this message translates to:
-  /// **'\"{name}\" deleted'**
-  String documentDeletedToast(String name);
+  /// **'\"{name}\" moved to Trash'**
+  String documentTrashedToast(String name);
+
+  /// Trash screen empty state title
+  ///
+  /// In en, this message translates to:
+  /// **'Trash is empty'**
+  String get trashEmptyTitle;
+
+  /// Trash screen empty state subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted documents appear here until they\'re restored or removed permanently.'**
+  String get trashEmptySubtitle;
+
+  /// Per-item countdown badge in Trash before auto-purge
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =0{Deletes today} =1{1 day left} other{{days} days left}}'**
+  String trashRetentionRemaining(int days);
+
+  /// Trash row action tooltip — restores a document out of Trash
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restore;
+
+  /// Success toast shown after restoring a document from Trash
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" restored'**
+  String documentRestoredToast(String name);
+
+  /// Trash row action tooltip / confirm dialog title for permanent delete
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Forever'**
+  String get deleteForeverTitle;
+
+  /// Confirm dialog body shown before permanently deleting a trashed document
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete \"{name}\"? This can\'t be undone.'**
+  String deleteForeverConfirm(String name);
+
+  /// Success toast shown after permanently deleting a trashed document
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" permanently deleted'**
+  String documentPermanentlyDeletedToast(String name);
+
+  /// Trash screen app bar action tooltip / confirm dialog destructive button label
+  ///
+  /// In en, this message translates to:
+  /// **'Empty Trash'**
+  String get emptyTrash;
+
+  /// Confirm dialog title for emptying Trash
+  ///
+  /// In en, this message translates to:
+  /// **'Empty Trash?'**
+  String get emptyTrashTitle;
+
+  /// Confirm dialog body shown before emptying Trash
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Permanently delete 1 item from Trash?} other{Permanently delete all {count} items from Trash?}} This can\'t be undone.'**
+  String emptyTrashConfirm(int count);
+
+  /// Success toast shown after emptying Trash
+  ///
+  /// In en, this message translates to:
+  /// **'Trash emptied'**
+  String get trashEmptiedToast;
 
   /// Document Viewer shown for an attachment that isn't an image (e.g. PDF/docx)
   ///

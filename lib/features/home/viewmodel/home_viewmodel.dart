@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+
+import '../../../core/database/database_exports.dart';
 
 /// Sentinel [CategoryItem.id] for documents saved with no category
 /// selected — stable across locales/renames, unlike matching on the
@@ -40,12 +44,10 @@ bool isImagePath(String path) {
 /// falling back to a generic "no preview" placeholder.
 bool isPdfPath(String path) => path.toLowerCase().endsWith('.pdf');
 
-/// Presentational-only for now — no categories feature/local DB exists
-/// yet (see CLAUDE.md's "Known mismatches" section), so this is dummy
-/// data standing in for what will eventually be a real sqflite-backed
-/// Category list. [color] is only ever set by custom categories created
-/// via the add_category feature — built-ins keep deriving their color
-/// from `categoryIconColor` in home_view.dart.
+/// Persisted via [AppDatabase] (see [CategoryLocalStore.init]). [color] is
+/// only ever set by custom categories created via the add_category
+/// feature — built-ins keep deriving their color from `categoryIconColor`
+/// in home_view.dart.
 ///
 /// [id] is the stable identity used for matching/joins (rename-safe);
 /// [name] is display-only and free to change via [CategoryLocalStore.
@@ -80,9 +82,8 @@ class CategoryItem {
 /// and their ordering logic aren't redefined per screen.
 enum DocumentSort { newest, oldest, nameAz }
 
-/// Presentation-only for now, same reasoning as [CategoryItem] — a
-/// document created via the add_document feature, standing in for a real
-/// sqflite-backed Document row (see CLAUDE.md's "Known mismatches").
+/// A document created via the add_document feature — persisted via
+/// [AppDatabase] (see [DocumentLocalStore.init]).
 ///
 /// [id] is this document's own stable identity (used for favorite toggling
 /// instead of positional/reference matching). [categoryId] is the stable
@@ -117,6 +118,13 @@ class DocumentItem {
   /// text-bearing attachments.
   final String ocrText;
 
+  /// Null while active; set the moment this document is moved to Trash
+  /// (see [DocumentLocalStore.trashDocument]) — non-null means it's in
+  /// [DocumentLocalStore.trashedDocuments], not [DocumentLocalStore.
+  /// documents], and is due for permanent deletion after
+  /// [DocumentLocalStore.trashRetentionPeriod].
+  final DateTime? deletedAt;
+
   const DocumentItem({
     required this.id,
     required this.title,
@@ -131,7 +139,10 @@ class DocumentItem {
     this.expiryDate,
     this.description = '',
     this.ocrText = '',
+    this.deletedAt,
   });
+
+  bool get isTrashed => deletedAt != null;
 
   DocumentItem copyWith({
     String? title,
@@ -155,6 +166,47 @@ class DocumentItem {
     expiryDate: expiryDate,
     description: description ?? this.description,
     ocrText: ocrText ?? this.ocrText,
+    deletedAt: deletedAt,
+  );
+
+  /// Returns a copy moved into the trash — every other field (including
+  /// [isFavorite]/[expiryDate]/[tags]) is preserved exactly, so [restored]
+  /// reproduces the original document. Constructed directly rather than
+  /// through [copyWith], which can't null a field back out. See
+  /// [DocumentLocalStore.trashDocument].
+  DocumentItem markDeleted(DateTime deletedAt) => DocumentItem(
+    id: id,
+    title: title,
+    category: category,
+    categoryId: categoryId,
+    iconKey: iconKey,
+    createdAt: createdAt,
+    tags: tags,
+    isFavorite: isFavorite,
+    filePaths: filePaths,
+    isExpirable: isExpirable,
+    expiryDate: expiryDate,
+    description: description,
+    ocrText: ocrText,
+    deletedAt: deletedAt,
+  );
+
+  /// Undoes [markDeleted] — see [DocumentLocalStore.restoreDocument].
+  DocumentItem restored() => DocumentItem(
+    id: id,
+    title: title,
+    category: category,
+    categoryId: categoryId,
+    iconKey: iconKey,
+    createdAt: createdAt,
+    tags: tags,
+    isFavorite: isFavorite,
+    filePaths: filePaths,
+    isExpirable: isExpirable,
+    expiryDate: expiryDate,
+    description: description,
+    ocrText: ocrText,
+    deletedAt: null,
   );
 }
 
@@ -178,27 +230,67 @@ extension DocumentListSorting on List<DocumentItem> {
   }
 }
 
-/// Single shared in-memory stand-in for the local Document table (see
-/// CLAUDE.md's "Known mismatches" section) — registered as a lazy
-/// singleton so a document added from the add_document feature actually
-/// shows up in Home's Recent Files strip instead of vanishing once that
-/// screen is popped.
+/// In-memory cache of the local Document table, backed by [AppDatabase] —
+/// registered as a lazy singleton so a document added from the
+/// add_document feature actually shows up in Home's Recent Files strip
+/// instead of vanishing once that screen is popped. Every mutator updates
+/// this cache (and notifies listeners) synchronously, then persists to
+/// disk in the background — every screen keeps reading it exactly as
+/// before, no async/loading state needed anywhere.
 class DocumentLocalStore extends ChangeNotifier {
-  final List<DocumentItem> _documents = [];
+  final AppDatabase _db;
 
-  /// Newest first.
+  DocumentLocalStore(this._db);
+
+  /// How long a soft-deleted document stays recoverable in
+  /// [trashedDocuments] before [init] auto-purges it — 30 days matches
+  /// common OS/consumer trash conventions (Gmail Trash, iOS Photos
+  /// "Recently Deleted"). A `static const` so [AppDatabase.
+  /// purgeExpiredTrash]'s call site and the Trash UI's countdown can't
+  /// drift apart.
+  static const Duration trashRetentionPeriod = Duration(days: 30);
+
+  final List<DocumentItem> _documents = [];
+  final List<DocumentItem> _trashedDocuments = [];
+
+  /// Newest first. Active (non-trashed) documents only.
   List<DocumentItem> get documents => List.unmodifiable(_documents);
+
+  /// Newest-deleted first.
+  List<DocumentItem> get trashedDocuments =>
+      List.unmodifiable(_trashedDocuments);
+
+  /// Hydrates [_documents]/[_trashedDocuments] from [AppDatabase] —
+  /// called once at startup (see main.dart), before any screen reads
+  /// [documents]/[trashedDocuments]. Purges expired trash first, so a
+  /// purged row is never loaded into [_trashedDocuments] in the first
+  /// place. Every mutator below already updates these in-memory lists
+  /// synchronously, so the rest of the app never needs to know
+  /// persistence happened at all.
+  Future<void> init() async {
+    await _db.purgeExpiredTrash(trashRetentionPeriod);
+    _documents
+      ..clear()
+      ..addAll(await _db.fetchDocuments());
+    _trashedDocuments
+      ..clear()
+      ..addAll(await _db.fetchTrashedDocuments());
+    notifyListeners();
+  }
 
   void addDocument(DocumentItem document) {
     _documents.insert(0, document);
     notifyListeners();
+    unawaited(_db.upsertDocument(document));
   }
 
   void toggleFavorite(DocumentItem document) {
     final index = _documents.indexWhere((d) => d.id == document.id);
     if (index == -1) return;
-    _documents[index] = document.copyWith(isFavorite: !document.isFavorite);
+    final updated = document.copyWith(isFavorite: !document.isFavorite);
+    _documents[index] = updated;
     notifyListeners();
+    unawaited(_db.upsertDocument(updated));
   }
 
   /// General-purpose update (rename, move to another category, ...) —
@@ -208,13 +300,51 @@ class DocumentLocalStore extends ChangeNotifier {
     if (index == -1) return;
     _documents[index] = updated;
     notifyListeners();
+    unawaited(_db.upsertDocument(updated));
   }
 
-  /// Hard delete — there's no Trash/soft-delete yet (see
-  /// PROJECT_STATUS_AND_ROADMAP.txt), so this is genuinely permanent.
-  void removeDocument(String id) {
-    _documents.removeWhere((d) => d.id == id);
+  /// Soft delete — moves [id] out of [documents] into [trashedDocuments],
+  /// recoverable via [restoreDocument] within [trashRetentionPeriod].
+  void trashDocument(String id) {
+    final index = _documents.indexWhere((d) => d.id == id);
+    if (index == -1) return;
+    final trashed = _documents.removeAt(index).markDeleted(DateTime.now());
+    _trashedDocuments.insert(0, trashed);
     notifyListeners();
+    unawaited(_db.softDeleteDocument(id, trashed.deletedAt!));
+  }
+
+  /// Moves [id] back from [trashedDocuments] into [documents] — re-inserted
+  /// at the position its [DocumentItem.createdAt] belongs (not at the
+  /// front), so [documents]' newest-created-first order stays correct for
+  /// direct readers like [HomeViewModel.recentFiles] that don't re-sort.
+  void restoreDocument(String id) {
+    final index = _trashedDocuments.indexWhere((d) => d.id == id);
+    if (index == -1) return;
+    final restored = _trashedDocuments.removeAt(index).restored();
+    final insertAt = _documents.indexWhere(
+      (d) => d.createdAt.isBefore(restored.createdAt),
+    );
+    _documents.insert(insertAt == -1 ? _documents.length : insertAt, restored);
+    notifyListeners();
+    unawaited(_db.restoreDocument(id));
+  }
+
+  /// Permanent delete from the trash — unlike [trashDocument], this cannot
+  /// be undone.
+  void permanentlyDeleteDocument(String id) {
+    _trashedDocuments.removeWhere((d) => d.id == id);
+    notifyListeners();
+    unawaited(_db.deleteDocument(id));
+  }
+
+  /// Permanently deletes every document currently in [trashedDocuments].
+  void emptyTrash() {
+    if (_trashedDocuments.isEmpty) return;
+    final ids = [for (final d in _trashedDocuments) d.id];
+    _trashedDocuments.clear();
+    notifyListeners();
+    unawaited(_db.deleteDocuments(ids));
   }
 
   /// Live document count for a category — replaces any static/cached
@@ -223,15 +353,20 @@ class DocumentLocalStore extends ChangeNotifier {
       _documents.where((d) => d.categoryId == categoryId).length;
 }
 
-/// Single shared in-memory stand-in for the local Category table (see
-/// CLAUDE.md's "Known mismatches" section) — registered as a lazy
-/// singleton so a category added from the add_category feature's "New
-/// Category" screen actually shows up in Home's category grid instead of
-/// vanishing once that screen is popped.
+/// In-memory cache of the local Category table, backed by [AppDatabase] —
+/// registered as a lazy singleton so a category added from the
+/// add_category feature's "New Category" screen actually shows up in
+/// Home's category grid instead of vanishing once that screen is popped.
+/// Same "mutate the cache + notify synchronously, persist in the
+/// background" pattern as [DocumentLocalStore].
 class CategoryLocalStore extends ChangeNotifier {
-  final List<CategoryItem> _categories = [
-    const CategoryItem(id: 'bank', name: 'Bank', iconKey: 'buildingColumns'),
-    const CategoryItem(
+  final AppDatabase _db;
+
+  CategoryLocalStore(this._db);
+
+  static const List<CategoryItem> _builtInCategories = [
+    CategoryItem(id: 'bank', name: 'Bank', iconKey: 'buildingColumns'),
+    CategoryItem(
       id: 'business_card',
       name: 'Business Card',
       // solidAddressCard, not addressCard — the picker catalog only
@@ -239,58 +374,52 @@ class CategoryLocalStore extends ChangeNotifier {
       // is only available there as its solid variant.
       iconKey: 'solidAddressCard',
     ),
-    const CategoryItem(
-      id: 'contracts',
-      name: 'Contracts',
-      iconKey: 'fileContract',
-    ),
-    const CategoryItem(
+    CategoryItem(id: 'contracts', name: 'Contracts', iconKey: 'fileContract'),
+    CategoryItem(
       id: 'driving_license',
       name: 'Driving License',
       iconKey: 'idCardClip',
     ),
-    const CategoryItem(
-      id: 'education',
-      name: 'Education',
-      iconKey: 'graduationCap',
-    ),
-    const CategoryItem(
+    CategoryItem(id: 'education', name: 'Education', iconKey: 'graduationCap'),
+    CategoryItem(
       id: 'electricity_gas',
       name: 'Electricity/Gas',
       iconKey: 'boltLightning',
     ),
-    const CategoryItem(
+    CategoryItem(
       id: 'id_card',
       name: 'ID Card',
       // solidIdCard, not idCard — see the business_card entry above.
       iconKey: 'solidIdCard',
     ),
-    const CategoryItem(
-      id: 'insurance',
-      name: 'Insurance',
-      iconKey: 'shieldHalved',
-    ),
-    const CategoryItem(
-      id: 'invoices',
-      name: 'Invoices',
-      iconKey: 'fileInvoice',
-    ),
-    const CategoryItem(id: 'medical', name: 'Medical', iconKey: 'stethoscope'),
-    const CategoryItem(id: 'passports', name: 'Passports', iconKey: 'passport'),
-    const CategoryItem(
-      id: 'products',
-      name: 'Products',
-      iconKey: 'boxesStacked',
-    ),
-    const CategoryItem(
+    CategoryItem(id: 'insurance', name: 'Insurance', iconKey: 'shieldHalved'),
+    CategoryItem(id: 'invoices', name: 'Invoices', iconKey: 'fileInvoice'),
+    CategoryItem(id: 'medical', name: 'Medical', iconKey: 'stethoscope'),
+    CategoryItem(id: 'passports', name: 'Passports', iconKey: 'passport'),
+    CategoryItem(id: 'products', name: 'Products', iconKey: 'boxesStacked'),
+    CategoryItem(
       id: 'tax_documents',
       name: 'Tax Documents',
       iconKey: 'fileInvoiceDollar',
     ),
-    const CategoryItem(id: 'tickets', name: 'Tickets', iconKey: 'ticket'),
+    CategoryItem(id: 'tickets', name: 'Tickets', iconKey: 'ticket'),
   ];
 
+  final List<CategoryItem> _categories = [];
+
   List<CategoryItem> get categories => List.unmodifiable(_categories);
+
+  /// Hydrates [_categories] from [AppDatabase] — called once at startup
+  /// (see main.dart). Seeds [_builtInCategories] first, but only if the
+  /// table is genuinely empty (a fresh install), so a renamed/deleted
+  /// built-in on a later launch is never resurrected.
+  Future<void> init() async {
+    await _db.seedBuiltInCategoriesIfEmpty(_builtInCategories);
+    _categories
+      ..clear()
+      ..addAll(await _db.fetchCategories());
+    notifyListeners();
+  }
 
   CategoryItem? byId(String id) {
     for (final category in _categories) {
@@ -309,6 +438,7 @@ class CategoryLocalStore extends ChangeNotifier {
   void addCategory(CategoryItem category) {
     _categories.add(category);
     notifyListeners();
+    unawaited(_db.upsertCategory(category));
   }
 
   void updateCategory(String id, CategoryItem updated) {
@@ -316,11 +446,13 @@ class CategoryLocalStore extends ChangeNotifier {
     if (index == -1) return;
     _categories[index] = updated;
     notifyListeners();
+    unawaited(_db.upsertCategory(updated));
   }
 
   void removeCategory(String id) {
     _categories.removeWhere((c) => c.id == id);
     notifyListeners();
+    unawaited(_db.deleteCategory(id));
   }
 
   /// Bulk variant of [removeCategory] — one notification instead of one
@@ -329,6 +461,7 @@ class CategoryLocalStore extends ChangeNotifier {
     final idSet = ids.toSet();
     _categories.removeWhere((c) => idSet.contains(c.id));
     notifyListeners();
+    unawaited(_db.deleteCategories(idSet));
   }
 }
 

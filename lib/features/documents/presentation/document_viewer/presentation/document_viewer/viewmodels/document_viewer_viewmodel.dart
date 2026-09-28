@@ -77,11 +77,13 @@ class DocumentViewerViewModel extends ChangeNotifier {
     );
   }
 
-  /// Hard delete — see [DocumentLocalStore.removeDocument].
+  /// Soft delete — moves the document to Trash, recoverable within
+  /// [DocumentLocalStore.trashRetentionPeriod]. See [DocumentLocalStore.
+  /// trashDocument].
   void delete() {
     final current = document;
     if (current == null) return;
-    _documentStore.removeDocument(current.id);
+    _documentStore.trashDocument(current.id);
   }
 
   @override
