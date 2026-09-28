@@ -26,6 +26,7 @@ import '../../features/splash/splash_exports.dart';
 import '../../features/documents/presentation/category_documents/category_documents_exports.dart';
 import '../../features/documents/presentation/document_viewer/document_viewer_exports.dart';
 import '../../features/documents/presentation/trash/trash_exports.dart';
+import '../../features/documents/presentation/expiring_soon/expiring_soon_exports.dart';
 
 // GENERATED_IMPORTS_START
 
@@ -54,6 +55,7 @@ Future<void> setupLocator() async {
   await categoryDocumentsDependencies();
   await documentViewerDependencies();
   await trashDependencies();
+  await expiringSoonDependencies();
   // GENERATED_SETUP_CALLS_START
 
   await aiAssistantDependencies();
@@ -263,6 +265,13 @@ Future<void> documentViewerDependencies() async {
 /// Trash Page Dependencies
 Future<void> trashDependencies() async {
   sl.registerFactory<TrashViewModel>(() => TrashViewModel(documentStore: sl()));
+}
+
+/// Expiring Soon Page Dependencies
+Future<void> expiringSoonDependencies() async {
+  sl.registerFactory<ExpiringSoonViewModel>(
+    () => ExpiringSoonViewModel(documentStore: sl()),
+  );
 }
 
 /// AiAssistant Feature Dependencies

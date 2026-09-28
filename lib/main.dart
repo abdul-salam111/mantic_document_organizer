@@ -114,7 +114,9 @@ class MyApp extends StatelessWidget {
                   statusBarBrightness: Theme.of(context).brightness,
                 ),
                 child: ShareIntentListener(
-                  child: AppLockGate(child: child ?? const SizedBox.shrink()),
+                  child: ExpiryDigestListener(
+                    child: AppLockGate(child: child ?? const SizedBox.shrink()),
+                  ),
                 ),
               );
             },

@@ -160,6 +160,11 @@
   "documentExpiresTodayTitle": "ينتهي المستند اليوم",
   "documentExpiresTodayBody": "\"{title}\" تنتهي صلاحيته اليوم",
   "addedOn": "أُضيف في {date}",
+  "expiringSoonDigestTitle": "مستندات على وشك الانتهاء",
+  "expiringSoonDigestBody": "{count, plural, one{مستند واحد ينتهي هذا الشهر} other{{count} مستندات تنتهي هذا الشهر}}",
+  "expiringSoonTitle": "على وشك الانتهاء",
+  "expiringSoonEmptyTitle": "لا يوجد شيء على وشك الانتهاء",
+  "expiringSoonEmptySubtitle": "ستظهر هنا المستندات التي يقترب تاريخ انتهائها.",
 
   "aiAssistantTitle": "اسأل Mantic",
   "aiAssistantInputHint": "اسأل عن مستنداتك...",

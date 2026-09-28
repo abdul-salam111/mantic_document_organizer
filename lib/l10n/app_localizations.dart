@@ -996,6 +996,36 @@ abstract class AppLocalizations {
   /// **'Added {date}'**
   String addedOn(String date);
 
+  /// Title of the weekly local notification summarizing how many documents expire soon
+  ///
+  /// In en, this message translates to:
+  /// **'Documents expiring soon'**
+  String get expiringSoonDigestTitle;
+
+  /// Body of the weekly local notification summarizing how many documents expire soon
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 document expires this month} other{{count} documents expire this month}}'**
+  String expiringSoonDigestBody(int count);
+
+  /// Expiring Soon screen title — the filtered list opened by tapping the weekly digest notification
+  ///
+  /// In en, this message translates to:
+  /// **'Expiring Soon'**
+  String get expiringSoonTitle;
+
+  /// Expiring Soon screen empty state title
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing expiring soon'**
+  String get expiringSoonEmptyTitle;
+
+  /// Expiring Soon screen empty state subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Documents with an expiry date coming up will show here.'**
+  String get expiringSoonEmptySubtitle;
+
   /// AI Assistant screen app bar title
   ///
   /// In en, this message translates to:

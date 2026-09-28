@@ -568,6 +568,30 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get expiringSoonDigestTitle => 'مستندات على وشك الانتهاء';
+
+  @override
+  String expiringSoonDigestBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مستندات تنتهي هذا الشهر',
+      one: 'مستند واحد ينتهي هذا الشهر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get expiringSoonTitle => 'على وشك الانتهاء';
+
+  @override
+  String get expiringSoonEmptyTitle => 'لا يوجد شيء على وشك الانتهاء';
+
+  @override
+  String get expiringSoonEmptySubtitle =>
+      'ستظهر هنا المستندات التي يقترب تاريخ انتهائها.';
+
+  @override
   String get aiAssistantTitle => 'اسأل Mantic';
 
   @override

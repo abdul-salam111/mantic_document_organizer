@@ -12,6 +12,7 @@ class RouteNames {
   static const String categoryDocuments = "categoryDocuments";
   static const String documentViewer = "documentViewer";
   static const String trash = "trash";
+  static const String expiringSoon = "expiringSoon";
 
   // GENERATED_ROUTE_NAMES_START
 

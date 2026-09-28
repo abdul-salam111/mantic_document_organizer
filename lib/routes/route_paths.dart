@@ -16,6 +16,7 @@ class RoutePaths {
   static const String categoryDocuments = "/category-documents";
   static const String documentViewer = "/document-viewer";
   static const String trash = "/trash";
+  static const String expiringSoon = "/expiring-soon";
 
   // GENERATED_ROUTE_PATHS_START
 

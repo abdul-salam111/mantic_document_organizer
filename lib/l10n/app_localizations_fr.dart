@@ -573,6 +573,30 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get expiringSoonDigestTitle => 'Documents bientôt expirés';
+
+  @override
+  String expiringSoonDigestBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count documents expirent ce mois-ci',
+      one: '1 document expire ce mois-ci',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get expiringSoonTitle => 'Bientôt expirés';
+
+  @override
+  String get expiringSoonEmptyTitle => 'Rien à signaler';
+
+  @override
+  String get expiringSoonEmptySubtitle =>
+      'Les documents dont la date d\'expiration approche s\'afficheront ici.';
+
+  @override
   String get aiAssistantTitle => 'Demander à Mantic';
 
   @override

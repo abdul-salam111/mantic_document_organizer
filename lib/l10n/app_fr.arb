@@ -160,6 +160,11 @@
   "documentExpiresTodayTitle": "Le document expire aujourd'hui",
   "documentExpiresTodayBody": "« {title} » expire aujourd'hui",
   "addedOn": "Ajouté le {date}",
+  "expiringSoonDigestTitle": "Documents bientôt expirés",
+  "expiringSoonDigestBody": "{count, plural, one{1 document expire ce mois-ci} other{{count} documents expirent ce mois-ci}}",
+  "expiringSoonTitle": "Bientôt expirés",
+  "expiringSoonEmptyTitle": "Rien à signaler",
+  "expiringSoonEmptySubtitle": "Les documents dont la date d'expiration approche s'afficheront ici.",
 
   "aiAssistantTitle": "Demander à Mantic",
   "aiAssistantInputHint": "Posez une question sur vos documents...",

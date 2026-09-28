@@ -160,6 +160,11 @@
   "documentExpiresTodayTitle": "El documento vence hoy",
   "documentExpiresTodayBody": "\"{title}\" vence hoy",
   "addedOn": "Añadido el {date}",
+  "expiringSoonDigestTitle": "Documentos por vencer",
+  "expiringSoonDigestBody": "{count, plural, one{1 documento vence este mes} other{{count} documentos vencen este mes}}",
+  "expiringSoonTitle": "Por vencer",
+  "expiringSoonEmptyTitle": "Nada por vencer",
+  "expiringSoonEmptySubtitle": "Aquí aparecerán los documentos con una fecha de vencimiento próxima.",
 
   "aiAssistantTitle": "Pregunta a Mantic",
   "aiAssistantInputHint": "Pregunta sobre tus documentos...",

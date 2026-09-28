@@ -285,13 +285,21 @@ class DocumentLocalStore extends ChangeNotifier {
     for (final document in _documents) {
       unawaited(_notifications.scheduleForDocument(document));
     }
+    _refreshDigest();
   }
+
+  /// Recomputes the weekly "N documents expire this month" summary
+  /// notification against the current [_documents] — called after every
+  /// mutation that can change which documents are active/expirable.
+  void _refreshDigest() =>
+      unawaited(_notifications.scheduleWeeklyDigest(_documents));
 
   void addDocument(DocumentItem document) {
     _documents.insert(0, document);
     notifyListeners();
     unawaited(_db.upsertDocument(document));
     unawaited(_notifications.scheduleForDocument(document));
+    _refreshDigest();
   }
 
   void toggleFavorite(DocumentItem document) {
@@ -312,6 +320,7 @@ class DocumentLocalStore extends ChangeNotifier {
     notifyListeners();
     unawaited(_db.upsertDocument(updated));
     unawaited(_notifications.scheduleForDocument(updated));
+    _refreshDigest();
   }
 
   /// Soft delete — moves [id] out of [documents] into [trashedDocuments],
@@ -327,6 +336,7 @@ class DocumentLocalStore extends ChangeNotifier {
     // reminders rather than let them fire for something the user can't
     // easily get back to without visiting Trash.
     unawaited(_notifications.cancelForDocument(id));
+    _refreshDigest();
   }
 
   /// Moves [id] back from [trashedDocuments] into [documents] — re-inserted
@@ -344,6 +354,7 @@ class DocumentLocalStore extends ChangeNotifier {
     notifyListeners();
     unawaited(_db.restoreDocument(id));
     unawaited(_notifications.scheduleForDocument(restored));
+    _refreshDigest();
   }
 
   /// Permanent delete from the trash — unlike [trashDocument], this cannot

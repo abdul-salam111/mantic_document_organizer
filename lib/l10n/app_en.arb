@@ -402,6 +402,19 @@
     "description": "Document Viewer info panel — when the document was created",
     "placeholders": {"date": {"type": "String"}}
   },
+  "expiringSoonDigestTitle": "Documents expiring soon",
+  "@expiringSoonDigestTitle": {"description": "Title of the weekly local notification summarizing how many documents expire soon"},
+  "expiringSoonDigestBody": "{count, plural, one{1 document expires this month} other{{count} documents expire this month}}",
+  "@expiringSoonDigestBody": {
+    "description": "Body of the weekly local notification summarizing how many documents expire soon",
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "expiringSoonTitle": "Expiring Soon",
+  "@expiringSoonTitle": {"description": "Expiring Soon screen title — the filtered list opened by tapping the weekly digest notification"},
+  "expiringSoonEmptyTitle": "Nothing expiring soon",
+  "@expiringSoonEmptyTitle": {"description": "Expiring Soon screen empty state title"},
+  "expiringSoonEmptySubtitle": "Documents with an expiry date coming up will show here.",
+  "@expiringSoonEmptySubtitle": {"description": "Expiring Soon screen empty state subtitle"},
 
   "aiAssistantTitle": "Ask Mantic",
   "@aiAssistantTitle": {"description": "AI Assistant screen app bar title"},

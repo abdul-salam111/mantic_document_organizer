@@ -20,6 +20,7 @@ import '../features/splash/splash_exports.dart';
 import '../features/documents/presentation/category_documents/category_documents_exports.dart';
 import '../features/documents/presentation/document_viewer/document_viewer_exports.dart';
 import '../features/documents/presentation/trash/trash_exports.dart';
+import '../features/documents/presentation/expiring_soon/expiring_soon_exports.dart';
 
 // GENERATED_IMPORTS_START
 
@@ -141,6 +142,11 @@ class AppRoutes {
         path: RoutePaths.trash,
         name: RouteNames.trash,
         builder: (context, state) => const TrashView(),
+      ),
+      GoRoute(
+        path: RoutePaths.expiringSoon,
+        name: RouteNames.expiringSoon,
+        builder: (context, state) => const ExpiringSoonView(),
       ),
 
       // GENERATED_ROUTES_START
