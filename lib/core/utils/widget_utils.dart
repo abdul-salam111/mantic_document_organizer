@@ -104,9 +104,12 @@ extension WidgetExtensions on Widget {
     return Transform.translate(offset: offset, child: this);
   }
 
-  // Add a fade animation to a widget
-  Widget withFadeAnimation(AnimationController controller) {
-    return FadeTransition(opacity: controller, child: this);
+  // Add a fade animation to a widget — Animation<double> rather than the
+  // narrower AnimationController, so a derived CurvedAnimation/Interval
+  // (e.g. for a staggered list reveal) works here too, not just a raw
+  // controller.
+  Widget withFadeAnimation(Animation<double> opacity) {
+    return FadeTransition(opacity: opacity, child: this);
   }
 
   // Add opacity to a widget

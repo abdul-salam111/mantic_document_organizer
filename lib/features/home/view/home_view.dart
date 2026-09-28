@@ -116,20 +116,30 @@ class HomeView extends StatelessWidget {
                             heightBox(7),
                             SizedBox(
                               height: 80,
-                              child: ListView.separated(
-                                scrollDirection: .horizontal,
-                                clipBehavior: Clip.none,
+                              child: StaggeredReveal(
                                 itemCount: vm.recentFiles.length,
-                                separatorBuilder: (context, index) =>
-                                    widthBox(12),
-                                itemBuilder: (context, index) {
-                                  final document = vm.recentFiles[index];
-                                  return _RecentFileCard(
-                                    document: document,
-                                    onToggleFavorite: () =>
-                                        vm.toggleFavorite(document),
-                                  );
-                                },
+                                builder: (context, reveal) =>
+                                    ListView.separated(
+                                      scrollDirection: .horizontal,
+                                      clipBehavior: Clip.none,
+                                      itemCount: vm.recentFiles.length,
+                                      separatorBuilder: (context, index) =>
+                                          widthBox(12),
+                                      itemBuilder: (context, index) {
+                                        final document = vm.recentFiles[index];
+                                        return StaggeredRevealItem(
+                                          reveal: reveal,
+                                          itemCount: vm.recentFiles.length,
+                                          index: index,
+                                          beginOffset: const Offset(0.12, 0),
+                                          child: _RecentFileCard(
+                                            document: document,
+                                            onToggleFavorite: () =>
+                                                vm.toggleFavorite(document),
+                                          ),
+                                        );
+                                      },
+                                    ),
                               ),
                             ),
                             heightBox(20),
@@ -216,6 +226,7 @@ Widget _categoryTileAt(
   int index, {
   required bool isGridView,
   required Animation<double> reveal,
+  required int itemCount,
 }) {
   final Widget tile;
   if (index < vm.categories.length) {
@@ -245,47 +256,12 @@ Widget _categoryTileAt(
       isGridView: isGridView,
     );
   }
-  return _StaggeredEntry(animation: reveal, index: index, child: tile);
-}
-
-/// Fades + slides one grid/list item in, with its start time offset by
-/// [index] so items reveal one after another instead of all at once. Capped
-/// at [_maxStaggeredItems] so a long category list doesn't push the last
-/// tile's start time out unreasonably far.
-class _StaggeredEntry extends StatelessWidget {
-  final Animation<double> animation;
-  final int index;
-  final Widget child;
-
-  const _StaggeredEntry({
-    required this.animation,
-    required this.index,
-    required this.child,
-  });
-
-  static const int _maxStaggeredItems = 12;
-  static const double _staggerWindow = 0.5;
-
-  @override
-  Widget build(BuildContext context) {
-    final step = index.clamp(0, _maxStaggeredItems) / _maxStaggeredItems;
-    final start = step * _staggerWindow;
-    final end = start + (1 - _staggerWindow);
-    final itemAnimation = CurvedAnimation(
-      parent: animation,
-      curve: Interval(start, end, curve: Curves.easeOut),
-    );
-    return FadeTransition(
-      opacity: itemAnimation,
-      child: SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(0, 0.08),
-          end: Offset.zero,
-        ).animate(itemAnimation),
-        child: child,
-      ),
-    );
-  }
+  return StaggeredRevealItem(
+    reveal: reveal,
+    itemCount: itemCount,
+    index: index,
+    child: tile,
+  );
 }
 
 class _CategorySection extends StatefulWidget {
@@ -312,11 +288,18 @@ class _CategorySectionState extends State<_CategorySection>
       duration: const Duration(milliseconds: 160),
       value: 1,
     );
+    // Starts at 0 (not 1) and plays forward once here, so the category
+    // grid/list also cascades in on Home's first load — didUpdateWidget
+    // below separately replays it (from: 0) on every grid/list toggle.
+    // Duration matches StaggeredRevealTiming's own per-item delay math
+    // (each tile is a StaggeredRevealItem below) — +2 for the
+    // Uncategorized/Add-New tiles appended after the real categories.
     _revealController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 450),
-      value: 1,
-    );
+      duration: StaggeredRevealTiming.totalDuration(
+        widget.vm.categories.length + 2,
+      ),
+    )..forward();
   }
 
   @override
@@ -374,8 +357,14 @@ class _CategoryGrid extends StatelessWidget {
         childAspectRatio: 1.1,
       ),
       itemCount: vm.categories.length + 2,
-      itemBuilder: (context, index) =>
-          _categoryTileAt(context, vm, index, isGridView: true, reveal: reveal),
+      itemBuilder: (context, index) => _categoryTileAt(
+        context,
+        vm,
+        index,
+        isGridView: true,
+        reveal: reveal,
+        itemCount: vm.categories.length + 2,
+      ),
     );
   }
 }
@@ -399,6 +388,7 @@ class _CategoryList extends StatelessWidget {
         index,
         isGridView: false,
         reveal: reveal,
+        itemCount: vm.categories.length + 2,
       ),
     );
   }

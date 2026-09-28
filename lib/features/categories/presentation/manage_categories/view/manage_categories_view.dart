@@ -49,35 +49,44 @@ class ManageCategoriesView extends StatelessWidget {
                               ),
                             ),
                           )
-                        : ListView.separated(
-                            padding: const .symmetric(
-                              horizontal: 10,
-                              vertical: 14,
-                            ),
+                        : StaggeredReveal(
                             itemCount: vm.categories.length,
-                            separatorBuilder: (context, index) => heightBox(10),
-                            itemBuilder: (context, index) {
-                              final category = vm.categories[index];
-                              return _CategoryRow(
-                                category: category,
-                                fileCount: vm.documentCountFor(category.id),
-                                isSelecting: vm.isSelecting,
-                                isSelected: vm.isSelected(category.id),
-                                onTap: () {
-                                  if (vm.isSelecting) {
-                                    vm.toggleSelection(category.id);
-                                  }
-                                },
-                                onLongPress: () =>
-                                    vm.toggleSelection(category.id),
-                                onEdit: () => AppNavigator.pushNamed(
-                                  RouteNames.addCategory,
-                                  extra: category,
-                                ),
-                                onDelete: () =>
-                                    _confirmDelete(context, vm, category),
-                              );
-                            },
+                            builder: (context, reveal) => ListView.separated(
+                              padding: const .symmetric(
+                                horizontal: 10,
+                                vertical: 14,
+                              ),
+                              itemCount: vm.categories.length,
+                              separatorBuilder: (context, index) =>
+                                  heightBox(10),
+                              itemBuilder: (context, index) {
+                                final category = vm.categories[index];
+                                return StaggeredRevealItem(
+                                  reveal: reveal,
+                                  itemCount: vm.categories.length,
+                                  index: index,
+                                  child: _CategoryRow(
+                                    category: category,
+                                    fileCount: vm.documentCountFor(category.id),
+                                    isSelecting: vm.isSelecting,
+                                    isSelected: vm.isSelected(category.id),
+                                    onTap: () {
+                                      if (vm.isSelecting) {
+                                        vm.toggleSelection(category.id);
+                                      }
+                                    },
+                                    onLongPress: () =>
+                                        vm.toggleSelection(category.id),
+                                    onEdit: () => AppNavigator.pushNamed(
+                                      RouteNames.addCategory,
+                                      extra: category,
+                                    ),
+                                    onDelete: () =>
+                                        _confirmDelete(context, vm, category),
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                   ),
                 ],

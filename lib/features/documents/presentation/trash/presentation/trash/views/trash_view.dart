@@ -36,23 +36,31 @@ class TrashView extends StatelessWidget {
                       title: AppLocalizations.of(context).trashEmptyTitle,
                       subtitle: AppLocalizations.of(context).trashEmptySubtitle,
                     )
-                  : ListView.separated(
-                      padding: const .fromLTRB(10, 10, 10, 20),
+                  : StaggeredReveal(
                       itemCount: vm.documents.length,
-                      separatorBuilder: (context, index) => heightBox(10),
-                      itemBuilder: (context, index) {
-                        final document = vm.documents[index];
-                        return _TrashDocumentTile(
-                          document: document,
-                          accentColor: categoryIconColor(
-                            context,
-                            document.category,
-                          ),
-                          onRestore: () => _restore(context, vm, document),
-                          onDeleteForever: () =>
-                              _confirmDeleteForever(context, vm, document),
-                        );
-                      },
+                      builder: (context, reveal) => ListView.separated(
+                        padding: const .fromLTRB(10, 10, 10, 20),
+                        itemCount: vm.documents.length,
+                        separatorBuilder: (context, index) => heightBox(10),
+                        itemBuilder: (context, index) {
+                          final document = vm.documents[index];
+                          return StaggeredRevealItem(
+                            reveal: reveal,
+                            itemCount: vm.documents.length,
+                            index: index,
+                            child: _TrashDocumentTile(
+                              document: document,
+                              accentColor: categoryIconColor(
+                                context,
+                                document.category,
+                              ),
+                              onRestore: () => _restore(context, vm, document),
+                              onDeleteForever: () =>
+                                  _confirmDeleteForever(context, vm, document),
+                            ),
+                          );
+                        },
+                      ),
                     ),
             ),
           );

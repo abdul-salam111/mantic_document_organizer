@@ -125,46 +125,62 @@ class _DocumentList extends StatelessWidget {
     }
 
     if (vm.isGridView) {
-      return GridView.builder(
-        padding: const .fromLTRB(10, 0, 10, 90),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 0.85,
-        ),
+      return StaggeredReveal(
         itemCount: documents.length,
-        itemBuilder: (context, index) {
-          final document = documents[index];
-          return DocumentGridTile(
-            document: document,
-            accentColor: color,
-            onTap: () => AppNavigator.pushNamed(
-              RouteNames.documentViewer,
-              extra: document,
-            ),
-            onToggleFavorite: () => vm.toggleFavorite(document),
-          );
-        },
+        builder: (context, reveal) => GridView.builder(
+          padding: const .fromLTRB(10, 0, 10, 90),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 0.85,
+          ),
+          itemCount: documents.length,
+          itemBuilder: (context, index) {
+            final document = documents[index];
+            return StaggeredRevealItem(
+              reveal: reveal,
+              itemCount: documents.length,
+              index: index,
+              child: DocumentGridTile(
+                document: document,
+                accentColor: color,
+                onTap: () => AppNavigator.pushNamed(
+                  RouteNames.documentViewer,
+                  extra: document,
+                ),
+                onToggleFavorite: () => vm.toggleFavorite(document),
+              ),
+            );
+          },
+        ),
       );
     }
 
-    return ListView.separated(
-      padding: const .fromLTRB(10, 0, 10, 90),
+    return StaggeredReveal(
       itemCount: documents.length,
-      separatorBuilder: (context, index) => heightBox(10),
-      itemBuilder: (context, index) {
-        final document = documents[index];
-        return DocumentListTile(
-          document: document,
-          accentColor: color,
-          onTap: () => AppNavigator.pushNamed(
-            RouteNames.documentViewer,
-            extra: document,
-          ),
-          onToggleFavorite: () => vm.toggleFavorite(document),
-        );
-      },
+      builder: (context, reveal) => ListView.separated(
+        padding: const .fromLTRB(10, 0, 10, 90),
+        itemCount: documents.length,
+        separatorBuilder: (context, index) => heightBox(10),
+        itemBuilder: (context, index) {
+          final document = documents[index];
+          return StaggeredRevealItem(
+            reveal: reveal,
+            itemCount: documents.length,
+            index: index,
+            child: DocumentListTile(
+              document: document,
+              accentColor: color,
+              onTap: () => AppNavigator.pushNamed(
+                RouteNames.documentViewer,
+                extra: document,
+              ),
+              onToggleFavorite: () => vm.toggleFavorite(document),
+            ),
+          );
+        },
+      ),
     );
   }
 }

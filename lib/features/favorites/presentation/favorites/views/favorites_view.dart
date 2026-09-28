@@ -107,46 +107,62 @@ class _FavoritesList extends StatelessWidget {
     }
 
     if (vm.isGridView) {
-      return GridView.builder(
-        padding: const .fromLTRB(0, 0, 0, 16),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 0.85,
-        ),
+      return StaggeredReveal(
         itemCount: items.length,
-        itemBuilder: (context, index) {
-          final document = items[index];
-          return DocumentGridTile(
-            document: document,
-            accentColor: categoryIconColor(context, document.category),
-            onTap: () => AppNavigator.pushNamed(
-              RouteNames.documentViewer,
-              extra: document,
-            ),
-            onToggleFavorite: () => vm.toggleFavorite(document),
-          );
-        },
+        builder: (context, reveal) => GridView.builder(
+          padding: const .fromLTRB(0, 0, 0, 16),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 0.85,
+          ),
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final document = items[index];
+            return StaggeredRevealItem(
+              reveal: reveal,
+              itemCount: items.length,
+              index: index,
+              child: DocumentGridTile(
+                document: document,
+                accentColor: categoryIconColor(context, document.category),
+                onTap: () => AppNavigator.pushNamed(
+                  RouteNames.documentViewer,
+                  extra: document,
+                ),
+                onToggleFavorite: () => vm.toggleFavorite(document),
+              ),
+            );
+          },
+        ),
       );
     }
 
-    return ListView.separated(
-      padding: const .fromLTRB(0, 0, 0, 16),
+    return StaggeredReveal(
       itemCount: items.length,
-      separatorBuilder: (context, index) => heightBox(10),
-      itemBuilder: (context, index) {
-        final document = items[index];
-        return DocumentListTile(
-          document: document,
-          accentColor: categoryIconColor(context, document.category),
-          onTap: () => AppNavigator.pushNamed(
-            RouteNames.documentViewer,
-            extra: document,
-          ),
-          onToggleFavorite: () => vm.toggleFavorite(document),
-        );
-      },
+      builder: (context, reveal) => ListView.separated(
+        padding: const .fromLTRB(0, 0, 0, 16),
+        itemCount: items.length,
+        separatorBuilder: (context, index) => heightBox(10),
+        itemBuilder: (context, index) {
+          final document = items[index];
+          return StaggeredRevealItem(
+            reveal: reveal,
+            itemCount: items.length,
+            index: index,
+            child: DocumentListTile(
+              document: document,
+              accentColor: categoryIconColor(context, document.category),
+              onTap: () => AppNavigator.pushNamed(
+                RouteNames.documentViewer,
+                extra: document,
+              ),
+              onToggleFavorite: () => vm.toggleFavorite(document),
+            ),
+          );
+        },
+      ),
     );
   }
 }

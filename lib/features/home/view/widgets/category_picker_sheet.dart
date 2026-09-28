@@ -49,66 +49,80 @@ class CategoryPickerSheet extends StatelessWidget {
               ),
               heightBox(12),
               Expanded(
-                child: ListView.separated(
-                  controller: scrollController,
+                child: StaggeredReveal(
                   itemCount: categories.length,
-                  separatorBuilder: (context, index) => heightBox(8),
-                  itemBuilder: (context, index) {
-                    final category = categories[index];
-                    final isSelected = category.id == selected?.id;
-                    final color =
-                        category.color ??
-                        categoryIconColor(context, category.name);
-                    return InkWell(
-                      onTap: () => Navigator.of(context).pop(category),
-                      borderRadius: .circular(12),
-                      child: Container(
-                        padding: const .symmetric(horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? context.primary.withValues(alpha: 0.1)
-                              : context.surface,
+                  builder: (context, reveal) => ListView.separated(
+                    controller: scrollController,
+                    itemCount: categories.length,
+                    separatorBuilder: (context, index) => heightBox(8),
+                    itemBuilder: (context, index) {
+                      final category = categories[index];
+                      final isSelected = category.id == selected?.id;
+                      final color =
+                          category.color ??
+                          categoryIconColor(context, category.name);
+                      return StaggeredRevealItem(
+                        reveal: reveal,
+                        itemCount: categories.length,
+                        index: index,
+                        child: InkWell(
+                          onTap: () => Navigator.of(context).pop(category),
                           borderRadius: .circular(12),
-                          border: isSelected
-                              ? Border.all(color: context.primary, width: 1.5)
-                              : null,
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 36,
-                              height: 36,
-                              alignment: .center,
-                              decoration: BoxDecoration(
-                                color: color,
-                                shape: .circle,
-                              ),
-                              child: FaIcon(
-                                iconForKey(category.iconKey),
-                                size: 14,
-                                color: context.white,
-                              ),
+                          child: Container(
+                            padding: const .symmetric(
+                              horizontal: 14,
+                              vertical: 10,
                             ),
-                            widthBox(12),
-                            Expanded(
-                              child: Text(
-                                category.name,
-                                style: context.bodyMedium.copyWith(
-                                  fontWeight: .w600,
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? context.primary.withValues(alpha: 0.1)
+                                  : context.surface,
+                              borderRadius: .circular(12),
+                              border: isSelected
+                                  ? Border.all(
+                                      color: context.primary,
+                                      width: 1.5,
+                                    )
+                                  : null,
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 36,
+                                  height: 36,
+                                  alignment: .center,
+                                  decoration: BoxDecoration(
+                                    color: color,
+                                    shape: .circle,
+                                  ),
+                                  child: FaIcon(
+                                    iconForKey(category.iconKey),
+                                    size: 14,
+                                    color: context.white,
+                                  ),
                                 ),
-                              ),
+                                widthBox(12),
+                                Expanded(
+                                  child: Text(
+                                    category.name,
+                                    style: context.bodyMedium.copyWith(
+                                      fontWeight: .w600,
+                                    ),
+                                  ),
+                                ),
+                                if (isSelected)
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: context.primary,
+                                    size: 20,
+                                  ),
+                              ],
                             ),
-                            if (isSelected)
-                              Icon(
-                                Icons.check_circle,
-                                color: context.primary,
-                                size: 20,
-                              ),
-                          ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ),
             ],

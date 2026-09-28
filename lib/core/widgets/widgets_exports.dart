@@ -7,6 +7,7 @@ export 'package:iconsax/iconsax.dart';
 export 'package:font_awesome_flutter/font_awesome_flutter.dart';
 export 'package:provider/provider.dart';
 
+export 'animations/staggered_reveal.dart';
 export 'appbar/custom_appbar.dart';
 export 'branding/app_logo.dart';
 export 'buttons/custom_button.dart';
