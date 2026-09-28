@@ -95,7 +95,20 @@ class _PdfCover extends StatefulWidget {
 class _PdfCoverState extends State<_PdfCover> {
   static const double _renderWidth = 160;
 
-  late final Future<Uint8List?> _cover = _renderFirstPage();
+  late Future<Uint8List?> _cover = _renderFirstPage();
+
+  @override
+  void didUpdateWidget(covariant _PdfCover oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A list that inserts new items at the front (e.g. Home's Recent Files)
+    // shifts every other item's position without giving them a distinct
+    // Key, so Flutter reuses this State for whatever document now occupies
+    // this slot — recompute rather than keep showing the previous
+    // document's already-rendered page.
+    if (oldWidget.path != widget.path) {
+      _cover = _renderFirstPage();
+    }
+  }
 
   Future<Uint8List?> _renderFirstPage() async {
     try {
