@@ -1,21 +1,16 @@
+import '../../features/documents/domain/entities/document_item.dart';
 import 'dart:io';
 
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdfx/pdfx.dart';
 
-import '../../features/home/viewmodel/home_viewmodel.dart'
-    show isImagePath, isPdfPath;
-
-/// On-device text extraction (Google ML Kit — fully offline, no API key)
-/// for a document's attachments. Hides every ML Kit/pdfx SDK type behind a
-/// plain [String] return so callers (AddDocumentViewModel) never see
-/// [TextRecognizer]/[RecognizedText]/[InputImage] directly — same shape as
-/// [SecurityController] wrapping `local_auth`.
+/// On-device text extraction for a document's attachments. OCR stays native:
+/// Android uses ML Kit directly from the app and iOS uses Apple's Vision
+/// framework. Keeping the channel here prevents the UI and domain layers from
+/// depending on either native SDK or a CocoaPods-only Flutter plugin.
 class OcrService {
-  final TextRecognizer _recognizer = TextRecognizer(
-    script: TextRecognitionScript.latin,
-  );
+  static const _channel = MethodChannel('mantic.document.organizer/ocr');
 
   /// How many pages of a PDF to OCR — a relevant date/name could be on any
   /// page, but an unbounded loop risks pathological cost on a large
@@ -44,35 +39,11 @@ class OcrService {
   }
 
   Future<String> _extractFromImage(String path) async {
-    final inputImage = InputImage.fromFilePath(path);
-    final result = await _recognizer.processImage(inputImage);
-    return _orderedText(result.blocks);
-  }
-
-  /// ML Kit's own block order (its internal layout-clustering heuristic)
-  /// can scramble busy/multi-column layouts like ID cards — verified
-  /// against a real scan where an unrelated line jumped to the very top of
-  /// the output. Re-sorting blocks top-to-bottom, falling back to
-  /// left-to-right for blocks that start at roughly the same height (so
-  /// two side-by-side columns don't get interleaved line-by-line), gives a
-  /// more reliable reading order without a heavier layout-analysis pass.
-  String _orderedText(List<TextBlock> blocks) {
-    if (blocks.isEmpty) return '';
-    final heights = blocks.map((b) => b.boundingBox.height).toList()..sort();
-    // Half the median block height is a "same visual row" tolerance that
-    // scales with the image's own resolution, instead of a fixed pixel
-    // threshold that would be wrong for a smaller/larger photo.
-    final rowThreshold = heights[heights.length ~/ 2] / 2;
-
-    final sorted = List<TextBlock>.of(blocks)
-      ..sort((a, b) {
-        final topDelta = a.boundingBox.top - b.boundingBox.top;
-        if (topDelta.abs() < rowThreshold) {
-          return a.boundingBox.left.compareTo(b.boundingBox.left);
-        }
-        return topDelta < 0 ? -1 : 1;
-      });
-    return sorted.map((b) => b.text).join('\n');
+    if (!Platform.isAndroid && !Platform.isIOS) return '';
+    return await _channel.invokeMethod<String>('recognizeText', {
+          'path': path,
+        }) ??
+        '';
   }
 
   /// Renders each page to a scratch JPEG (pdfx's default render format —
@@ -116,5 +87,5 @@ class OcrService {
     return pageTexts.join('\n\n');
   }
 
-  void dispose() => _recognizer.close();
+  void dispose() {}
 }

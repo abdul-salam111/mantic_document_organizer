@@ -1,3 +1,6 @@
+import 'package:mantic_doc_org/core/utils/persist_action.dart';
+import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
+import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/constants_exports.dart';
@@ -130,7 +133,12 @@ class HomeView extends StatelessWidget {
                                           child: _RecentFileCard(
                                             document: document,
                                             onToggleFavorite: () =>
-                                                vm.toggleFavorite(document),
+                                                persistAction(
+                                                  context,
+                                                  () => vm.toggleFavorite(
+                                                    document,
+                                                  ),
+                                                ),
                                           ),
                                         );
                                       },
@@ -191,7 +199,7 @@ Widget _categoryTileAt(
       iconKey: category.iconKey,
       isGridView: isGridView,
       colorKey: category.name,
-      color: category.color,
+      color: category.colorValue == null ? null : Color(category.colorValue!),
     );
   } else if (index == vm.categories.length) {
     tile = _CategoryTile(
@@ -629,7 +637,7 @@ class _CategoryTile extends StatelessWidget {
             id: id ?? uncategorizedCategoryId,
             name: name,
             iconKey: iconKey,
-            color: color,
+            colorValue: color?.toARGB32(),
           ),
         );
       },

@@ -1,8 +1,8 @@
+import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
 import 'dart:convert';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-import '../../features/home/home_exports.dart' show DocumentItem;
 import '../networks/network_manager/dio_helper.dart';
 
 /// One prior question/answer pair, folded into the prompt so follow-up

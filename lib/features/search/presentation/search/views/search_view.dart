@@ -1,3 +1,4 @@
+import 'package:mantic_doc_org/core/utils/persist_action.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../../core/di/di_exports.dart';
@@ -218,7 +219,8 @@ class _DocumentList extends StatelessWidget {
                   RouteNames.documentViewer,
                   extra: document,
                 ),
-                onToggleFavorite: () => vm.toggleFavorite(document),
+                onToggleFavorite: () =>
+                    persistAction(context, () => vm.toggleFavorite(document)),
               ),
             );
           },
@@ -244,7 +246,8 @@ class _DocumentList extends StatelessWidget {
                 RouteNames.documentViewer,
                 extra: document,
               ),
-              onToggleFavorite: () => vm.toggleFavorite(document),
+              onToggleFavorite: () =>
+                  persistAction(context, () => vm.toggleFavorite(document)),
             ),
           );
         },

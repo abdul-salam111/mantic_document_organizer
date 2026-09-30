@@ -1,3 +1,4 @@
+import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/constants_exports.dart';
@@ -6,7 +7,6 @@ import '../../../../core/theme/theme_exports.dart';
 import '../../../../core/utils/utils_exports.dart';
 import '../../../../core/widgets/widgets_exports.dart';
 import '../home_view.dart' show categoryIconColor;
-import '../../viewmodel/home_viewmodel.dart';
 
 /// Draggable bottom sheet listing every [CategoryItem], highlighting
 /// [selected] — pops the tapped [CategoryItem]. Shared by add_document's
@@ -59,7 +59,9 @@ class CategoryPickerSheet extends StatelessWidget {
                       final category = categories[index];
                       final isSelected = category.id == selected?.id;
                       final color =
-                          category.color ??
+                          (category.colorValue == null
+                              ? null
+                              : Color(category.colorValue!)) ??
                           categoryIconColor(context, category.name);
                       return StaggeredRevealItem(
                         reveal: reveal,

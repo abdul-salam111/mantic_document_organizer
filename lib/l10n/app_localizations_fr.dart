@@ -643,4 +643,8 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get goBack => 'Retour';
+
+  @override
+  String get operationFailedToast =>
+      'Impossible de terminer cette action. Réessayez.';
 }

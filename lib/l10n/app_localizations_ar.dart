@@ -635,4 +635,8 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get goBack => 'رجوع';
+
+  @override
+  String get operationFailedToast =>
+      'تعذّر إكمال الإجراء. يُرجى المحاولة مرة أخرى.';
 }

@@ -1,17 +1,8 @@
-import 'package:flutter/material.dart' show Color;
+import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
+import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-import '../../features/home/home_exports.dart' show CategoryItem, DocumentItem;
-
-/// The on-device source of truth for [CategoryItem]/[DocumentItem] — hides
-/// `sqflite` entirely behind plain Dart-facing methods, same shape as
-/// [DioHelper]/[OcrService] hiding their own SDKs. [CategoryLocalStore]/
-/// [DocumentLocalStore] (home_viewmodel.dart) are the only callers: they
-/// keep their existing in-memory `List` + [ChangeNotifier] behavior for
-/// every screen that already reads them synchronously, and use this class
-/// only to hydrate that cache at startup and persist changes to it in the
-/// background afterward.
 class AppDatabase {
   Database? _db;
 
@@ -92,10 +83,6 @@ class AppDatabase {
     return [for (final row in rows) _categoryFromRow(row)];
   }
 
-  /// Seeds [builtIns] only on a genuinely empty table — a fresh install, or
-  /// a pre-existing install from before this migration. Never overwrites
-  /// anything on a later launch, so a renamed/deleted built-in stays that
-  /// way.
   Future<void> seedBuiltInCategoriesIfEmpty(List<CategoryItem> builtIns) async {
     final countResult = Sqflite.firstIntValue(
       await _requireDb.rawQuery('SELECT COUNT(*) FROM categories'),
@@ -132,25 +119,19 @@ class AppDatabase {
     'id': category.id,
     'name': category.name,
     'icon_key': category.iconKey,
-    'color': category.color?.toARGB32(),
+    'color': category.colorValue,
   };
 
   CategoryItem _categoryFromRow(Map<String, Object?> row) => CategoryItem(
     id: row['id'] as String,
     name: row['name'] as String,
     iconKey: row['icon_key'] as String,
-    color: row['color'] == null ? null : Color(row['color'] as int),
+    colorValue: row['color'] as int?,
   );
 
   // ---------------------------------------------------------------------
   // Documents
   // ---------------------------------------------------------------------
-
-  /// Shared by [fetchDocuments]/[fetchTrashedDocuments] so the tag/
-  /// attachment join-and-group logic isn't duplicated per fetch. Tags/
-  /// attachments are each fetched in one query for the whole table
-  /// (regardless of [where]) rather than per-document, so hydrating N
-  /// documents costs 3 queries total, not `1 + 2N`.
   Future<List<DocumentItem>> _queryDocuments(
     String where,
     String orderBy,
@@ -189,19 +170,10 @@ class AppDatabase {
     ];
   }
 
-  /// Newest first (matches [DocumentLocalStore.documents]' documented
-  /// order) — active documents only.
   Future<List<DocumentItem>> fetchDocuments() =>
       _queryDocuments('deleted_at IS NULL', 'created_at DESC');
-
-  /// Newest-deleted first (matches [DocumentLocalStore.trashedDocuments]).
   Future<List<DocumentItem>> fetchTrashedDocuments() =>
       _queryDocuments('deleted_at IS NOT NULL', 'deleted_at DESC');
-
-  /// Insert-or-update, plus a full replace of this document's tags/
-  /// attachments — simplest correct way to persist a list-valued field
-  /// without diffing it, and cheap enough at this scale (a handful of tags/
-  /// attachments per document).
   Future<void> upsertDocument(DocumentItem document) =>
       _requireDb.transaction((txn) async {
         await txn.insert(
@@ -233,15 +205,8 @@ class AppDatabase {
           });
         }
       });
-
-  /// Also removes this document's tags/attachments — `ON DELETE CASCADE`
-  /// (with `PRAGMA foreign_keys = ON`, set in [init]) handles that without
-  /// needing explicit statements here.
   Future<void> deleteDocument(String id) =>
       _requireDb.delete('documents', where: 'id = ?', whereArgs: [id]);
-
-  /// Bulk hard-delete — mirrors [deleteCategories]. Used by
-  /// [DocumentLocalStore.emptyTrash].
   Future<void> deleteDocuments(Iterable<String> ids) async {
     final idList = ids.toList();
     if (idList.isEmpty) return;
@@ -253,9 +218,6 @@ class AppDatabase {
     );
   }
 
-  /// Soft delete — stamps `deleted_at` only, leaving every other column
-  /// (including tags/attachments) intact so [restoreDocument] reproduces
-  /// the document exactly.
   Future<void> softDeleteDocument(String id, DateTime deletedAt) =>
       _requireDb.update(
         'documents',
@@ -263,19 +225,12 @@ class AppDatabase {
         where: 'id = ?',
         whereArgs: [id],
       );
-
-  /// Undoes [softDeleteDocument].
   Future<void> restoreDocument(String id) => _requireDb.update(
     'documents',
     {'deleted_at': null},
     where: 'id = ?',
     whereArgs: [id],
   );
-
-  /// Hard-deletes every trashed document past [retention] — called once at
-  /// [DocumentLocalStore.init]. No scheduler needed: this app has no
-  /// background-job infrastructure, and a once-per-launch check is
-  /// sufficient for a local-only, single-user app.
   Future<void> purgeExpiredTrash(Duration retention) async {
     final cutoff = DateTime.now().subtract(retention).millisecondsSinceEpoch;
     await _requireDb.delete(

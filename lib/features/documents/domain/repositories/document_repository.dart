@@ -1,7 +1,17 @@
-import '../../../../core/shared/shared_exports.dart';
-import '../../data/models/request_models/document_params.dart';
-import '../entities/document_entity.dart';
+import '../entities/document_item.dart';
 
 abstract interface class IDocumentRepository {
-  Future<Result<DocumentEntity>> addDocument({required DocumentParams params});
+  void addListener(void Function() listener);
+  void removeListener(void Function() listener);
+  List<DocumentItem> get documents;
+  List<DocumentItem> get trashedDocuments;
+  Future<void> init();
+  Future<void> addDocument(DocumentItem document);
+  Future<void> toggleFavorite(DocumentItem document);
+  Future<void> updateDocument(DocumentItem updated);
+  Future<void> trashDocument(String id);
+  Future<void> restoreDocument(String id);
+  Future<void> permanentlyDeleteDocument(String id);
+  Future<void> emptyTrash();
+  int countForCategory(String categoryId);
 }

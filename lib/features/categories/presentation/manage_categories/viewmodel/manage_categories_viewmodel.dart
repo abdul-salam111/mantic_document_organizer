@@ -1,23 +1,19 @@
+import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
+import 'package:mantic_doc_org/features/categories/domain/usecases/category_usecases.dart';
+import 'package:mantic_doc_org/features/documents/domain/usecases/document_usecases.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../home/home_exports.dart';
-
-/// Presentation-only for now (see CLAUDE.md's "Known mismatches" section)
-/// — just a thin listener over the shared [CategoryLocalStore]/
-/// [DocumentLocalStore] so this screen's list (and each row's live
-/// document count) stays in sync with categories/documents added or
-/// edited elsewhere.
 class ManageCategoriesViewModel extends ChangeNotifier {
-  final CategoryLocalStore _categoryStore;
-  final DocumentLocalStore _documentStore;
+  final CategoryUseCases _categoryUseCases;
+  final DocumentUseCases _documentUseCases;
 
   ManageCategoriesViewModel({
-    required CategoryLocalStore categoryStore,
-    required DocumentLocalStore documentStore,
-  }) : _categoryStore = categoryStore,
-       _documentStore = documentStore {
-    _categoryStore.addListener(notifyListeners);
-    _documentStore.addListener(notifyListeners);
+    required CategoryUseCases categoryUseCases,
+    required DocumentUseCases documentUseCases,
+  }) : _categoryUseCases = categoryUseCases,
+       _documentUseCases = documentUseCases {
+    _categoryUseCases.addListener(notifyListeners);
+    _documentUseCases.addListener(notifyListeners);
   }
 
   String _query = '';
@@ -31,19 +27,19 @@ class ManageCategoriesViewModel extends ChangeNotifier {
   /// Sorted alphabetically, matching HomeViewModel's category ordering,
   /// then narrowed by [query] (matches anywhere in the name, case-insensitive).
   List<CategoryItem> get categories {
-    final sorted = List<CategoryItem>.of(_categoryStore.categories)
+    final sorted = List<CategoryItem>.of(_categoryUseCases.categories)
       ..sort((a, b) => a.name.compareTo(b.name));
     final q = _query.trim().toLowerCase();
     if (q.isEmpty) return sorted;
     return sorted.where((c) => c.name.toLowerCase().contains(q)).toList();
   }
 
-  void deleteCategory(CategoryItem category) {
-    _categoryStore.removeCategory(category.id);
+  Future<void> deleteCategory(CategoryItem category) async {
+    await _categoryUseCases.removeCategory(category.id);
   }
 
   int documentCountFor(String categoryId) =>
-      _documentStore.countForCategory(categoryId);
+      _documentUseCases.countForCategory(categoryId);
 
   // Long-press-to-select, keyed by id.
   final Set<String> _selectedIds = {};
@@ -62,19 +58,17 @@ class ManageCategoriesViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void deleteSelected() {
+  Future<void> deleteSelected() async {
     final ids = Set<String>.of(_selectedIds);
-    // Clear first (no notify) so the store's single notification below
-    // reflects both the shorter category list and the cleared selection
-    // in one rebuild, instead of a stale-selection frame in between.
+    await _categoryUseCases.removeCategories(ids);
     _selectedIds.clear();
-    _categoryStore.removeCategories(ids);
+    notifyListeners();
   }
 
   @override
   void dispose() {
-    _categoryStore.removeListener(notifyListeners);
-    _documentStore.removeListener(notifyListeners);
+    _categoryUseCases.removeListener(notifyListeners);
+    _documentUseCases.removeListener(notifyListeners);
     super.dispose();
   }
 }

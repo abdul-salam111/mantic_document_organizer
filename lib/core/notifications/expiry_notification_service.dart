@@ -1,3 +1,5 @@
+import 'package:mantic_doc_org/features/documents/domain/entities/document_policy.dart';
+import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -6,13 +8,12 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
-import '../../features/home/viewmodel/home_viewmodel.dart' show DocumentItem;
-import '../localization/localization_exports.dart';
+import '../../l10n/app_localizations.dart';
 
 /// Local (on-device, no backend) reminders for a document's expiry date —
 /// schedules up to two notifications per document, [daysBefore] days before
 /// [DocumentItem.expiryDate] and on the day itself, both at [_reminderHour]
-/// local time. [DocumentLocalStore] is the single call site for every
+/// local time. The document repository is the single call site for every
 /// document mutation (add/update/trash/restore/delete), so it owns calling
 /// [scheduleForDocument]/[cancelForDocument] here — nothing else in the app
 /// needs to know this exists.
@@ -27,7 +28,7 @@ class ExpiryNotificationService {
 
   /// How far ahead [scheduleWeeklyDigest] looks when counting documents as
   /// "expiring soon" — matches the roadmap's "expire this month" framing.
-  static const int digestWindowDays = 30;
+  static const int digestWindowDays = DocumentPolicy.digestWindowDays;
   static const int _digestWeekday = DateTime.monday;
   static const String _digestPayload = 'expiring_soon_digest';
 
@@ -154,7 +155,7 @@ class ExpiryNotificationService {
 
   /// Recomputes and (re)schedules the single weekly "N documents expire
   /// this month" summary notification — cancelled entirely when nothing in
-  /// [activeDocuments] qualifies. [DocumentLocalStore] calls this alongside
+  /// [activeDocuments] qualifies. The document repository calls this alongside
   /// [scheduleForDocument]/[cancelForDocument] on every document mutation
   /// and at app startup, so its content is refreshed constantly; between
   /// those points it's a real OS-level weekly repeat

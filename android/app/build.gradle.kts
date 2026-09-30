@@ -73,9 +73,6 @@ android {
             } else {
                 signingConfigs.getByName("debug")
             }
-            // Without this, proguard-rules.pro is never consulted by R8 —
-            // see that file for why it's needed (google_mlkit_text_recognition
-            // references optional script classes this app doesn't bundle).
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -90,4 +87,7 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    // OCR is called through MainActivity's method channel. This replaces the
+    // CocoaPods-only Flutter ML Kit bridge while keeping Android ML Kit local.
+    implementation("com.google.mlkit:text-recognition:16.0.1")
 }

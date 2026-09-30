@@ -1,3 +1,4 @@
+import '../../features/documents/domain/entities/document_suggestion.dart';
 import 'dart:convert';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -8,37 +9,6 @@ import '../networks/network_manager/dio_helper.dart';
 /// sending its OCR'd text to an AI model. Every field is a *suggestion* —
 /// [AddDocumentViewModel] pre-fills editable form fields with these, it
 /// never saves a document on this alone.
-class AiDocumentSuggestion {
-  final String? title;
-
-  /// Must match one of the category names passed into [AiDocumentService.analyze]
-  /// (case-insensitively) — the caller resolves this back to a [CategoryItem];
-  /// null (or an unresolvable name) just leaves the document uncategorized,
-  /// same as not picking a category manually.
-  final String? categoryName;
-
-  /// Stored on the document for search only — never shown to the user, so
-  /// the prompt asks for density/completeness over readability.
-  final String description;
-
-  /// Suggested search keywords/tags — loosely cleaned (trimmed, deduped)
-  /// here; [AddDocumentViewModel] re-validates each one against the app's
-  /// actual tag rules (allowed characters, length, count) before adding
-  /// any, exactly like a manually-typed tag.
-  final List<String> tags;
-  final bool isExpirable;
-  final DateTime? expiryDate;
-
-  const AiDocumentSuggestion({
-    this.title,
-    this.categoryName,
-    this.description = '',
-    this.tags = const [],
-    this.isExpirable = false,
-    this.expiryDate,
-  });
-}
-
 /// Organizes a document's OCR'd text into a title/category/summary/expiry
 /// suggestion via an AI model, routed through OpenRouter
 /// (https://openrouter.ai) so the underlying model is swappable via

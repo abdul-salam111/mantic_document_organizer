@@ -1,10 +1,10 @@
+import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/localization_exports.dart';
 import '../../../../core/theme/theme_exports.dart';
 import '../../../../core/utils/utils_exports.dart';
 import '../../../../core/widgets/widgets_exports.dart';
-import '../../viewmodel/home_viewmodel.dart';
 import 'document_chips.dart';
 import 'document_cover_thumbnail.dart';
 

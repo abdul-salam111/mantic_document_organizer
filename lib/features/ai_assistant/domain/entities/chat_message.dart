@@ -11,7 +11,7 @@ class ChatMessage {
 
   /// Document ids (`DocumentItem.id`) this message references — always
   /// empty for a user message. [AiAssistantView] resolves each one back to
-  /// a `DocumentItem` via `DocumentLocalStore` when rendering a reference
+  /// a `DocumentItem` via `DocumentUseCases` when rendering a reference
   /// card; an id that no longer resolves (e.g. the document was deleted
   /// since) is silently skipped rather than shown as broken.
   final List<String> documentIds;

@@ -1103,6 +1103,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Go back'**
   String get goBack;
+
+  /// No description provided for @operationFailedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not complete the action. Please try again.'**
+  String get operationFailedToast;
 }
 
 class _AppLocalizationsDelegate

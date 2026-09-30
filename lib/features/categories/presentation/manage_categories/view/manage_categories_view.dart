@@ -1,3 +1,5 @@
+import 'package:mantic_doc_org/core/utils/persist_action.dart';
+import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../../core/constants/constants_exports.dart';
@@ -127,7 +129,10 @@ class ManageCategoriesView extends StatelessWidget {
       ),
     );
     if (confirmed != true || !context.mounted) return;
-    vm.deleteCategory(category);
+    if (!await persistAction(context, () => vm.deleteCategory(category))) {
+      return;
+    }
+    if (!context.mounted) return;
     AppToastsUtils.success(
       AppLocalizations.of(context).categoryDeletedToast(category.name),
     );
@@ -162,7 +167,8 @@ class ManageCategoriesView extends StatelessWidget {
       ),
     );
     if (confirmed != true || !context.mounted) return;
-    vm.deleteSelected();
+    if (!await persistAction(context, () => vm.deleteSelected())) return;
+    if (!context.mounted) return;
     AppToastsUtils.success(
       AppLocalizations.of(context).categoriesDeletedToast(count),
     );
@@ -227,7 +233,9 @@ class _CategoryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = category.color ?? categoryIconColor(context, category.name);
+    final color =
+        (category.colorValue == null ? null : Color(category.colorValue!)) ??
+        categoryIconColor(context, category.name);
 
     return InkWell(
       onTap: onTap,

@@ -1,5 +1,6 @@
+import 'package:mantic_doc_org/features/categories/domain/usecases/category_usecases.dart';
+import 'package:mantic_doc_org/features/documents/domain/usecases/document_usecases.dart';
 import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,7 +12,6 @@ import 'core/localization/localization_exports.dart';
 import 'core/notifications/notifications_exports.dart';
 import 'core/security/security_exports.dart';
 import 'core/sharing/sharing_exports.dart';
-import 'features/home/home_exports.dart';
 import 'routes/routes_exports.dart';
 import 'core/theme/theme_exports.dart';
 
@@ -41,17 +41,14 @@ void main() {
       }
 
       await setupLocator();
-      // Must be ready before DocumentLocalStore.init() below, which
+      // Must be ready before DocumentUseCases.init() below, which
       // schedules/reconciles every active document's expiry reminders as
       // soon as it hydrates.
       await sl<ExpiryNotificationService>().init();
-      // Hydrates the in-memory document/category caches from sqflite
-      // before the first frame — see AppDatabase/CategoryLocalStore/
-      // DocumentLocalStore (core/database, features/home) for why this is
-      // safe to block runApp() on: it's a local, fast read.
+      // Initialize infrastructure, then hydrate repositories through domain use cases.
       await sl<AppDatabase>().init();
-      await sl<CategoryLocalStore>().init();
-      await sl<DocumentLocalStore>().init();
+      await sl<CategoryUseCases>().init();
+      await sl<DocumentUseCases>().init();
       await sl<ThemeController>().loadTheme();
       await sl<LocaleController>().loadLocale();
       await sl<SecurityController>().loadSecurity();

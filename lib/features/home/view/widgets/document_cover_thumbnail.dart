@@ -1,3 +1,4 @@
+import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -6,7 +7,6 @@ import 'package:pdfx/pdfx.dart';
 
 import '../../../../core/constants/constants_exports.dart';
 import '../../../../core/widgets/widgets_exports.dart';
-import '../../viewmodel/home_viewmodel.dart';
 
 /// The document's own first attached file rendered as its visual identity
 /// — an image is shown directly, a PDF's first page is rasterized via

@@ -636,4 +636,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get goBack => 'Go back';
+
+  @override
+  String get operationFailedToast =>
+      'Could not complete the action. Please try again.';
 }

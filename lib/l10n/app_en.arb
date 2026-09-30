@@ -448,5 +448,6 @@
     "placeholders": {"path": {"type": "String"}}
   },
   "goBack": "Go back",
-  "@goBack": {"description": "Route error page button"}
+  "@goBack": {"description": "Route error page button"},
+  "operationFailedToast": "Could not complete the action. Please try again."
 }

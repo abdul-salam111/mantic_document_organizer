@@ -1,21 +1,22 @@
+import 'package:mantic_doc_org/features/categories/domain/usecases/category_usecases.dart';
+import 'package:mantic_doc_org/features/documents/domain/usecases/document_usecases.dart';
 import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../core/local_storage/local_storage_exports.dart';
 import '../../../core/services/services_exports.dart';
-import '../../home/home_exports.dart';
 
 class ProfileViewModel extends ChangeNotifier {
-  final CategoryLocalStore _categoryStore;
-  final DocumentLocalStore _documentStore;
+  final CategoryUseCases _categoryUseCases;
+  final DocumentUseCases _documentUseCases;
 
   ProfileViewModel({
-    required CategoryLocalStore categoryStore,
-    required DocumentLocalStore documentStore,
-  }) : _categoryStore = categoryStore,
-       _documentStore = documentStore {
-    _categoryStore.addListener(notifyListeners);
-    _documentStore.addListener(notifyListeners);
+    required CategoryUseCases categoryUseCases,
+    required DocumentUseCases documentUseCases,
+  }) : _categoryUseCases = categoryUseCases,
+       _documentUseCases = documentUseCases {
+    _categoryUseCases.addListener(notifyListeners);
+    _documentUseCases.addListener(notifyListeners);
     _loadSession();
     _loadAppVersion();
   }
@@ -26,10 +27,10 @@ class ProfileViewModel extends ChangeNotifier {
   String? get userName => SessionController.instance.userDetails.name;
   String? get userEmail => SessionController.instance.userDetails.email;
 
-  int get documentCount => _documentStore.documents.length;
-  int get categoryCount => _categoryStore.categories.length;
+  int get documentCount => _documentUseCases.documents.length;
+  int get categoryCount => _categoryUseCases.categories.length;
   int get favoriteCount =>
-      _documentStore.documents.where((d) => d.isFavorite).length;
+      _documentUseCases.documents.where((d) => d.isFavorite).length;
 
   String? _appVersion;
   String? get appVersion => _appVersion;
@@ -57,8 +58,8 @@ class ProfileViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
-    _categoryStore.removeListener(notifyListeners);
-    _documentStore.removeListener(notifyListeners);
+    _categoryUseCases.removeListener(notifyListeners);
+    _documentUseCases.removeListener(notifyListeners);
     super.dispose();
   }
 }

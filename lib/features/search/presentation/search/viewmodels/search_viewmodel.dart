@@ -1,24 +1,20 @@
+import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
+import 'package:mantic_doc_org/features/categories/domain/usecases/category_usecases.dart';
+import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
+import 'package:mantic_doc_org/features/documents/domain/usecases/document_usecases.dart';
 import 'package:flutter/foundation.dart';
 
-import '../../../../home/home_exports.dart';
-
-/// No real document data layer exists yet (see CLAUDE.md's "Known
-/// mismatches" section) — this reads straight from the shared
-/// [DocumentLocalStore]/[CategoryLocalStore] (also used by
-/// HomeViewModel/FavoritesViewModel/CategoryDocumentsViewModel) instead of
-/// a disconnected dummy list, so a document added anywhere in the app
-/// actually shows up here.
 class SearchViewModel extends ChangeNotifier {
-  final CategoryLocalStore _categoryStore;
-  final DocumentLocalStore _documentStore;
+  final CategoryUseCases _categoryUseCases;
+  final DocumentUseCases _documentUseCases;
 
   SearchViewModel({
-    required CategoryLocalStore categoryStore,
-    required DocumentLocalStore documentStore,
-  }) : _categoryStore = categoryStore,
-       _documentStore = documentStore {
-    _categoryStore.addListener(notifyListeners);
-    _documentStore.addListener(notifyListeners);
+    required CategoryUseCases categoryUseCases,
+    required DocumentUseCases documentUseCases,
+  }) : _categoryUseCases = categoryUseCases,
+       _documentUseCases = documentUseCases {
+    _categoryUseCases.addListener(notifyListeners);
+    _documentUseCases.addListener(notifyListeners);
   }
 
   String _query = '';
@@ -53,7 +49,8 @@ class SearchViewModel extends ChangeNotifier {
   /// same set Home's grid shows, not just categories that happen to have
   /// a document yet, so every category stays browsable from here too.
   List<String> get categoryTabs {
-    final names = _categoryStore.categories.map((c) => c.name).toList()..sort();
+    final names = _categoryUseCases.categories.map((c) => c.name).toList()
+      ..sort();
     return [allCategoryTab, ...names];
   }
 
@@ -64,13 +61,13 @@ class SearchViewModel extends ChangeNotifier {
   /// live [CategoryItem.id] here, on every call, rather than matching
   /// documents by name directly, so a rename doesn't drop documents out of
   /// their tab (the tab label and this resolution both read the same live
-  /// [CategoryLocalStore] in the same rebuild, so they never disagree).
+  /// [CategoryUseCases] in the same rebuild, so they never disagree).
   List<DocumentItem> documentsFor(String category) {
     final categoryId = category == allCategoryTab
         ? null
         : _categoryIdForName(category);
     final q = _query.trim().toLowerCase();
-    final filtered = _documentStore.documents.where((d) {
+    final filtered = _documentUseCases.documents.where((d) {
       final matchesCategory =
           category == allCategoryTab || d.categoryId == categoryId;
       final matchesQuery =
@@ -86,19 +83,19 @@ class SearchViewModel extends ChangeNotifier {
   }
 
   String? _categoryIdForName(String name) {
-    for (final category in _categoryStore.categories) {
+    for (final category in _categoryUseCases.categories) {
       if (category.name == name) return category.id;
     }
     return null;
   }
 
-  void toggleFavorite(DocumentItem document) =>
-      _documentStore.toggleFavorite(document);
+  Future<void> toggleFavorite(DocumentItem document) =>
+      _documentUseCases.toggleFavorite(document);
 
   @override
   void dispose() {
-    _categoryStore.removeListener(notifyListeners);
-    _documentStore.removeListener(notifyListeners);
+    _categoryUseCases.removeListener(notifyListeners);
+    _documentUseCases.removeListener(notifyListeners);
     super.dispose();
   }
 }

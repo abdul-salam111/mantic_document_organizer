@@ -1,12 +1,10 @@
+import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-
-import '../../features/home/viewmodel/home_viewmodel.dart'
-    show DocumentItem, isImagePath;
 
 /// Combines a [DocumentItem]'s scanned image pages into a single, shareable
 /// PDF. The document viewer's existing "Share" action already sends

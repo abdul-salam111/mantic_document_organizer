@@ -1,30 +1,20 @@
-import '../../../../core/shared/shared_exports.dart';
-import '../datasources/remote_favorites_datasource.dart';
-import '../../domain/entities/favorites_entity.dart';
+import '../../../documents/domain/entities/document_item.dart';
+import '../../../documents/domain/repositories/document_repository.dart';
 import '../../domain/repositories/favorites_repository.dart';
 
-class FavoritesRepositoryImpl extends BaseRepository
-    implements IFavoritesRepository {
-  final IRemoteFavoritesDataSource dataSource;
-
-  FavoritesRepositoryImpl({required this.dataSource});
-
+class FavoritesRepositoryImpl implements IFavoritesRepository {
+  final IDocumentRepository _documents;
+  FavoritesRepositoryImpl(this._documents);
   @override
-  Future<Result<List<FavoritesEntity>>> getFavorites() async {
-    final result = await execute(call: () => dataSource.getFavorites());
-    return result.fold(
-      onFailure: (error) => Failure(error),
-      onSuccess: (responses) => Success(
-        responses
-            .map(
-              (response) => FavoritesEntity(
-                id: response.id,
-                name: response.name,
-                description: response.description,
-              ),
-            )
-            .toList(),
-      ),
-    );
-  }
+  List<DocumentItem> get favorites =>
+      _documents.documents.where((d) => d.isFavorite).toList(growable: false);
+  @override
+  Future<void> toggleFavorite(DocumentItem document) =>
+      _documents.toggleFavorite(document);
+  @override
+  void addListener(void Function() listener) =>
+      _documents.addListener(listener);
+  @override
+  void removeListener(void Function() listener) =>
+      _documents.removeListener(listener);
 }

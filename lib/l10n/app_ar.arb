@@ -180,5 +180,6 @@
 
   "pageNotFound": "الصفحة غير موجودة",
   "pageNotFoundSubtitle": "تعذّر العثور على \"{path}\".",
-  "goBack": "رجوع"
+  "goBack": "رجوع",
+  "operationFailedToast": "تعذّر إكمال الإجراء. يُرجى المحاولة مرة أخرى."
 }

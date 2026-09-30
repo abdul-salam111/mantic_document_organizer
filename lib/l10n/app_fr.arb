@@ -180,5 +180,6 @@
 
   "pageNotFound": "Page introuvable",
   "pageNotFoundSubtitle": "Nous n'avons pas trouvé « {path} ».",
-  "goBack": "Retour"
+  "goBack": "Retour",
+  "operationFailedToast": "Impossible de terminer cette action. Réessayez."
 }

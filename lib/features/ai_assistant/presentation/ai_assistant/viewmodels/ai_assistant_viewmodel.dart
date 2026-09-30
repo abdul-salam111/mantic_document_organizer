@@ -1,26 +1,18 @@
+import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
+import 'package:mantic_doc_org/features/documents/domain/usecases/document_usecases.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../../core/ai/ai_exports.dart';
-import '../../../../home/home_exports.dart';
 import '../../../domain/entities/chat_message.dart';
 
-/// Registered as an app-session singleton (see injection_container.dart's
-/// aiAssistantDependencies()), not a fresh instance per screen visit — so
-/// [messages] survives navigating away from and back into the AI Assistant
-/// screen. It's still in-memory only: a full app restart clears it, same
-/// as every other feature's state in this app. Reads [DocumentLocalStore]
-/// directly (same as AddDocumentViewModel/SearchViewModel) rather than
-/// through this feature's brick-scaffolded REST usecase/repository, which
-/// stay registered but unused — there's no REST backend for this, the
-/// actual "backend" is the OpenRouter call inside [AiChatService].
 class AiAssistantViewModel extends ChangeNotifier {
-  final DocumentLocalStore _documentStore;
+  final DocumentUseCases _documentUseCases;
   final AiChatService _aiChatService;
 
   AiAssistantViewModel({
-    required DocumentLocalStore documentStore,
+    required DocumentUseCases documentUseCases,
     required AiChatService aiChatService,
-  }) : _documentStore = documentStore,
+  }) : _documentUseCases = documentUseCases,
        _aiChatService = aiChatService;
 
   /// Set once by the view right after creation (from AppLocalizations) —
@@ -79,7 +71,7 @@ class AiAssistantViewModel extends ChangeNotifier {
 
     final result = await _aiChatService.ask(
       question: question,
-      documents: _documentStore.documents,
+      documents: _documentUseCases.documents,
       history: history,
     );
 
@@ -105,7 +97,7 @@ class AiAssistantViewModel extends ChangeNotifier {
   }
 
   DocumentItem? documentById(String id) {
-    for (final document in _documentStore.documents) {
+    for (final document in _documentUseCases.documents) {
       if (document.id == id) return document;
     }
     return null;

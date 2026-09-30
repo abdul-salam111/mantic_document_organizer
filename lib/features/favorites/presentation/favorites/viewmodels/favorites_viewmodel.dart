@@ -1,20 +1,13 @@
+import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
+import '../../../domain/usecases/favorites_usecase.dart';
 import 'package:flutter/foundation.dart';
 
-import '../../../../home/home_exports.dart';
-
-/// No real document data layer exists yet (see CLAUDE.md's "Known
-/// mismatches" section) — this reads straight from the shared
-/// [DocumentLocalStore] (also used by HomeViewModel/CategoryDocumentsViewModel)
-/// and filters to whichever documents currently have [DocumentItem.isFavorite]
-/// set, so favoriting a document anywhere in the app (e.g. category_documents'
-/// heart button) actually shows up here instead of this screen carrying its
-/// own disconnected dummy list.
 class FavoritesViewModel extends ChangeNotifier {
-  final DocumentLocalStore _documentStore;
+  final FavoritesUsecase _favoritesUsecase;
 
-  FavoritesViewModel({required DocumentLocalStore documentStore})
-    : _documentStore = documentStore {
-    _documentStore.addListener(notifyListeners);
+  FavoritesViewModel({required FavoritesUsecase favoritesUsecase})
+    : _favoritesUsecase = favoritesUsecase {
+    _favoritesUsecase.addListener(notifyListeners);
   }
 
   bool isGridView = false;
@@ -46,8 +39,7 @@ class FavoritesViewModel extends ChangeNotifier {
   /// Every favorited document, regardless of the current search query —
   /// used to tell "no favorites at all" apart from "no results for this
   /// search" in the empty state.
-  List<DocumentItem> get allFavorites =>
-      _documentStore.documents.where((d) => d.isFavorite).toList();
+  List<DocumentItem> get allFavorites => _favoritesUsecase.favorites;
 
   List<DocumentItem> get items {
     final q = _query.trim().toLowerCase();
@@ -60,12 +52,12 @@ class FavoritesViewModel extends ChangeNotifier {
     return filtered.sortedBy(_sort);
   }
 
-  void toggleFavorite(DocumentItem document) =>
-      _documentStore.toggleFavorite(document);
+  Future<void> toggleFavorite(DocumentItem document) =>
+      _favoritesUsecase.toggleFavorite(document);
 
   @override
   void dispose() {
-    _documentStore.removeListener(notifyListeners);
+    _favoritesUsecase.removeListener(notifyListeners);
     super.dispose();
   }
 }

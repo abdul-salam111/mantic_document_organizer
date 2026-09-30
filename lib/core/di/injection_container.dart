@@ -1,3 +1,19 @@
+import '../../features/documents/data/repository_impl/document_repository_impl.dart';
+import '../../features/documents/domain/repositories/document_repository.dart';
+import '../../features/favorites/data/repository_impl/favorites_repository_impl.dart';
+import '../../features/favorites/domain/repositories/favorites_repository.dart';
+import '../../features/favorites/domain/usecases/favorites_usecase.dart';
+import '../../features/home/viewmodel/home_viewmodel.dart';
+import '../../features/documents/data/datasources/attachment_local_datasource.dart';
+import '../../features/documents/data/repository_impl/document_processing_repository_impl.dart';
+import '../../features/documents/domain/repositories/document_processing_repository.dart';
+import '../../features/documents/domain/usecases/document_processing_usecases.dart';
+import '../../features/categories/data/datasources/category_local_datasource.dart';
+import '../../features/categories/data/repository_impl/category_repository_impl.dart';
+import '../../features/categories/domain/repositories/category_repository.dart';
+import '../../features/documents/data/datasources/document_local_datasource.dart';
+import 'package:mantic_doc_org/features/categories/domain/usecases/category_usecases.dart';
+import 'package:mantic_doc_org/features/documents/domain/usecases/document_usecases.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
@@ -13,7 +29,6 @@ import '../security/security_exports.dart';
 import '../theme/theme_exports.dart';
 import '../../features/auth/auth_exports.dart';
 
-import '../../features/home/home_exports.dart';
 import '../../features/categories/presentation/manage_categories/manage_categories_exports.dart';
 import '../../features/search/search_exports.dart';
 import '../../features/favorites/favorites_exports.dart';
@@ -40,11 +55,11 @@ Future<void> setupLocator() async {
   await coreDependencies();
 
   await authDependencies();
+  await documentStorageDependencies();
   await homeDependencies();
   await searchDependencies();
   await favoritesDependencies();
   await profileDependencies();
-  await documentsDependencies();
   await addDocumentDependencies();
   await navbarDependencies();
   await onboardingDependencies();
@@ -82,7 +97,6 @@ Future<void> coreDependencies() async {
   sl.registerLazySingleton(() => ShareIntentService());
 }
 
-/// Auth Feature Dependencies
 Future<void> authDependencies() async {
   // DataSource
   sl.registerLazySingleton<IRemoteAuthDataSource>(
@@ -111,18 +125,29 @@ Future<void> authDependencies() async {
   );
 }
 
-/// Home Feature Dependencies
-Future<void> homeDependencies() async {
-  sl.registerLazySingleton<CategoryLocalStore>(() => CategoryLocalStore(sl()));
-  sl.registerLazySingleton<DocumentLocalStore>(
-    () => DocumentLocalStore(sl(), sl()),
+Future<void> documentStorageDependencies() async {
+  sl.registerLazySingleton<CategoryLocalDataSource>(
+    () => SqliteCategoryDataSource(sl()),
   );
+  sl.registerLazySingleton<ICategoryRepository>(
+    () => CategoryRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton<CategoryUseCases>(() => CategoryUseCases(sl()));
+  sl.registerLazySingleton<DocumentLocalDataSource>(
+    () => SqliteDocumentDataSource(sl()),
+  );
+  sl.registerLazySingleton<IDocumentRepository>(
+    () => DocumentRepositoryImpl(sl(), sl()),
+  );
+  sl.registerLazySingleton<DocumentUseCases>(() => DocumentUseCases(sl()));
+}
+
+Future<void> homeDependencies() async {
   sl.registerFactory<HomeViewModel>(
-    () => HomeViewModel(categoryStore: sl(), documentStore: sl()),
+    () => HomeViewModel(categoryUseCases: sl(), documentUseCases: sl()),
   );
 }
 
-/// Search Feature Dependencies
 Future<void> searchDependencies() async {
   // DataSource
   sl.registerLazySingleton<IRemoteSearchDataSource>(
@@ -141,20 +166,14 @@ Future<void> searchDependencies() async {
 
   // ViewModel
   sl.registerFactory<SearchViewModel>(
-    () => SearchViewModel(categoryStore: sl(), documentStore: sl()),
+    () => SearchViewModel(categoryUseCases: sl(), documentUseCases: sl()),
   );
 }
 
-/// Favorites Feature Dependencies
 Future<void> favoritesDependencies() async {
-  // DataSource
-  sl.registerLazySingleton<IRemoteFavoritesDataSource>(
-    () => RemoteFavoritesDataSourceImpl(dioHelper: sl()),
-  );
-
   // Repository
   sl.registerLazySingleton<IFavoritesRepository>(
-    () => FavoritesRepositoryImpl(dataSource: sl()),
+    () => FavoritesRepositoryImpl(sl()),
   );
 
   // UseCase
@@ -164,123 +183,92 @@ Future<void> favoritesDependencies() async {
 
   // ViewModel
   sl.registerFactory<FavoritesViewModel>(
-    () => FavoritesViewModel(documentStore: sl()),
+    () => FavoritesViewModel(favoritesUsecase: sl()),
   );
 }
 
-/// Profile Feature Dependencies
 Future<void> profileDependencies() async {
   sl.registerFactory<ProfileViewModel>(
-    () => ProfileViewModel(categoryStore: sl(), documentStore: sl()),
+    () => ProfileViewModel(categoryUseCases: sl(), documentUseCases: sl()),
   );
 }
 
-/// Documents Feature Dependencies
-///
-/// The DataSource/Repository/UseCase below are the original brick-
-/// scaffolded REST plumbing (unused for now — see CLAUDE.md's "Known
-/// mismatches" section) and stay registered/untouched for whenever a
-/// real sqflite repository replaces them. Shared by every page under
-/// lib/features/documents/ (add_document, category_documents, ...) —
-/// registered once here rather than once per page — since each page's
-/// ViewModel writes straight into the shared local stores instead of
-/// actually calling this REST layer.
-Future<void> documentsDependencies() async {
-  // DataSource
-  sl.registerLazySingleton<IRemoteDocumentDataSource>(
-    () => RemoteDocumentDataSourceImpl(dioHelper: sl()),
-  );
-
-  // Repository
-  sl.registerLazySingleton<IDocumentRepository>(
-    () => DocumentRepositoryImpl(dataSource: sl()),
-  );
-
-  // UseCase
-  sl.registerLazySingleton<DocumentUsecase>(
-    () => DocumentUsecase(repository: sl()),
-  );
-}
-
-/// Add Document Page Dependencies
 Future<void> addDocumentDependencies() async {
+  sl.registerLazySingleton<AttachmentLocalDataSource>(
+    () => DeviceAttachmentDataSource(),
+  );
+  sl.registerLazySingleton<IDocumentProcessingRepository>(
+    () => DocumentProcessingRepositoryImpl(sl(), sl(), sl()),
+  );
+  sl.registerLazySingleton(() => DocumentProcessingUseCases(sl()));
   sl.registerFactory<AddDocumentViewModel>(
     () => AddDocumentViewModel(
-      categoryStore: sl(),
-      documentStore: sl(),
-      ocrService: sl(),
-      aiService: sl(),
+      categoryUseCases: sl(),
+      documentUseCases: sl(),
+      processing: sl(),
     ),
   );
 }
 
-/// Navbar Feature Dependencies
 Future<void> navbarDependencies() async {
   sl.registerFactory<NavbarViewModel>(() => NavbarViewModel());
 }
 
-/// Onboarding Feature Dependencies
 Future<void> onboardingDependencies() async {
   sl.registerFactory<OnboardingViewModel>(() => OnboardingViewModel());
 }
 
-/// Splash Feature Dependencies
 Future<void> splashDependencies() async {
   sl.registerFactory<SplashViewModel>(() => SplashViewModel(sl()));
 }
 
-/// Settings Feature Dependencies
 Future<void> settingsDependencies() async {
   sl.registerFactory<SettingsViewModel>(() => SettingsViewModel());
 }
 
-/// Add Category Feature Dependencies
 Future<void> addCategoryDependencies() async {
   sl.registerFactory<AddCategoryViewModel>(
-    () => AddCategoryViewModel(categoryStore: sl()),
+    () => AddCategoryViewModel(categoryUseCases: sl()),
   );
 }
 
-/// Manage Categories Feature Dependencies
 Future<void> manageCategoriesDependencies() async {
   sl.registerFactory<ManageCategoriesViewModel>(
-    () => ManageCategoriesViewModel(categoryStore: sl(), documentStore: sl()),
+    () => ManageCategoriesViewModel(
+      categoryUseCases: sl(),
+      documentUseCases: sl(),
+    ),
   );
 }
 
-/// Category Documents Page Dependencies
 Future<void> categoryDocumentsDependencies() async {
   sl.registerFactory<CategoryDocumentsViewModel>(
-    () => CategoryDocumentsViewModel(documentStore: sl()),
+    () => CategoryDocumentsViewModel(documentUseCases: sl()),
   );
 }
 
-/// Document Viewer Page Dependencies
 Future<void> documentViewerDependencies() async {
   sl.registerFactory<DocumentViewerViewModel>(
-    () => DocumentViewerViewModel(documentStore: sl(), categoryStore: sl()),
+    () => DocumentViewerViewModel(
+      documentUseCases: sl(),
+      categoryUseCases: sl(),
+      processing: sl(),
+    ),
   );
 }
 
-/// Trash Page Dependencies
 Future<void> trashDependencies() async {
-  sl.registerFactory<TrashViewModel>(() => TrashViewModel(documentStore: sl()));
+  sl.registerFactory<TrashViewModel>(
+    () => TrashViewModel(documentUseCases: sl()),
+  );
 }
 
-/// Expiring Soon Page Dependencies
 Future<void> expiringSoonDependencies() async {
   sl.registerFactory<ExpiringSoonViewModel>(
-    () => ExpiringSoonViewModel(documentStore: sl()),
+    () => ExpiringSoonViewModel(documentUseCases: sl()),
   );
 }
 
-/// AiAssistant Feature Dependencies
-///
-/// The DataSource/Repository/UseCase below are the original brick-
-/// scaffolded REST plumbing — unused, kept registered for consistency with
-/// documentsDependencies()'s equivalent note. This feature's actual
-/// "backend" is the OpenRouter call inside AiChatService (lib/core/ai) —
-/// AiAssistantViewModel talks to that plus DocumentLocalStore directly.
 Future<void> aiAssistantDependencies() async {
   // DataSource
   sl.registerLazySingleton<IRemoteAiAssistantDataSource>(
@@ -301,7 +289,7 @@ Future<void> aiAssistantDependencies() async {
   // navigating away from and back into the AI Assistant screen keeps the
   // running conversation instead of starting a fresh one every time.
   sl.registerLazySingleton<AiAssistantViewModel>(
-    () => AiAssistantViewModel(documentStore: sl(), aiChatService: sl()),
+    () => AiAssistantViewModel(documentUseCases: sl(), aiChatService: sl()),
   );
 }
 

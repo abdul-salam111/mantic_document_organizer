@@ -1,3 +1,5 @@
+import 'package:mantic_doc_org/core/utils/persist_action.dart';
+import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import '../../../../../core/constants/constants_exports.dart';
@@ -105,17 +107,18 @@ class AddCategoryView extends StatelessWidget {
                     ),
                     heightBox(32),
                     CustomButton(
+                      isLoading: vm.isSaving,
                       text: vm.isEditing
                           ? AppLocalizations.of(context).save
                           : AppLocalizations.of(context).create,
-                      // Writes into the shared CategoryLocalStore (see
-                      // AddCategoryViewModel) — no real category data layer
-                      // exists yet (CLAUDE.md's "Known mismatches"), so this
-                      // is local-only, but it does persist for the session.
-                      onPressed: () {
+
+                      onPressed: () async {
                         if (!vm.formKey.currentState!.validate()) return;
                         final wasEditing = vm.isEditing;
-                        vm.submit();
+                        if (!await persistAction(context, () => vm.submit())) {
+                          return;
+                        }
+                        if (!context.mounted) return;
                         // Compute the message (needs this route's context)
                         // and pop *before* showing the toast — another_flushbar
                         // pushes its toast as its own Navigator route, so

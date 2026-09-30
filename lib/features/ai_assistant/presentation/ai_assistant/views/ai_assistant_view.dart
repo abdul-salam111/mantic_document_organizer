@@ -1,3 +1,4 @@
+import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../../core/di/di_exports.dart';

@@ -1,3 +1,5 @@
+import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
+import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -10,7 +12,6 @@ import '../core/widgets/widgets_exports.dart';
 import '../features/auth/auth_exports.dart';
 
 import '../features/documents/presentation/add_document/add_document_exports.dart';
-import '../features/home/home_exports.dart';
 import '../features/categories/presentation/manage_categories/manage_categories_exports.dart';
 import '../features/navbar/navbar_exports.dart';
 import '../features/onboarding/onboarding_exports.dart';

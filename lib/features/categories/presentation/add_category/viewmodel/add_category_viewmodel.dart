@@ -1,22 +1,17 @@
+import '../../../../documents/domain/entities/document_item.dart'
+    show generateLocalId;
+import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
+import 'package:mantic_doc_org/features/categories/domain/usecases/category_usecases.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../../../core/constants/constants_exports.dart';
 import '../../../../../core/theme/theme_exports.dart';
-import '../../../../home/home_exports.dart';
 
-/// No real category data layer exists yet (see CLAUDE.md's "Known
-/// mismatches" section), so [submit] writes straight into the shared
-/// [CategoryLocalStore] (also used by HomeViewModel) instead of a
-/// repository — that's what makes a created/edited category actually show
-/// up in Home's category grid rather than just popping the screen. Also
-/// doubles as the manage_categories feature's edit screen via
-/// [startEditing] — reusing the same name/icon/color form rather than
-/// duplicating it.
 class AddCategoryViewModel extends ChangeNotifier {
-  final CategoryLocalStore _categoryStore;
+  final CategoryUseCases _categoryUseCases;
 
-  AddCategoryViewModel({required CategoryLocalStore categoryStore})
-    : _categoryStore = categoryStore;
+  AddCategoryViewModel({required CategoryUseCases categoryUseCases})
+    : _categoryUseCases = categoryUseCases;
 
   final TextEditingController nameController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -43,7 +38,9 @@ class AddCategoryViewModel extends ChangeNotifier {
     _editingCategory = category;
     nameController.text = category.name;
     _selectedIconKey = category.iconKey;
-    _selectedColor = category.color ?? fallbackColor;
+    _selectedColor =
+        (category.colorValue == null ? null : Color(category.colorValue!)) ??
+        fallbackColor;
   }
 
   void selectIcon(String iconKey) {
@@ -59,25 +56,42 @@ class AddCategoryViewModel extends ChangeNotifier {
   }
 
   bool nameExists(String name) =>
-      _categoryStore.exists(name, excludingId: _editingCategory?.id);
+      _categoryUseCases.exists(name, excludingId: _editingCategory?.id);
 
-  void submit() {
-    final editing = _editingCategory;
-    final item = CategoryItem(
-      id: editing?.id ?? generateLocalId(),
-      name: nameController.text.trim(),
-      iconKey: _selectedIconKey,
-      color: _selectedColor,
-    );
-    if (editing != null) {
-      _categoryStore.updateCategory(editing.id, item);
-    } else {
-      _categoryStore.addCategory(item);
+  bool _isSaving = false;
+  bool get isSaving => _isSaving;
+  bool _disposed = false;
+  @override
+  void notifyListeners() {
+    if (!_disposed) super.notifyListeners();
+  }
+
+  Future<void> submit() async {
+    if (_isSaving) return;
+    _isSaving = true;
+    notifyListeners();
+    try {
+      final editing = _editingCategory;
+      final item = CategoryItem(
+        id: editing?.id ?? generateLocalId(),
+        name: nameController.text.trim(),
+        iconKey: _selectedIconKey,
+        colorValue: _selectedColor.toARGB32(),
+      );
+      if (editing != null) {
+        await _categoryUseCases.updateCategory(editing.id, item);
+      } else {
+        await _categoryUseCases.addCategory(item);
+      }
+    } finally {
+      _isSaving = false;
+      notifyListeners();
     }
   }
 
   @override
   void dispose() {
+    _disposed = true;
     nameController.dispose();
     super.dispose();
   }
