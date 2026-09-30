@@ -5,6 +5,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../core/local_storage/local_storage_exports.dart';
 import '../../../core/services/services_exports.dart';
+import '../../auth/domain/entities/auth_entity.dart';
 
 class ProfileViewModel extends ChangeNotifier {
   final CategoryUseCases _categoryUseCases;
@@ -50,8 +51,13 @@ class ProfileViewModel extends ChangeNotifier {
   Future<void> signOut() async {
     await storage.clearValues(StorageKeys.loggedIn);
     await storage.clearValues(StorageKeys.token);
+    await storage.clearValues(StorageKeys.refreshToken);
+    await storage.clearValues(StorageKeys.userId);
     await storage.clearValues(StorageKeys.userDetails);
     SessionController.instance.islogin = false;
+    SessionController.instance.userToken = null;
+    SessionController.instance.userId = null;
+    SessionController.instance.userDetails = const AuthEntity(id: '');
     _isSignedIn = false;
     notifyListeners();
   }

@@ -6,7 +6,7 @@ part 'signup_user.g.dart';
 @freezed
 abstract class SignupUser with _$SignupUser {
   const factory SignupUser({
-    @JsonKey(name: "name") String? name,
+    @JsonKey(name: "display_name") String? name,
     @JsonKey(name: "email") String? email,
     @JsonKey(name: "password") String? password,
   }) = _SignupUser;

@@ -16,9 +16,22 @@ class AuthRepositoryImpl extends BaseRepository implements IAuthRepository {
     final result = await execute(
       call: () => dataSource.loginUser(loginUser: loginUser),
     );
-    return result.fold(
+    if (result case Failure<AuthTokenPairModel>(:final error)) {
+      return Failure(error);
+    }
+    final tokens = (result as Success<AuthTokenPairModel>).value;
+    final userResult = await execute(
+      call: () => dataSource.currentUser(accessToken: tokens.accessToken),
+    );
+    return userResult.fold(
       onFailure: (error) => Failure(error),
-      onSuccess: (model) => Success(_toEntity(model)),
+      onSuccess: (user) => Success(
+        _toEntity(
+          user,
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+        ),
+      ),
     );
   }
 
@@ -35,16 +48,18 @@ class AuthRepositoryImpl extends BaseRepository implements IAuthRepository {
     );
   }
 
-  /// Maps the raw API response model to this feature's domain entity, so
-  /// nothing above the repository boundary needs to know about
-  /// `UserModel`'s response-JSON shape.
-  AuthEntity _toEntity(UserModel model) {
-    final data = model.data;
+  /// Maps FastAPI response DTOs at the data/domain boundary.
+  AuthEntity _toEntity(
+    UserModel model, {
+    String? accessToken,
+    String? refreshToken,
+  }) {
     return AuthEntity(
-      id: data?.id?.toString() ?? '',
-      name: data?.name,
-      email: data?.email,
-      token: data?.token,
+      id: model.id,
+      name: model.displayName,
+      email: model.email,
+      token: accessToken,
+      refreshToken: refreshToken,
     );
   }
 }

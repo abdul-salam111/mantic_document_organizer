@@ -1,20 +1,27 @@
-/// The domain-layer representation of a signed-in user — what the rest of
-/// the app (presentation, session storage) works with, decoupled from
-/// `UserModel`'s API response shape (see `AuthRepositoryImpl._toEntity`,
-/// which maps one to the other at the repository boundary).
+/// The domain-layer representation of an authenticated account. Tokens are
+/// issued only by FastAPI's sign-in endpoint; sign-up returns a user profile
+/// and deliberately leaves both tokens null until the user signs in.
 class AuthEntity {
   final String id;
   final String? name;
   final String? email;
   final String? token;
+  final String? refreshToken;
 
-  const AuthEntity({required this.id, this.name, this.email, this.token});
+  const AuthEntity({
+    required this.id,
+    this.name,
+    this.email,
+    this.token,
+    this.refreshToken,
+  });
 
   Map<String, dynamic> toJson() => {
     'id': id,
     'name': name,
     'email': email,
     'token': token,
+    'refreshToken': refreshToken,
   };
 
   factory AuthEntity.fromJson(Map<String, dynamic> json) => AuthEntity(
@@ -22,5 +29,6 @@ class AuthEntity {
     name: json['name'] as String?,
     email: json['email'] as String?,
     token: json['token'] as String?,
+    refreshToken: json['refreshToken'] as String?,
   );
 }

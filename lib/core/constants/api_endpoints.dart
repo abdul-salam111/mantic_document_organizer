@@ -1,12 +1,13 @@
 /// API endpoint paths for this project.
 ///
-/// [baseUrl] is a placeholder — this project has no environment/flavor
-/// strategy yet (dev vs. prod URLs, `--dart-define`, etc.). Point this at
-/// real config instead of hardcoding a domain here.
+/// The FastAPI Cloud production API. It deliberately ends at the versioned
+/// API prefix so feature data sources only name their own resource paths.
 class ApiEndPoints {
-  static const baseUrl = "https://api.example.com/v1/";
-  static const String loginByUid = "${baseUrl}auth/login";
-  static const String signupUser = "${baseUrl}auth/signup";
+  static const baseUrl =
+      'https://mantic-doc-org-backend-341ceb3a.fastapicloud.dev/api/v1/';
+  static const String signIn = '${baseUrl}auth/sign-in';
+  static const String signUp = '${baseUrl}auth/sign-up';
+  static const String currentUser = '${baseUrl}auth/me';
   static const String search = "${baseUrl}search";
   static const String favorites = "${baseUrl}favorites";
   static const String addDocument = "${baseUrl}documents";

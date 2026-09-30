@@ -1,46 +1,38 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+/// FastAPI's `UserResponse`. It is kept as a data DTO; the repository maps it
+/// to [AuthEntity] before presentation sees it.
+class UserModel {
+  final String id;
+  final String email;
+  final String displayName;
 
-part 'user_model.freezed.dart';
-part 'user_model.g.dart';
+  const UserModel({
+    required this.id,
+    required this.email,
+    required this.displayName,
+  });
 
-@freezed
-abstract class UserModel with _$UserModel {
-  const factory UserModel({
-    @JsonKey(name: "success") bool? success,
-    @JsonKey(name: "data") UserData? data,
-    @JsonKey(name: "message") String? message,
-  }) = _UserModel;
-
-  factory UserModel.fromJson(Map<String, dynamic> json) =>
-      _$UserModelFromJson(json);
+  factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
+    id: json['id'] as String,
+    email: json['email'] as String,
+    displayName: json['display_name'] as String,
+  );
 }
 
-@freezed
-abstract class UserData with _$UserData {
-  const factory UserData({
-    @JsonKey(name: "id") int? id,
-    @JsonKey(name: "acms_id") String? acmsId,
-    @JsonKey(name: "user_category") String? userCategory,
-    @JsonKey(name: "name") String? name,
-    @JsonKey(name: "first_name") dynamic firstName,
-    @JsonKey(name: "last_name") dynamic lastName,
-    @JsonKey(name: "image") dynamic image,
-    @JsonKey(name: "email") String? email,
-    @JsonKey(name: "verify_email") int? verifyEmail,
-    @JsonKey(name: "cnic") dynamic cnic,
-    @JsonKey(name: "phone") dynamic phone,
-    @JsonKey(name: "address") dynamic address,
-    @JsonKey(name: "present_address") String? presentAddress,
-    @JsonKey(name: "country_id") dynamic countryId,
-    @JsonKey(name: "state_id") dynamic stateId,
-    @JsonKey(name: "city_id") dynamic cityId,
-    @JsonKey(name: "zip") dynamic zip,
-    @JsonKey(name: "status") int? status,
-    @JsonKey(name: "app_form") int? appForm,
-    @JsonKey(name: "app_form_approved") int? appFormApproved,
-    @JsonKey(name: "token") String? token,
-  }) = _UserData;
+/// FastAPI's `TokenPairResponse`. Profile data is intentionally fetched from
+/// `/auth/me` after sign-in instead of attempting to decode an access JWT in
+/// the mobile client.
+class AuthTokenPairModel {
+  final String accessToken;
+  final String refreshToken;
 
-  factory UserData.fromJson(Map<String, dynamic> json) =>
-      _$UserDataFromJson(json);
+  const AuthTokenPairModel({
+    required this.accessToken,
+    required this.refreshToken,
+  });
+
+  factory AuthTokenPairModel.fromJson(Map<String, dynamic> json) =>
+      AuthTokenPairModel(
+        accessToken: json['access_token'] as String,
+        refreshToken: json['refresh_token'] as String,
+      );
 }

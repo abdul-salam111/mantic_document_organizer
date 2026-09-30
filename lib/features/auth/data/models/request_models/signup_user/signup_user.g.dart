@@ -14,7 +14,7 @@ _SignupUser _$SignupUserFromJson(Map<String, dynamic> json) => _SignupUser(
 
 Map<String, dynamic> _$SignupUserToJson(_SignupUser instance) =>
     <String, dynamic>{
-      'name': instance.name,
+      'display_name': instance.name,
       'email': instance.email,
       'password': instance.password,
     };

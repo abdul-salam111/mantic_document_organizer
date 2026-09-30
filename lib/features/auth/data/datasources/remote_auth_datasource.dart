@@ -5,8 +5,9 @@ import '../models/request_models/signup_user/signup_user.dart';
 import '../models/response_models/user_data_model/user_model.dart';
 
 abstract interface class IRemoteAuthDataSource {
-  Future<UserModel> loginUser({required LoginUser loginUser});
+  Future<AuthTokenPairModel> loginUser({required LoginUser loginUser});
   Future<UserModel> signupUser({required SignupUser signupUser});
+  Future<UserModel> currentUser({required String accessToken});
 }
 
 class RemoteAuthDataSourceImpl extends BaseRemoteDatasource
@@ -14,10 +15,11 @@ class RemoteAuthDataSourceImpl extends BaseRemoteDatasource
   RemoteAuthDataSourceImpl({required super.dioHelper});
 
   @override
-  Future<UserModel> loginUser({required LoginUser loginUser}) async {
+  Future<AuthTokenPairModel> loginUser({required LoginUser loginUser}) async {
     return post(
-      url: ApiEndPoints.loginByUid,
-      parser: (json) => UserModel.fromJson(json),
+      url: ApiEndPoints.signIn,
+      parser: (json) =>
+          AuthTokenPairModel.fromJson(Map<String, dynamic>.from(json as Map)),
       body: loginUser.toJson(),
     );
   }
@@ -25,9 +27,18 @@ class RemoteAuthDataSourceImpl extends BaseRemoteDatasource
   @override
   Future<UserModel> signupUser({required SignupUser signupUser}) async {
     return post(
-      url: ApiEndPoints.signupUser,
-      parser: (json) => UserModel.fromJson(json),
+      url: ApiEndPoints.signUp,
+      parser: (json) =>
+          UserModel.fromJson(Map<String, dynamic>.from(json as Map)),
       body: signupUser.toJson(),
     );
   }
+
+  @override
+  Future<UserModel> currentUser({required String accessToken}) => get(
+    url: ApiEndPoints.currentUser,
+    authToken: accessToken,
+    parser: (json) =>
+        UserModel.fromJson(Map<String, dynamic>.from(json as Map)),
+  );
 }

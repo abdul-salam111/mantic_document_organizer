@@ -19,9 +19,20 @@ class SessionController {
   String? userToken;
 
   Future<void> saveUserInStorage(AuthEntity user) async {
+    if (user.token == null || user.refreshToken == null) {
+      throw ArgumentError(
+        'A signed-in session requires access and refresh tokens.',
+      );
+    }
     await storage.setValues(StorageKeys.userDetails, jsonEncode(user.toJson()));
     await storage.setValues(StorageKeys.loggedIn, 'true');
-    await storage.setValues(StorageKeys.token, user.token ?? "");
+    await storage.setValues(StorageKeys.userId, user.id);
+    await storage.setValues(StorageKeys.token, user.token!);
+    await storage.setValues(StorageKeys.refreshToken, user.refreshToken!);
+    userDetails = user;
+    userId = user.id;
+    userToken = user.token;
+    islogin = true;
   }
 
   /// Loads the persisted user/login state from secure storage (see
@@ -34,7 +45,11 @@ class SessionController {
         userDetails = AuthEntity.fromJson(jsonDecode(userData));
       }
       final isLoggedIn = await storage.readValues(StorageKeys.loggedIn);
-      islogin = isLoggedIn == 'true';
+      final accessToken = await storage.readValues(StorageKeys.token);
+      islogin =
+          isLoggedIn == 'true' && accessToken != null && accessToken.isNotEmpty;
+      userId = await storage.readValues(StorageKeys.userId);
+      userToken = accessToken;
     } catch (e) {
       throw Exception(e);
     }

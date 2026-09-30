@@ -22,6 +22,32 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.mantic.document.organizer</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.mantic.document.organizer</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<!-- Reversed form of GOOGLE_IOS_CLIENT_ID (see backend .env),
+				     required by google_sign_in on iOS to receive the OAuth
+				     redirect back into the app. -->
+				<string>com.googleusercontent.apps.471240093218-129he836isa67t8supme7bl64231m6f5</string>
+			</array>
+		</dict>
+	</array>
+	<key>GIDClientID</key>
+	<string>471240093218-129he836isa67t8supme7bl64231m6f5.apps.googleusercontent.com</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>

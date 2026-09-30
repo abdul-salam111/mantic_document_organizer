@@ -33,6 +33,7 @@ final LocalStorage storage = LocalStorage();
 class StorageKeys {
   static const String loggedIn = 'loggedIn';
   static const String token = "token";
+  static const String refreshToken = 'refreshToken';
   static const String userId = 'userId';
   static const String userDetails = 'userDetails';
   static const String hasSeenOnboarding = 'hasSeenOnboarding';

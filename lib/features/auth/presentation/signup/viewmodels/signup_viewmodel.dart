@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../../../routes/routes_exports.dart';
-import '../../../../../core/services/services_exports.dart';
 import '../../../../../core/shared/shared_exports.dart';
 import '../../../data/models/request_models/signup_user/signup_user.dart';
 import '../../../domain/entities/auth_entity.dart';
@@ -21,10 +20,10 @@ class SignupViewModel extends ChangeNotifier with UseCaseExecutor {
       call: () => _signupUsecase(
         SignupUser(name: name, email: email, password: password),
       ),
-      onSuccess: (user) async {
+      onSuccess: (user) {
         _user = user;
-        await SessionController.instance.saveUserInStorage(user);
-        await SessionController.instance.loadUserFromStorage();
+        // FastAPI sign-up returns a profile, not a session. Require the
+        // explicit sign-in request so only issued tokens enter storage.
         AppNavigator.goNamed(RouteNames.signin);
       },
     );
