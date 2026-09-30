@@ -54,4 +54,16 @@ class SessionController {
       throw Exception(e);
     }
   }
+
+  Future<void> clearSession() async {
+    await storage.clearValues(StorageKeys.loggedIn);
+    await storage.clearValues(StorageKeys.token);
+    await storage.clearValues(StorageKeys.refreshToken);
+    await storage.clearValues(StorageKeys.userId);
+    await storage.clearValues(StorageKeys.userDetails);
+    islogin = false;
+    userToken = null;
+    userId = null;
+    userDetails = const AuthEntity(id: '');
+  }
 }

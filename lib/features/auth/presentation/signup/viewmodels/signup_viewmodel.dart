@@ -22,9 +22,10 @@ class SignupViewModel extends ChangeNotifier with UseCaseExecutor {
       ),
       onSuccess: (user) {
         _user = user;
-        // FastAPI sign-up returns a profile, not a session. Require the
-        // explicit sign-in request so only issued tokens enter storage.
-        AppNavigator.goNamed(RouteNames.signin);
+        // The backend sends the verification email during sign-up. Its
+        // response intentionally has no session tokens, so continue with OTP
+        // verification before allowing the account to sign in.
+        AppNavigator.goNamed(RouteNames.verifyEmail, extra: user.email);
       },
     );
   }

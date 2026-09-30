@@ -10,6 +10,7 @@ import '../core/localization/localization_exports.dart';
 import '../core/theme/theme_exports.dart';
 import '../core/widgets/widgets_exports.dart';
 import '../features/auth/auth_exports.dart';
+import '../features/backup/backup_exports.dart';
 
 import '../features/documents/presentation/add_document/add_document_exports.dart';
 import '../features/categories/presentation/manage_categories/manage_categories_exports.dart';
@@ -78,6 +79,18 @@ class AppRoutes {
         path: RoutePaths.signup,
         name: RouteNames.signup,
         builder: (context, state) => const SignupPage(),
+      ),
+      GoRoute(
+        path: RoutePaths.backupSetup,
+        name: RouteNames.backupSetup,
+        builder: (context, state) => const BackupSetupPage(),
+      ),
+      GoRoute(
+        path: RoutePaths.verifyEmail,
+        name: RouteNames.verifyEmail,
+        builder: (context, state) => EmailVerificationPage(
+          email: state.extra is String ? state.extra! as String : '',
+        ),
       ),
       GoRoute(
         path: RoutePaths.home,

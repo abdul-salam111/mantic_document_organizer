@@ -28,6 +28,7 @@ import '../sharing/sharing_exports.dart';
 import '../security/security_exports.dart';
 import '../theme/theme_exports.dart';
 import '../../features/auth/auth_exports.dart';
+import '../../features/backup/backup_exports.dart';
 
 import '../../features/categories/presentation/manage_categories/manage_categories_exports.dart';
 import '../../features/search/search_exports.dart';
@@ -55,6 +56,7 @@ Future<void> setupLocator() async {
   await coreDependencies();
 
   await authDependencies();
+  await backupDependencies();
   await documentStorageDependencies();
   await homeDependencies();
   await searchDependencies();
@@ -102,10 +104,13 @@ Future<void> authDependencies() async {
   sl.registerLazySingleton<IRemoteAuthDataSource>(
     () => RemoteAuthDataSourceImpl(dioHelper: sl()),
   );
+  sl.registerLazySingleton<ISocialIdentityDataSource>(
+    () => SocialIdentityDataSourceImpl(),
+  );
 
   // Repository
   sl.registerLazySingleton<IAuthRepository>(
-    () => AuthRepositoryImpl(dataSource: sl()),
+    () => AuthRepositoryImpl(dataSource: sl(), socialIdentityDataSource: sl()),
   );
 
   // UseCase
@@ -115,14 +120,43 @@ Future<void> authDependencies() async {
   sl.registerLazySingleton<SignupUsecase>(
     () => SignupUsecase(repository: sl()),
   );
+  sl.registerLazySingleton<SignoutUsecase>(
+    () => SignoutUsecase(repository: sl()),
+  );
+  sl.registerLazySingleton<SocialSigninUsecase>(
+    () => SocialSigninUsecase(repository: sl()),
+  );
+  sl.registerLazySingleton<VerifyEmailUsecase>(
+    () => VerifyEmailUsecase(repository: sl()),
+  );
+  sl.registerLazySingleton<ResendVerificationEmailUsecase>(
+    () => ResendVerificationEmailUsecase(repository: sl()),
+  );
 
   // provider
   sl.registerFactory<SigninViewModel>(
-    () => SigninViewModel(signinUsecase: sl()),
+    () => SigninViewModel(signinUsecase: sl(), socialSigninUsecase: sl()),
   );
   sl.registerFactory<SignupViewModel>(
     () => SignupViewModel(signupUsecase: sl()),
   );
+  sl.registerFactory<EmailVerificationViewModel>(
+    () => EmailVerificationViewModel(
+      verifyEmailUsecase: sl(),
+      resendVerificationEmailUsecase: sl(),
+    ),
+  );
+}
+
+Future<void> backupDependencies() async {
+  sl.registerLazySingleton<IBackupRemoteDataSource>(
+    () => BackupRemoteDataSourceImpl(dioHelper: sl()),
+  );
+  sl.registerLazySingleton<IBackupRepository>(
+    () => BackupRepositoryImpl(remote: sl(), identity: sl()),
+  );
+  sl.registerLazySingleton(() => PrepareBackupUsecase(sl()));
+  sl.registerLazySingleton(() => ConnectGoogleDriveUsecase(sl()));
 }
 
 Future<void> documentStorageDependencies() async {
@@ -189,7 +223,11 @@ Future<void> favoritesDependencies() async {
 
 Future<void> profileDependencies() async {
   sl.registerFactory<ProfileViewModel>(
-    () => ProfileViewModel(categoryUseCases: sl(), documentUseCases: sl()),
+    () => ProfileViewModel(
+      categoryUseCases: sl(),
+      documentUseCases: sl(),
+      signoutUsecase: sl(),
+    ),
   );
 }
 

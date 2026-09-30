@@ -6,6 +6,8 @@ class RoutePaths {
   static const String splash = "/splash";
   static const String signin = "/signin";
   static const String signup = "/signup";
+  static const String backupSetup = "/backup-setup";
+  static const String verifyEmail = "/verify-email";
   static const String home = "/home";
   static const String addDocument = "/add-document";
   static const String onboarding = "/onboarding";

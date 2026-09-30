@@ -6,4 +6,12 @@ import '../entities/auth_entity.dart';
 abstract interface class IAuthRepository {
   Future<Result<AuthEntity>> signinUser({required LoginUser loginUser});
   Future<Result<AuthEntity>> signupUser({required SignupUser signupUser});
+  Future<Result<AuthEntity>> signInWithGoogle();
+  Future<Result<AuthEntity>> signInWithApple();
+  Future<Result<void>> signOut({required String refreshToken});
+  Future<Result<AuthEntity>> verifyEmail({
+    required String email,
+    required String code,
+  });
+  Future<Result<void>> resendVerificationEmail({required String email});
 }

@@ -44,14 +44,14 @@ mixin UseCaseExecutor on ChangeNotifier {
     try {
       final result = await call();
 
-      return result.fold(
+      return await result.fold(
         onFailure: (error) {
           _status = ApiStatus.error;
           _error = error;
           _safeNotify();
 
           if (showError) {
-            AppToastsUtils.error(error.toString()); // 🎯 No context!
+            AppToastsUtils.error(error.message);
           }
           onError?.call(error);
           return null;
@@ -72,11 +72,11 @@ mixin UseCaseExecutor on ChangeNotifier {
       );
     } catch (e) {
       _status = ApiStatus.error;
-      _error = AppException(e.toString());
+      _error = e is AppException ? e : AppException(e.toString());
       _safeNotify();
 
       if (showError) {
-        AppToastsUtils.error(e.toString());
+        AppToastsUtils.error(_error!.message);
       }
       return null;
     }
@@ -93,10 +93,10 @@ mixin UseCaseExecutor on ChangeNotifier {
     try {
       final result = await call();
 
-      return result.fold(
+      return await result.fold(
         onFailure: (error) {
           if (showError) {
-            AppToastsUtils.error(error.toString());
+            AppToastsUtils.error(error.message);
           }
           onError?.call(error);
           return null;
@@ -111,7 +111,9 @@ mixin UseCaseExecutor on ChangeNotifier {
       );
     } catch (e) {
       if (showError) {
-        AppToastsUtils.error(e.toString());
+        AppToastsUtils.error(
+          e is AppException ? e.message : AppException(e.toString()).message,
+        );
       }
       return null;
     }

@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import '../../../../../core/di/di_exports.dart';
 import '../../../../../core/theme/theme_exports.dart';
@@ -7,16 +9,25 @@ import '../../../../../routes/routes_exports.dart';
 import '../viewmodels/signin_viewmodel.dart';
 
 class SigninPage extends StatefulWidget {
-  const SigninPage({super.key});
+  final String? initialEmail;
+
+  const SigninPage({super.key, this.initialEmail});
 
   @override
   State<SigninPage> createState() => _SigninPageState();
 }
 
 class _SigninPageState extends State<SigninPage> {
-  final _userEmailController = TextEditingController();
+  late final TextEditingController _userEmailController;
   final _passwordController = TextEditingController();
   final formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _userEmailController = TextEditingController(text: widget.initialEmail);
+  }
+
   @override
   void dispose() {
     _userEmailController.dispose();
@@ -87,6 +98,40 @@ class _SigninPageState extends State<SigninPage> {
                             AppNavigator.goNamed(RouteNames.signup),
                         child: const Text("Don't have an account? Sign up"),
                       ),
+                      heightBox(24),
+                      Row(
+                        children: [
+                          const Expanded(child: Divider()),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(
+                              'or continue with',
+                              style: context.bodySmall.copyWith(
+                                color: context.textSecondary,
+                              ),
+                            ),
+                          ),
+                          const Expanded(child: Divider()),
+                        ],
+                      ),
+                      heightBox(16),
+                      Consumer<SigninViewModel>(
+                        builder: (context, vm, _) => OutlinedButton.icon(
+                          onPressed: vm.isLoading ? null : vm.signInWithGoogle,
+                          icon: const Icon(Icons.g_mobiledata, size: 28),
+                          label: const Text('Continue with Google'),
+                        ),
+                      ),
+                      if (Platform.isIOS) ...[
+                        heightBox(12),
+                        Consumer<SigninViewModel>(
+                          builder: (context, vm, _) => OutlinedButton.icon(
+                            onPressed: vm.isLoading ? null : vm.signInWithApple,
+                            icon: const Icon(Icons.apple),
+                            label: const Text('Continue with Apple'),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

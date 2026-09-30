@@ -37,6 +37,9 @@ class StorageKeys {
   static const String userId = 'userId';
   static const String userDetails = 'userDetails';
   static const String hasSeenOnboarding = 'hasSeenOnboarding';
+  static const String pendingBackupSetup = 'pendingBackupSetup';
+  static const String backupSpaceId = 'backupSpaceId';
+  static const String backupEnabled = 'backupEnabled';
 }
 
 extension LocalStorageGetters on LocalStorage {

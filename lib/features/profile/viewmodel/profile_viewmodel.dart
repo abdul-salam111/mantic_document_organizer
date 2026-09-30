@@ -5,17 +5,23 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../core/local_storage/local_storage_exports.dart';
 import '../../../core/services/services_exports.dart';
-import '../../auth/domain/entities/auth_entity.dart';
+import '../../../core/shared/shared_exports.dart';
+import '../../../core/utils/utils_exports.dart';
+import '../../../routes/routes_exports.dart';
+import '../../auth/auth_exports.dart';
 
 class ProfileViewModel extends ChangeNotifier {
   final CategoryUseCases _categoryUseCases;
   final DocumentUseCases _documentUseCases;
+  final SignoutUsecase _signoutUsecase;
 
   ProfileViewModel({
     required CategoryUseCases categoryUseCases,
     required DocumentUseCases documentUseCases,
+    required SignoutUsecase signoutUsecase,
   }) : _categoryUseCases = categoryUseCases,
-       _documentUseCases = documentUseCases {
+       _documentUseCases = documentUseCases,
+       _signoutUsecase = signoutUsecase {
     _categoryUseCases.addListener(notifyListeners);
     _documentUseCases.addListener(notifyListeners);
     _loadSession();
@@ -24,6 +30,8 @@ class ProfileViewModel extends ChangeNotifier {
 
   bool _isSignedIn = false;
   bool get isSignedIn => _isSignedIn;
+  bool _isSigningOut = false;
+  bool get isSigningOut => _isSigningOut;
 
   String? get userName => SessionController.instance.userDetails.name;
   String? get userEmail => SessionController.instance.userDetails.email;
@@ -49,17 +57,34 @@ class ProfileViewModel extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
-    await storage.clearValues(StorageKeys.loggedIn);
-    await storage.clearValues(StorageKeys.token);
-    await storage.clearValues(StorageKeys.refreshToken);
-    await storage.clearValues(StorageKeys.userId);
-    await storage.clearValues(StorageKeys.userDetails);
-    SessionController.instance.islogin = false;
-    SessionController.instance.userToken = null;
-    SessionController.instance.userId = null;
-    SessionController.instance.userDetails = const AuthEntity(id: '');
-    _isSignedIn = false;
+    if (_isSigningOut) return;
+    _isSigningOut = true;
     notifyListeners();
+
+    final refreshToken = await storage.readValues(StorageKeys.refreshToken);
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      final result = await _signoutUsecase(refreshToken);
+      if (result case Failure<void>(:final error)) {
+        _isSigningOut = false;
+        notifyListeners();
+        AppToastsUtils.error(error.message);
+        return;
+      }
+    }
+
+    await SessionController.instance.clearSession();
+    _isSignedIn = false;
+    _isSigningOut = false;
+    notifyListeners();
+  }
+
+  Future<void> setUpBackup() async {
+    if (_isSignedIn) {
+      AppNavigator.pushNamed(RouteNames.backupSetup);
+      return;
+    }
+    await storage.setValues(StorageKeys.pendingBackupSetup, 'true');
+    AppNavigator.goNamed(RouteNames.signin);
   }
 
   @override

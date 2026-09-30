@@ -6,6 +6,20 @@ class AppException implements Exception {
 
   AppException([this._message, this._prefix]);
 
+  /// Text intended for the person using the app. Transport/status prefixes
+  /// remain useful in [toString] for diagnostics, but the API's `detail`
+  /// should reach the user unchanged (for example, “No account found with
+  /// this email.”).
+  String get message {
+    final message = _message;
+    if (message != null && message.isNotEmpty) return message;
+    final prefix = _prefix?.trim();
+    if (prefix == null || prefix.isEmpty) return 'An error occurred';
+    return prefix.endsWith(':')
+        ? prefix.substring(0, prefix.length - 1)
+        : prefix;
+  }
+
   @override
   String toString() {
     if (_message == null || _message.isEmpty) {

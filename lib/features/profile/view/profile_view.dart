@@ -42,6 +42,14 @@ class ProfileView extends StatelessWidget {
                     subtitle: AppLocalizations.of(context).trashSubtitle,
                     onTap: () => AppNavigator.pushNamed(RouteNames.trash),
                   ),
+                  heightBox(10),
+                  _ProfileMenuTile(
+                    icon: Iconsax.cloud_add,
+                    iconColor: context.primary,
+                    label: AppLocalizations.of(context).setUpBackup,
+                    subtitle: 'Keep documents backed up to Google Drive',
+                    onTap: vm.setUpBackup,
+                  ),
                   if (vm.isSignedIn) ...[
                     heightBox(20),
                     Divider(color: context.divider, height: 1),
@@ -51,7 +59,7 @@ class ProfileView extends StatelessWidget {
                       iconColor: context.errorAccent,
                       label: AppLocalizations.of(context).signOut,
                       isDestructive: true,
-                      onTap: vm.signOut,
+                      onTap: () => _confirmSignOut(context, vm),
                     ),
                   ],
                   heightBox(24),
@@ -71,6 +79,36 @@ class ProfileView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _confirmSignOut(
+    BuildContext context,
+    ProfileViewModel viewModel,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: context.surfaceElevated,
+        title: const Text('Sign out?'),
+        content: const Text('You will need to sign in again to use backup.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(
+              AppLocalizations.of(context).signOut,
+              style: TextStyle(color: context.error),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) {
+      await viewModel.signOut();
+    }
   }
 }
 
