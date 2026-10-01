@@ -3,7 +3,9 @@ import 'package:flutter/foundation.dart';
 import '../../../../../routes/routes_exports.dart';
 import '../../../../../core/services/services_exports.dart';
 import '../../../../../core/local_storage/local_storage_exports.dart';
+import '../../../../../core/networks/exceptions/app_exceptions.dart';
 import '../../../../../core/shared/shared_exports.dart';
+import '../../../../../core/utils/utils_exports.dart';
 import '../../../data/models/request_models/login_user/login_user.dart';
 import '../../../domain/entities/auth_entity.dart';
 import '../../../domain/usecases/signin_usecase.dart';
@@ -21,6 +23,14 @@ class SigninViewModel extends ChangeNotifier with UseCaseExecutor {
 
   AuthEntity? _user;
   AuthEntity? get user => _user;
+  SocialSignInProvider? _activeSocialProvider;
+
+  bool get isEmailLoading => isLoading && _activeSocialProvider == null;
+  bool get isAnyLoading => isLoading;
+  bool get isGoogleLoading => isSocialLoading(SocialSignInProvider.google);
+  bool get isAppleLoading => isSocialLoading(SocialSignInProvider.apple);
+  bool isSocialLoading(SocialSignInProvider provider) =>
+      isLoading && _activeSocialProvider == provider;
 
   Future<void> signin(String userId, String password) async {
     await _signIn(
@@ -29,20 +39,41 @@ class SigninViewModel extends ChangeNotifier with UseCaseExecutor {
   }
 
   Future<void> signInWithGoogle() async {
-    await _signIn(
-      call: () => _socialSigninUsecase(SocialSignInProvider.google),
-    );
+    await _socialSignIn(SocialSignInProvider.google);
   }
 
   Future<void> signInWithApple() async {
-    await _signIn(call: () => _socialSigninUsecase(SocialSignInProvider.apple));
+    await _socialSignIn(SocialSignInProvider.apple);
+  }
+
+  Future<void> _socialSignIn(SocialSignInProvider provider) async {
+    _activeSocialProvider = provider;
+    notifyListeners();
+    try {
+      await _signIn(
+        call: () => _socialSigninUsecase(provider),
+        suppressCancellationToast: true,
+      );
+    } finally {
+      _activeSocialProvider = null;
+      notifyListeners();
+    }
   }
 
   Future<void> _signIn({
     required Future<Result<AuthEntity>> Function() call,
+    bool suppressCancellationToast = false,
   }) async {
     await execute(
       call: call,
+      showError: !suppressCancellationToast,
+      onError: suppressCancellationToast
+          ? (error) {
+              if (error is! AuthenticationCancelledException) {
+                AppToastsUtils.error(error.message);
+              }
+            }
+          : null,
       onSuccess: (user) async {
         _user = user;
         await SessionController.instance.saveUserInStorage(user);

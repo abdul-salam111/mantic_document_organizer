@@ -300,6 +300,12 @@ abstract class AppLocalizations {
   /// **'Set up backup'**
   String get setUpBackup;
 
+  /// Authentication action
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get signIn;
+
   /// Profile menu entry
   ///
   /// In en, this message translates to:

@@ -75,7 +75,7 @@ class _SigninPageState extends State<SigninPage> {
                         builder: (context, vm, _) {
                           return CustomButton(
                             radius: 10,
-                            onPressed: vm.isLoading
+                            onPressed: vm.isAnyLoading
                                 ? null
                                 : () {
                                     if (!(formKey.currentState?.validate() ??
@@ -87,7 +87,7 @@ class _SigninPageState extends State<SigninPage> {
                                       _passwordController.text,
                                     );
                                   },
-                            isLoading: vm.isLoading,
+                            isLoading: vm.isEmailLoading,
                             text: "Sign In",
                           );
                         },
@@ -116,23 +116,68 @@ class _SigninPageState extends State<SigninPage> {
                       ),
                       heightBox(16),
                       Consumer<SigninViewModel>(
-                        builder: (context, vm, _) => OutlinedButton.icon(
-                          onPressed: vm.isLoading ? null : vm.signInWithGoogle,
-                          icon: const Icon(Icons.g_mobiledata, size: 28),
-                          label: const Text('Continue with Google'),
-                        ),
+                        builder: (context, vm, _) {
+                          final loading = vm.isGoogleLoading;
+                          return OutlinedButton.icon(
+                            onPressed: vm.isAnyLoading
+                                ? null
+                                : vm.signInWithGoogle,
+                            icon: loading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(Icons.g_mobiledata, size: 28),
+                            label: Text(
+                              loading
+                                  ? 'Connecting to Google...'
+                                  : 'Continue with Google',
+                            ),
+                          );
+                        },
                       ),
                       if (Platform.isIOS) ...[
                         heightBox(12),
                         Consumer<SigninViewModel>(
-                          builder: (context, vm, _) => OutlinedButton.icon(
-                            onPressed: vm.isLoading ? null : vm.signInWithApple,
-                            icon: const Icon(Icons.apple),
-                            label: const Text('Continue with Apple'),
-                          ),
+                          builder: (context, vm, _) {
+                            final loading = vm.isAppleLoading;
+                            return OutlinedButton.icon(
+                              onPressed: vm.isAnyLoading
+                                  ? null
+                                  : vm.signInWithApple,
+                              icon: loading
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Icon(Icons.apple),
+                              label: Text(
+                                loading
+                                    ? 'Connecting to Apple...'
+                                    : 'Continue with Apple',
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ],
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 8,
+                left: 8,
+                child: SafeArea(
+                  child: IconButton(
+                    tooltip: 'Back',
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: AppNavigator.pop,
                   ),
                 ),
               ),

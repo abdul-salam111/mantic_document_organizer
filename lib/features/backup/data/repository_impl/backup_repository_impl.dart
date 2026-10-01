@@ -1,13 +1,11 @@
 import '../../../../core/shared/shared_exports.dart';
-import '../../../auth/data/datasources/social_identity_datasource.dart';
 import '../../domain/repositories/backup_repository.dart';
 import '../../domain/entities/backup_space.dart';
 import '../datasources/backup_remote_datasource.dart';
 
 class BackupRepositoryImpl extends BaseRepository implements IBackupRepository {
   final IBackupRemoteDataSource remote;
-  final ISocialIdentityDataSource identity;
-  BackupRepositoryImpl({required this.remote, required this.identity});
+  BackupRepositoryImpl({required this.remote});
   @override
   Future<Result<BackupSpace>> preparePersonalSpace(
     String token,
@@ -38,24 +36,12 @@ class BackupRepositoryImpl extends BaseRepository implements IBackupRepository {
   }
 
   @override
-  Future<Result<BackupSpace>> connectGoogleDrive(
+  Future<Result<String>> connectGoogleDrive(
     String token,
     String spaceId,
   ) async {
-    final codeResult = await execute(
-      call: identity.requestGoogleDriveAuthorizationCode,
-    );
-    return codeResult.fold(
-      onFailure: Failure.new,
-      onSuccess: (code) async {
-        final remoteResult = await execute(
-          call: () => remote.connectGoogleDrive(token, spaceId, code),
-        );
-        return remoteResult.fold(
-          onFailure: Failure.new,
-          onSuccess: (value) => Success(_toEntity(value)),
-        );
-      },
+    return execute(
+      call: () => remote.googleDriveAuthorizationUrl(token, spaceId),
     );
   }
 

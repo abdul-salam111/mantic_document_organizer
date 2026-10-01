@@ -29,6 +29,13 @@ class AppException implements Exception {
   }
 }
 
+/// A person dismissed a platform authentication sheet. This is an expected
+/// outcome, so presentation code should return quietly instead of showing an
+/// error toast.
+class AuthenticationCancelledException extends AppException {
+  AuthenticationCancelledException() : super('Authentication was cancelled.');
+}
+
 // Network Exceptions
 class NoInternetException extends AppException {
   NoInternetException([String? message])

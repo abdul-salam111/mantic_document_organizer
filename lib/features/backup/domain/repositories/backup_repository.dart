@@ -6,5 +6,7 @@ abstract interface class IBackupRepository {
     String token,
     String? savedSpaceId,
   );
-  Future<Result<BackupSpace>> connectGoogleDrive(String token, String spaceId);
+
+  /// Returns the backend-issued Google consent URL bound to this backup space.
+  Future<Result<String>> connectGoogleDrive(String token, String spaceId);
 }

@@ -1,5 +1,3 @@
-import 'package:mantic_doc_org/features/categories/domain/usecases/category_usecases.dart';
-import 'package:mantic_doc_org/features/documents/domain/usecases/document_usecases.dart';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +10,8 @@ import 'core/localization/localization_exports.dart';
 import 'core/notifications/notifications_exports.dart';
 import 'core/security/security_exports.dart';
 import 'core/sharing/sharing_exports.dart';
+import 'features/categories/domain/usecases/category_usecases.dart';
+import 'features/documents/domain/usecases/document_usecases.dart';
 import 'routes/routes_exports.dart';
 import 'core/theme/theme_exports.dart';
 

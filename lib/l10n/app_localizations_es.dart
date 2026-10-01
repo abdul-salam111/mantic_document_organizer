@@ -135,6 +135,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get setUpBackup => 'Configurar copia de seguridad';
 
   @override
+  String get signIn => 'Iniciar sesión';
+
+  @override
   String get trash => 'Papelera';
 
   @override

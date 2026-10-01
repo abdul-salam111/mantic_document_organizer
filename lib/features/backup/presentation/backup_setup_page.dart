@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import '../../../core/di/di_exports.dart';
 import '../../../core/local_storage/local_storage_exports.dart';
 import '../../../core/services/services_exports.dart';
@@ -16,8 +17,10 @@ class BackupSetupPage extends StatefulWidget {
 }
 
 class _BackupSetupPageState extends State<BackupSetupPage> {
+  static const _appScheme = 'mantic-drive-auth';
   BackupSpace? _space;
   bool _loading = false;
+
   @override
   void initState() {
     super.initState();
@@ -48,21 +51,49 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
     final space = _space;
     if (token == null || space == null) return;
     setState(() => _loading = true);
-    final result = await sl<ConnectGoogleDriveUsecase>()((
-      token: token,
-      spaceId: space.id,
-    ));
-    switch (result) {
-      case Failure(:final error):
-        AppToastsUtils.error(error.message);
-      case Success(:final value):
-        _space = value;
-        await storage.setValues(StorageKeys.backupEnabled, 'true');
-        AppToastsUtils.success(
-          'Google Drive connected. Backup will run in the background.',
-        );
+    try {
+      final result = await sl<ConnectGoogleDriveUsecase>()((
+        token: token,
+        spaceId: space.id,
+      ));
+      switch (result) {
+        case Failure(:final error):
+          AppToastsUtils.error(error.message);
+        case Success(:final value):
+          final callbackUrl = await FlutterWebAuth2.authenticate(
+            url: value,
+            callbackUrlScheme: _appScheme,
+          );
+          await _handleDriveCallback(Uri.parse(callbackUrl));
+      }
+    } catch (error) {
+      debugPrint('Google Drive authorization session failed: $error');
+      AppToastsUtils.error('Google Drive authorization was not completed.');
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
-    if (mounted) setState(() => _loading = false);
+  }
+
+  Future<void> _handleDriveCallback(Uri uri) async {
+    debugPrint(
+      'Google Drive callback: scheme=${uri.scheme}, host=${uri.host}, '
+      'path=${uri.path}, status=${uri.queryParameters['status']}',
+    );
+    if (uri.scheme != _appScheme ||
+        (uri.host != 'storage-connected' && uri.path != '/storage-connected')) {
+      return;
+    }
+    if (uri.queryParameters['status'] != 'success') {
+      AppToastsUtils.error('Google Drive authorization was not completed.');
+      return;
+    }
+
+    await _prepare();
+    if (!mounted || _space?.isDriveConnected != true) return;
+    await storage.setValues(StorageKeys.backupEnabled, 'true');
+    AppToastsUtils.success(
+      'Google Drive connected. Backup will run in the background.',
+    );
   }
 
   @override

@@ -134,6 +134,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setUpBackup => 'Set up backup';
 
   @override
+  String get signIn => 'Sign in';
+
+  @override
   String get trash => 'Trash';
 
   @override

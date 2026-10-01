@@ -21,11 +21,7 @@ class BackupSpaceModel {
 abstract interface class IBackupRemoteDataSource {
   Future<List<BackupSpaceModel>> listSpaces(String token);
   Future<BackupSpaceModel> createPersonalSpace(String token);
-  Future<BackupSpaceModel> connectGoogleDrive(
-    String token,
-    String spaceId,
-    String authorizationCode,
-  );
+  Future<String> googleDriveAuthorizationUrl(String token, String spaceId);
 }
 
 class BackupRemoteDataSourceImpl extends BaseRemoteDatasource
@@ -47,15 +43,19 @@ class BackupRemoteDataSourceImpl extends BaseRemoteDatasource
         BackupSpaceModel.fromJson(Map<String, dynamic>.from(json as Map)),
   );
   @override
-  Future<BackupSpaceModel> connectGoogleDrive(
-    String token,
-    String spaceId,
-    String authorizationCode,
-  ) => post(
-    url: '${ApiEndPoints.spaces}/$spaceId/connect-google-drive',
-    authToken: token,
-    body: {'authorization_code': authorizationCode},
-    parser: (json) =>
-        BackupSpaceModel.fromJson(Map<String, dynamic>.from(json as Map)),
-  );
+  Future<String> googleDriveAuthorizationUrl(String token, String spaceId) =>
+      get(
+        url: ApiEndPoints.googleDriveAuthorizationUrl,
+        authToken: token,
+        queryParams: {'space_id': spaceId},
+        parser: (json) {
+          final url = (json as Map)['authorization_url'] as String?;
+          if (url == null || url.isEmpty) {
+            throw const FormatException(
+              'The server did not return an authorization URL.',
+            );
+          }
+          return url;
+        },
+      );
 }

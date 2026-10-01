@@ -40,6 +40,7 @@
   "account": "Cuenta",
   "localOnlyStatus": "Solo local: tus documentos permanecen en este dispositivo",
   "setUpBackup": "Configurar copia de seguridad",
+  "signIn": "Iniciar sesión",
   "trash": "Papelera",
   "trashSubtitle": "Recupera documentos eliminados recientemente",
   "settingsSubtitle": "Apariencia, idioma, categorías y seguridad",

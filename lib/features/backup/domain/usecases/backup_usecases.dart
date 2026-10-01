@@ -13,10 +13,10 @@ class PrepareBackupUsecase
 }
 
 class ConnectGoogleDriveUsecase
-    implements Usecase<BackupSpace, ({String token, String spaceId})> {
+    implements Usecase<String, ({String token, String spaceId})> {
   final IBackupRepository repository;
   ConnectGoogleDriveUsecase(this.repository);
   @override
-  Future<Result<BackupSpace>> call(({String token, String spaceId}) params) =>
+  Future<Result<String>> call(({String token, String spaceId}) params) =>
       repository.connectGoogleDrive(params.token, params.spaceId);
 }

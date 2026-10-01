@@ -91,6 +91,8 @@
   "@localOnlyStatus": {"description": "Profile header subtitle shown when signed out"},
   "setUpBackup": "Set up backup",
   "@setUpBackup": {"description": "CTA button shown when signed out"},
+  "signIn": "Sign in",
+  "@signIn": {"description": "Authentication action"},
   "trash": "Trash",
   "@trash": {"description": "Profile menu entry"},
   "trashSubtitle": "Recover recently deleted documents",

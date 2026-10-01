@@ -16,6 +16,8 @@ class ApiEndPoints {
   static const String currentUser = '${baseUrl}auth/me';
   static const String spaces = '${baseUrl}spaces';
   static const String storageConnections = '${baseUrl}storage/connections';
+  static const String googleDriveAuthorizationUrl =
+      '${baseUrl}storage/google/authorization-url';
   static const String search = "${baseUrl}search";
   static const String favorites = "${baseUrl}favorites";
   static const String addDocument = "${baseUrl}documents";

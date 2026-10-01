@@ -32,6 +32,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>com.mantic.document.organizer</string>
+				<string>mantic-drive-auth</string>
 			</array>
 		</dict>
 		<dict>

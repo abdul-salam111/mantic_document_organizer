@@ -133,6 +133,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setUpBackup => 'إعداد النسخ الاحتياطي';
 
   @override
+  String get signIn => 'تسجيل الدخول';
+
+  @override
   String get trash => 'سلة المهملات';
 
   @override

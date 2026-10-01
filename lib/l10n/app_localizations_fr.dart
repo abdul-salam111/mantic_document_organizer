@@ -135,6 +135,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get setUpBackup => 'Configurer la sauvegarde';
 
   @override
+  String get signIn => 'Se connecter';
+
+  @override
   String get trash => 'Corbeille';
 
   @override

@@ -153,7 +153,7 @@ Future<void> backupDependencies() async {
     () => BackupRemoteDataSourceImpl(dioHelper: sl()),
   );
   sl.registerLazySingleton<IBackupRepository>(
-    () => BackupRepositoryImpl(remote: sl(), identity: sl()),
+    () => BackupRepositoryImpl(remote: sl()),
   );
   sl.registerLazySingleton(() => PrepareBackupUsecase(sl()));
   sl.registerLazySingleton(() => ConnectGoogleDriveUsecase(sl()));

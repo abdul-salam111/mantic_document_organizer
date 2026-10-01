@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart' show debugPrint, debugPrintStack;
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -17,25 +19,40 @@ abstract interface class ISocialIdentityDataSource {
   Future<SocialIdentity> signInWithGoogle();
   Future<SocialIdentity> signInWithApple();
   Future<void> signOutGoogle();
-  Future<String> requestGoogleDriveAuthorizationCode();
 }
 
 class SocialIdentityDataSourceImpl implements ISocialIdentityDataSource {
-  Future<void>? _googleInitialization;
+  late final GoogleSignIn _googleSignIn = GoogleSignIn(
+    // The Web client ID is the audience FastAPI verifies. This deliberately
+    // uses the legacy native flow, avoiding Android Credential Manager.
+    serverClientId: _googleServerClientId.isEmpty
+        ? null
+        : _googleServerClientId,
+  );
 
   @override
   Future<SocialIdentity> signInWithGoogle() async {
-    await _initializeGoogle();
     try {
-      final account = await GoogleSignIn.instance.authenticate();
-      final idToken = account.authentication.idToken;
+      await _googleSignIn.signOut();
+      final account = await _googleSignIn.signIn();
+      if (account == null) throw AuthenticationCancelledException();
+      final idToken = (await account.authentication).idToken;
       if (idToken == null || idToken.isEmpty) {
         throw AppException('Google did not return an identity token.');
       }
       return SocialIdentity(idToken: idToken, displayName: account.displayName);
-    } on GoogleSignInException catch (error) {
-      if (error.code == GoogleSignInExceptionCode.canceled) {
-        throw AppException('Google sign-in was cancelled.');
+    } on PlatformException catch (error, stackTrace) {
+      debugPrint(
+        'Google sign-in failed '
+        '(code: ${error.code}, message: ${error.message}, '
+        'details: ${error.details})',
+      );
+      debugPrintStack(
+        label: 'Google sign-in stack trace',
+        stackTrace: stackTrace,
+      );
+      if (error.code == GoogleSignIn.kSignInCanceledError) {
+        throw AuthenticationCancelledException();
       }
       throw AppException('Google sign-in failed. Please try again.');
     }
@@ -64,47 +81,14 @@ class SocialIdentityDataSourceImpl implements ISocialIdentityDataSource {
       );
     } on SignInWithAppleAuthorizationException catch (error) {
       if (error.code == AuthorizationErrorCode.canceled) {
-        throw AppException('Apple sign-in was cancelled.');
+        throw AuthenticationCancelledException();
       }
       throw AppException('Apple sign-in failed. Please try again.');
     }
   }
 
   @override
-  Future<void> signOutGoogle() => GoogleSignIn.instance.disconnect();
-
-  @override
-  Future<String> requestGoogleDriveAuthorizationCode() async {
-    await _initializeGoogle();
-    try {
-      final account = await GoogleSignIn.instance.authenticate(
-        scopeHint: const ['https://www.googleapis.com/auth/drive.file'],
-      );
-      final authorization = await account.authorizationClient.authorizeServer(
-        const ['https://www.googleapis.com/auth/drive.file'],
-      );
-      if (authorization == null || authorization.serverAuthCode.isEmpty) {
-        throw AppException('Google Drive authorization was not completed.');
-      }
-      return authorization.serverAuthCode;
-    } on GoogleSignInException catch (error) {
-      if (error.code == GoogleSignInExceptionCode.canceled) {
-        throw AppException('Google Drive connection was cancelled.');
-      }
-      throw AppException('Google Drive connection failed. Please try again.');
-    }
-  }
-
-  Future<void> _initializeGoogle() {
-    return _googleInitialization ??= GoogleSignIn.instance.initialize(
-      // Android requires the backend's Web OAuth client ID when the app does
-      // not use google-services.json. The public ID comes from .env; iOS
-      // still reads its native client ID from Info.plist.
-      serverClientId: _googleServerClientId.isEmpty
-          ? null
-          : _googleServerClientId,
-    );
-  }
+  Future<void> signOutGoogle() => _googleSignIn.signOut();
 
   String get _googleServerClientId =>
       dotenv.env['GOOGLE_SERVER_CLIENT_ID']?.trim() ?? '';
