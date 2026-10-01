@@ -133,76 +133,84 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
     if (mounted) AppNavigator.goNamed(RouteNames.home);
   }
 
+  void _goToProfile() => AppNavigator.goNamed(RouteNames.profile);
+
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: const Text('Backup'),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        tooltip: 'Go to Home',
-        onPressed: () => AppNavigator.goNamed(RouteNames.home),
+  Widget build(BuildContext context) => PopScope<Object?>(
+    canPop: false,
+    onPopInvokedWithResult: (didPop, result) {
+      if (!didPop) _goToProfile();
+    },
+    child: Scaffold(
+      appBar: AppBar(
+        title: const Text('Backup'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Back to Profile',
+          onPressed: _goToProfile,
+        ),
       ),
-    ),
-    body: SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _hero(context),
-            heightBox(24),
-            if (_space == null)
-              _preparingBackupCard(context)
-            else ...[
-              _connectionCard(context),
-              if (_space!.isDriveConnected) ...[
-                heightBox(16),
-                _SyncStatusCard(
-                  onRetry: () {
-                    final token = SessionController.instance.userToken;
-                    if (token == null) return;
-                    _runSync(token: token, spaceId: _space!.id);
-                  },
-                ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _hero(context),
+              heightBox(24),
+              if (_space == null)
+                _preparingBackupCard(context)
+              else ...[
+                _connectionCard(context),
+                if (_space!.isDriveConnected) ...[
+                  heightBox(16),
+                  _SyncStatusCard(
+                    onRetry: () {
+                      final token = SessionController.instance.userToken;
+                      if (token == null) return;
+                      _runSync(token: token, spaceId: _space!.id);
+                    },
+                  ),
+                ],
+              ],
+              heightBox(24),
+              Text('How your backup works', style: context.titleMedium),
+              heightBox(12),
+              _benefit(
+                context,
+                Icons.phone_android_outlined,
+                'Always available offline',
+                'Your documents stay on this device first.',
+              ),
+              _benefit(
+                context,
+                Icons.cloud_outlined,
+                'Protected in Drive',
+                'A secure copy is kept in your connected Google Drive.',
+              ),
+              _benefit(
+                context,
+                Icons.sync_outlined,
+                'Syncs when online',
+                'Changes wait safely until an internet connection is available.',
+              ),
+              if (_space != null) ...[
+                heightBox(28),
+                if (!_space!.isDriveConnected)
+                  CustomButton(
+                    text: 'Connect Google Drive',
+                    isLoading: _loading,
+                    onPressed: _loading ? null : _connect,
+                  )
+                else
+                  CustomButton(
+                    text: 'Go to Home',
+                    icon: Icons.home_outlined,
+                    onPressed: () => AppNavigator.goNamed(RouteNames.home),
+                  ),
               ],
             ],
-            heightBox(24),
-            Text('How your backup works', style: context.titleMedium),
-            heightBox(12),
-            _benefit(
-              context,
-              Icons.phone_android_outlined,
-              'Always available offline',
-              'Your documents stay on this device first.',
-            ),
-            _benefit(
-              context,
-              Icons.cloud_outlined,
-              'Protected in Drive',
-              'A secure copy is kept in your connected Google Drive.',
-            ),
-            _benefit(
-              context,
-              Icons.sync_outlined,
-              'Syncs when online',
-              'Changes wait safely until an internet connection is available.',
-            ),
-            if (_space != null) ...[
-              heightBox(28),
-              if (!_space!.isDriveConnected)
-                CustomButton(
-                  text: 'Connect Google Drive',
-                  isLoading: _loading,
-                  onPressed: _loading ? null : _connect,
-                )
-              else
-                CustomButton(
-                  text: 'Go to Home',
-                  icon: Icons.home_outlined,
-                  onPressed: () => AppNavigator.goNamed(RouteNames.home),
-                ),
-            ],
-          ],
+          ),
         ),
       ),
     ),
