@@ -1,11 +1,18 @@
 import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
 import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 class AppDatabase {
   Database? _db;
+
+  /// Active local documents that still have an operation in the durable
+  /// outbox. This is the source of truth for offline/sync indicators.
+  final ValueNotifier<Set<String>> pendingDocumentIds = ValueNotifier(
+    const <String>{},
+  );
 
   Database get _requireDb {
     final db = _db;
@@ -89,6 +96,7 @@ class AppDatabase {
         }
       },
     );
+    await _refreshPendingDocumentIds();
   }
 
   /// Durable, local-first queue.  A mutation enters this table in the same
@@ -178,10 +186,13 @@ class AppDatabase {
         await _enqueueDocumentMutation(txn, document, 'upsert');
       }
     });
+    await _refreshPendingDocumentIds();
   }
 
-  Future<void> completeSyncOperation(int id) =>
-      _requireDb.delete('sync_outbox', where: 'id = ?', whereArgs: [id]);
+  Future<void> completeSyncOperation(int id) async {
+    await _requireDb.delete('sync_outbox', where: 'id = ?', whereArgs: [id]);
+    await _refreshPendingDocumentIds();
+  }
 
   Future<void> recordSyncFailure(int id) => _requireDb.rawUpdate(
     'UPDATE sync_outbox SET attempt_count = attempt_count + 1 WHERE id = ?',
@@ -268,11 +279,13 @@ class AppDatabase {
   /// The server copy was removed outside the app while this active local
   /// document still exists. Forget its obsolete remote identity and queue a
   /// full create/upload so the local-first copy is never lost.
-  Future<void> requeueDocumentForRemoteRestore(DocumentItem document) =>
-      _requireDb.transaction((txn) async {
-        await _clearDocumentRemoteState(txn, document.id);
-        await _enqueueDocumentMutation(txn, document, 'upsert');
-      });
+  Future<void> requeueDocumentForRemoteRestore(DocumentItem document) async {
+    await _requireDb.transaction((txn) async {
+      await _clearDocumentRemoteState(txn, document.id);
+      await _enqueueDocumentMutation(txn, document, 'upsert');
+    });
+    await _refreshPendingDocumentIds();
+  }
 
   /// Removes mappings to a remote document that no longer exists. Used for
   /// an idempotent delete as well as restoring an active local document.
@@ -451,38 +464,40 @@ class AppDatabase {
       _queryDocuments('deleted_at IS NULL', 'created_at DESC');
   Future<List<DocumentItem>> fetchTrashedDocuments() =>
       _queryDocuments('deleted_at IS NOT NULL', 'deleted_at DESC');
-  Future<void> upsertDocument(DocumentItem document) =>
-      _requireDb.transaction((txn) async {
-        await txn.insert(
-          'documents',
-          _documentToRow(document),
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-        await txn.delete(
-          'document_tags',
-          where: 'document_id = ?',
-          whereArgs: [document.id],
-        );
-        for (final tag in document.tags) {
-          await txn.insert('document_tags', {
-            'document_id': document.id,
-            'tag': tag,
-          });
-        }
-        await txn.delete(
-          'document_attachments',
-          where: 'document_id = ?',
-          whereArgs: [document.id],
-        );
-        for (var i = 0; i < document.filePaths.length; i++) {
-          await txn.insert('document_attachments', {
-            'document_id': document.id,
-            'path': document.filePaths[i],
-            'sort_order': i,
-          });
-        }
-        await _enqueueDocumentMutation(txn, document, 'upsert');
-      });
+  Future<void> upsertDocument(DocumentItem document) async {
+    await _requireDb.transaction((txn) async {
+      await txn.insert(
+        'documents',
+        _documentToRow(document),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+      await txn.delete(
+        'document_tags',
+        where: 'document_id = ?',
+        whereArgs: [document.id],
+      );
+      for (final tag in document.tags) {
+        await txn.insert('document_tags', {
+          'document_id': document.id,
+          'tag': tag,
+        });
+      }
+      await txn.delete(
+        'document_attachments',
+        where: 'document_id = ?',
+        whereArgs: [document.id],
+      );
+      for (var i = 0; i < document.filePaths.length; i++) {
+        await txn.insert('document_attachments', {
+          'document_id': document.id,
+          'path': document.filePaths[i],
+          'sort_order': i,
+        });
+      }
+      await _enqueueDocumentMutation(txn, document, 'upsert');
+    });
+    await _refreshPendingDocumentIds();
+  }
 
   /// Applies a server document without creating another outbound mutation.
   /// Used during restore on a newly installed device.
@@ -524,54 +539,75 @@ class AppDatabase {
     );
   }
 
-  Future<void> softDeleteDocument(String id, DateTime deletedAt) =>
-      _requireDb.transaction((txn) async {
-        await txn.update(
-          'documents',
-          {'deleted_at': deletedAt.millisecondsSinceEpoch},
-          where: 'id = ?',
-          whereArgs: [id],
-        );
-        final rows = await txn.query(
-          'documents',
-          where: 'id = ?',
-          whereArgs: [id],
-        );
-        if (rows.isNotEmpty) {
-          await _enqueueDocumentMutation(
-            txn,
-            _documentFromRow(rows.first, tags: const [], filePaths: const []),
-            'delete',
-          );
-        }
-      });
-  Future<void> restoreDocument(String id) => _requireDb.transaction((
-    txn,
-  ) async {
-    await txn.update(
-      'documents',
-      {'deleted_at': null},
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-    final rows = await txn.query('documents', where: 'id = ?', whereArgs: [id]);
-    if (rows.isNotEmpty) {
-      // A restore must cancel a previously queued delete. Otherwise an
-      // offline trash action can delete the server copy after the user has
-      // already restored the document locally.
-      await _enqueueDocumentMutation(
-        txn,
-        _documentFromRow(rows.first, tags: const [], filePaths: const []),
-        'upsert',
+  Future<void> softDeleteDocument(String id, DateTime deletedAt) async {
+    await _requireDb.transaction((txn) async {
+      await txn.update(
+        'documents',
+        {'deleted_at': deletedAt.millisecondsSinceEpoch},
+        where: 'id = ?',
+        whereArgs: [id],
       );
-    }
-  });
+      final rows = await txn.query(
+        'documents',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      if (rows.isNotEmpty) {
+        await _enqueueDocumentMutation(
+          txn,
+          _documentFromRow(rows.first, tags: const [], filePaths: const []),
+          'delete',
+        );
+      }
+    });
+    await _refreshPendingDocumentIds();
+  }
+
+  Future<void> restoreDocument(String id) async {
+    await _requireDb.transaction((txn) async {
+      await txn.update(
+        'documents',
+        {'deleted_at': null},
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      final rows = await txn.query(
+        'documents',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      if (rows.isNotEmpty) {
+        // A restore must cancel a previously queued delete. Otherwise an
+        // offline trash action can delete the server copy after the user has
+        // already restored the document locally.
+        await _enqueueDocumentMutation(
+          txn,
+          _documentFromRow(rows.first, tags: const [], filePaths: const []),
+          'upsert',
+        );
+      }
+    });
+    await _refreshPendingDocumentIds();
+  }
+
   Future<void> purgeExpiredTrash(Duration retention) async {
     final cutoff = DateTime.now().subtract(retention).millisecondsSinceEpoch;
     await _requireDb.delete(
       'documents',
       where: 'deleted_at IS NOT NULL AND deleted_at < ?',
       whereArgs: [cutoff],
+    );
+  }
+
+  Future<void> _refreshPendingDocumentIds() async {
+    final rows = await _requireDb.query(
+      'sync_outbox',
+      columns: ['entity_id'],
+      where: 'entity_type = ?',
+      whereArgs: ['document'],
+    );
+    pendingDocumentIds.value = Set.unmodifiable(
+      rows.map((row) => row['entity_id'] as String).toSet(),
     );
   }
 

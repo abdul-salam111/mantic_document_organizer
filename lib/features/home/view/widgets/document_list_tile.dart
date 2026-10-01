@@ -63,13 +63,29 @@ class DocumentListTile extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: .start,
                     children: [
-                      DocumentCoverThumbnail(
-                        document: document,
-                        color: accentColor,
+                      SizedBox(
                         width: 76,
                         height: 76,
-                        borderRadius: 12,
-                        iconSize: 26,
+                        child: Stack(
+                          children: [
+                            DocumentCoverThumbnail(
+                              document: document,
+                              color: accentColor,
+                              width: 76,
+                              height: 76,
+                              borderRadius: 12,
+                              iconSize: 26,
+                            ),
+                            Positioned(
+                              right: 4,
+                              bottom: 4,
+                              child: PendingSyncBadge(
+                                documentId: document.id,
+                                size: 21,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       widthBox(12),
                       Expanded(

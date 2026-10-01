@@ -66,7 +66,10 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
     }
   }
 
-  Future<void> _runSync({required String token, required String spaceId}) async {
+  Future<void> _runSync({
+    required String token,
+    required String spaceId,
+  }) async {
     try {
       await sl<DocumentSyncService>().sync(token: token, spaceId: spaceId);
     } catch (error) {
@@ -141,91 +144,98 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
       ),
     ),
     body: SafeArea(
-      child: _space == null
-          ? _initialLoadingState(context)
-          : SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _hero(context),
-                  heightBox(24),
-                  _connectionCard(context),
-                  if (_space!.isDriveConnected) ...[
-                    heightBox(16),
-                    _SyncStatusCard(
-                      onRetry: () {
-                        final token = SessionController.instance.userToken;
-                        if (token == null) return;
-                        _runSync(token: token, spaceId: _space!.id);
-                      },
-                    ),
-                  ],
-                  heightBox(24),
-                  Text('How your backup works', style: context.titleMedium),
-                  heightBox(12),
-                  _benefit(
-                    context,
-                    Icons.phone_android_outlined,
-                    'Always available offline',
-                    'Your documents stay on this device first.',
-                  ),
-                  _benefit(
-                    context,
-                    Icons.cloud_outlined,
-                    'Protected in Drive',
-                    'A secure copy is kept in your connected Google Drive.',
-                  ),
-                  _benefit(
-                    context,
-                    Icons.sync_outlined,
-                    'Syncs when online',
-                    'Changes wait safely until an internet connection is available.',
-                  ),
-                  heightBox(28),
-                  if (!_space!.isDriveConnected)
-                    CustomButton(
-                      text: 'Connect Google Drive',
-                      isLoading: _loading,
-                      onPressed: _loading ? null : _connect,
-                    )
-                  else
-                    CustomButton(
-                      text: 'Go to Home',
-                      icon: Icons.home_outlined,
-                      onPressed: () => AppNavigator.goNamed(RouteNames.home),
-                    ),
-                ],
-              ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _hero(context),
+            heightBox(24),
+            if (_space == null)
+              _preparingBackupCard(context)
+            else ...[
+              _connectionCard(context),
+              if (_space!.isDriveConnected) ...[
+                heightBox(16),
+                _SyncStatusCard(
+                  onRetry: () {
+                    final token = SessionController.instance.userToken;
+                    if (token == null) return;
+                    _runSync(token: token, spaceId: _space!.id);
+                  },
+                ),
+              ],
+            ],
+            heightBox(24),
+            Text('How your backup works', style: context.titleMedium),
+            heightBox(12),
+            _benefit(
+              context,
+              Icons.phone_android_outlined,
+              'Always available offline',
+              'Your documents stay on this device first.',
             ),
+            _benefit(
+              context,
+              Icons.cloud_outlined,
+              'Protected in Drive',
+              'A secure copy is kept in your connected Google Drive.',
+            ),
+            _benefit(
+              context,
+              Icons.sync_outlined,
+              'Syncs when online',
+              'Changes wait safely until an internet connection is available.',
+            ),
+            if (_space != null) ...[
+              heightBox(28),
+              if (!_space!.isDriveConnected)
+                CustomButton(
+                  text: 'Connect Google Drive',
+                  isLoading: _loading,
+                  onPressed: _loading ? null : _connect,
+                )
+              else
+                CustomButton(
+                  text: 'Go to Home',
+                  icon: Icons.home_outlined,
+                  onPressed: () => AppNavigator.goNamed(RouteNames.home),
+                ),
+            ],
+          ],
+        ),
+      ),
     ),
   );
 
-  Widget _initialLoadingState(BuildContext context) => Center(
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
+  Widget _preparingBackupCard(BuildContext context) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(18),
+    decoration: BoxDecoration(
+      color: context.surfaceElevated,
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: context.primary.withValues(alpha: .25)),
+    ),
+    child: Row(
       children: [
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: context.primary.withValues(alpha: .12),
-            shape: BoxShape.circle,
-          ),
-          child: SizedBox(
-            width: 36,
-            height: 36,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.6,
-              valueColor: AlwaysStoppedAnimation(context.primary),
-            ),
-          ),
+        _StatusIcon(
+          color: context.primary,
+          icon: Icons.cloud_sync_outlined,
+          showRing: true,
         ),
-        heightBox(18),
-        Text('Setting up your backup…', style: context.titleMedium),
-        heightBox(6),
-        Text(
-          'This will only take a moment',
-          style: context.bodySmall.copyWith(color: context.textSecondary),
+        widthBox(14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Preparing your backup…', style: context.titleMedium),
+              heightBox(4),
+              Text(
+                'Checking your backup space and local documents',
+                style: context.bodySmall.copyWith(color: context.textSecondary),
+              ),
+            ],
+          ),
         ),
       ],
     ),
@@ -273,7 +283,14 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
     ),
   );
 
-  Widget _connectionCard(BuildContext context) {
+  Widget _connectionCard(BuildContext context) =>
+      ValueListenableBuilder<Set<String>>(
+        valueListenable: sl<AppDatabase>().pendingDocumentIds,
+        builder: (context, pendingIds, _) =>
+            _connectionCardContent(context, pendingIds.length),
+      );
+
+  Widget _connectionCardContent(BuildContext context, int pendingCount) {
     final connected = _space!.isDriveConnected;
     final color = connected ? Colors.green : context.textSecondary;
     return Container(
@@ -318,6 +335,10 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
               ],
             ),
           ),
+          if (pendingCount > 0) ...[
+            widthBox(10),
+            _PendingCountBadge(count: pendingCount),
+          ],
         ],
       ),
     );
@@ -349,6 +370,43 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
           ),
         ),
       ],
+    ),
+  );
+}
+
+class _PendingCountBadge extends StatelessWidget {
+  const _PendingCountBadge({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) => Tooltip(
+    message:
+        '$count ${count == 1 ? 'file is' : 'files are'} waiting to back up',
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFC857).withValues(alpha: .16),
+        borderRadius: BorderRadius.circular(99),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.cloud_upload_outlined,
+            size: 15,
+            color: Color(0xFFFFC857),
+          ),
+          widthBox(5),
+          Text(
+            '$count pending',
+            style: context.labelSmall.copyWith(
+              color: const Color(0xFFE2A72E),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
     ),
   );
 }
@@ -452,53 +510,55 @@ class _SyncStatusCard extends StatelessWidget {
     },
   );
 
-  _SyncVisuals _visualsFor(BuildContext context, SyncProgress progress) =>
-      switch (progress.stage) {
-        SyncStage.idle => (
-          icon: Icons.sync,
-          color: context.textSecondary,
-          title: '',
-          subtitle: '',
-        ),
-        SyncStage.preparing => (
-          icon: Icons.sync,
-          color: context.primary,
-          title: 'Preparing backup…',
-          subtitle: 'Getting your documents ready to sync',
-        ),
-        SyncStage.categories => (
-          icon: Icons.folder_copy_outlined,
-          color: context.primary,
-          title: 'Syncing categories…',
-          subtitle: 'Matching your categories with Drive',
-        ),
-        SyncStage.documents => (
-          icon: progress.direction == SyncDirection.upload
-              ? Icons.cloud_upload_outlined
-              : Icons.cloud_download_outlined,
-          color: context.primary,
-          title: progress.total > 0
-              ? '${progress.direction == SyncDirection.upload ? 'Uploading' : 'Downloading'} ${progress.current} of ${progress.total}'
-              : '${progress.direction == SyncDirection.upload ? 'Uploading' : 'Downloading'} documents…',
-          subtitle:
-              progress.itemLabel ??
-              (progress.direction == SyncDirection.upload
-                  ? 'Sending your documents to Drive'
-                  : 'Pulling documents from Drive'),
-        ),
-        SyncStage.completed => (
-          icon: Icons.check_circle_outline,
-          color: context.success,
-          title: 'Backup up to date',
-          subtitle: 'All your documents are synced with Drive',
-        ),
-        SyncStage.failed => (
-          icon: Icons.error_outline,
-          color: context.error,
-          title: 'Sync ran into a problem',
-          subtitle: "We'll retry automatically, or tap retry now",
-        ),
-      };
+  _SyncVisuals _visualsFor(
+    BuildContext context,
+    SyncProgress progress,
+  ) => switch (progress.stage) {
+    SyncStage.idle => (
+      icon: Icons.sync,
+      color: context.textSecondary,
+      title: '',
+      subtitle: '',
+    ),
+    SyncStage.preparing => (
+      icon: Icons.sync,
+      color: context.primary,
+      title: 'Preparing backup…',
+      subtitle: 'Getting your documents ready to sync',
+    ),
+    SyncStage.categories => (
+      icon: Icons.folder_copy_outlined,
+      color: context.primary,
+      title: 'Syncing categories…',
+      subtitle: 'Matching your categories with Drive',
+    ),
+    SyncStage.documents => (
+      icon: progress.direction == SyncDirection.upload
+          ? Icons.cloud_upload_outlined
+          : Icons.cloud_download_outlined,
+      color: context.primary,
+      title: progress.total > 0
+          ? '${progress.direction == SyncDirection.upload ? 'Uploading' : 'Downloading'} ${progress.current} of ${progress.total}'
+          : '${progress.direction == SyncDirection.upload ? 'Uploading' : 'Downloading'} documents…',
+      subtitle:
+          progress.itemLabel ??
+          (progress.direction == SyncDirection.upload
+              ? 'Sending your documents to Drive'
+              : 'Pulling documents from Drive'),
+    ),
+    SyncStage.completed => (
+      icon: Icons.check_circle_outline,
+      color: context.success,
+      title: 'Backup up to date',
+      subtitle: 'All your documents are synced with Drive',
+    ),
+    SyncStage.failed => (
+      icon: Icons.error_outline,
+      color: context.error,
+      title: 'Sync ran into a problem',
+      subtitle: "We'll retry automatically, or tap retry now",
+    ),
+  };
 }
 
 /// A small icon badge that doubles as a progress ring — indeterminate while

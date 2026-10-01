@@ -454,6 +454,14 @@ class _RecentFileCard extends StatelessWidget {
                           onTap: onToggleFavorite,
                         ),
                       ),
+                      Positioned(
+                        right: 4,
+                        bottom: 4,
+                        child: PendingSyncBadge(
+                          documentId: document.id,
+                          size: 21,
+                        ),
+                      ),
                     ],
                   ),
                 ),
