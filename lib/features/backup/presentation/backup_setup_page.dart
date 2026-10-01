@@ -428,13 +428,14 @@ class _SyncStatusCard extends StatelessWidget {
     builder: (context, progress, _) {
       if (progress.stage == SyncStage.idle) return const SizedBox.shrink();
       final visuals = _visualsFor(context, progress);
+      final isComplete = progress.stage == SyncStage.completed;
       return AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         width: double.infinity,
-        padding: const EdgeInsets.all(18),
+        padding: EdgeInsets.all(isComplete ? 12 : 18),
         decoration: BoxDecoration(
           color: context.surfaceElevated,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(isComplete ? 16 : 20),
           border: Border.all(color: visuals.color.withValues(alpha: .25)),
         ),
         child: Column(
@@ -447,21 +448,31 @@ class _SyncStatusCard extends StatelessWidget {
                   icon: visuals.icon,
                   showRing: progress.isActive,
                   ringValue: progress.fraction,
+                  compact: isComplete,
                 ),
-                widthBox(14),
+                widthBox(isComplete ? 10 : 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(visuals.title, style: context.titleMedium),
-                      heightBox(4),
+                      Text(
+                        visuals.title,
+                        style: isComplete
+                            ? context.bodySmall.copyWith(
+                                fontWeight: FontWeight.w700,
+                              )
+                            : context.titleMedium,
+                      ),
+                      heightBox(isComplete ? 2 : 4),
                       Text(
                         visuals.subtitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: context.bodySmall.copyWith(
-                          color: context.textSecondary,
-                        ),
+                        style:
+                            (isComplete
+                                    ? context.labelSmall
+                                    : context.bodySmall)
+                                .copyWith(color: context.textSecondary),
                       ),
                     ],
                   ),
@@ -565,52 +576,58 @@ class _StatusIcon extends StatelessWidget {
   final IconData icon;
   final bool showRing;
   final double? ringValue;
+  final bool compact;
 
   const _StatusIcon({
     required this.color,
     required this.icon,
     required this.showRing,
     this.ringValue,
+    this.compact = false,
   });
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-    width: 46,
-    height: 46,
-    child: Stack(
-      alignment: Alignment.center,
-      children: [
-        if (showRing)
-          SizedBox(
-            width: 46,
-            height: 46,
-            child: CircularProgressIndicator(
-              value: ringValue,
-              strokeWidth: 2.6,
-              backgroundColor: color.withValues(alpha: .15),
-              valueColor: AlwaysStoppedAnimation(color),
+  Widget build(BuildContext context) {
+    final outerSize = compact ? 36.0 : 46.0;
+    final innerSize = compact ? 28.0 : 34.0;
+    return SizedBox(
+      width: outerSize,
+      height: outerSize,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          if (showRing)
+            SizedBox(
+              width: outerSize,
+              height: outerSize,
+              child: CircularProgressIndicator(
+                value: ringValue,
+                strokeWidth: 2.6,
+                backgroundColor: color.withValues(alpha: .15),
+                valueColor: AlwaysStoppedAnimation(color),
+              ),
+            )
+          else
+            Container(
+              width: outerSize,
+              height: outerSize,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: .12),
+                shape: BoxShape.circle,
+              ),
             ),
-          )
-        else
           Container(
-            width: 46,
-            height: 46,
+            width: innerSize,
+            height: innerSize,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: .12),
+              color: color.withValues(alpha: .14),
               shape: BoxShape.circle,
             ),
+            child: Icon(icon, color: color, size: compact ? 16 : 18),
           ),
-        Container(
-          width: 34,
-          height: 34,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: .14),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: color, size: 18),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
 }
