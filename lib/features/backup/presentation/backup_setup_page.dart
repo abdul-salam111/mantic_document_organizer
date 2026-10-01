@@ -293,7 +293,7 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
             Expanded(
               child: Text(
                 'Keep your documents protected',
-                style: context.titleLarge.copyWith(
+                style: context.titleMedium.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.w700,
                 ),
@@ -352,7 +352,7 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
               children: [
                 Text(
                   connected ? 'Google Drive connected' : 'Backup not connected',
-                  style: context.bodyMedium.copyWith(
+                  style: context.bodySmall.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
