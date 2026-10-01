@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/database/database_exports.dart';
 import '../../../core/di/di_exports.dart';
 import '../../../core/localization/localization_exports.dart';
 import '../../../core/theme/theme_exports.dart';
@@ -43,12 +44,18 @@ class ProfileView extends StatelessWidget {
                     onTap: () => AppNavigator.pushNamed(RouteNames.trash),
                   ),
                   heightBox(10),
-                  _ProfileMenuTile(
-                    icon: Iconsax.cloud_add,
-                    iconColor: context.primary,
-                    label: AppLocalizations.of(context).setUpBackup,
-                    subtitle: 'Keep documents backed up to Google Drive',
-                    onTap: vm.setUpBackup,
+                  ValueListenableBuilder<Set<String>>(
+                    valueListenable: sl<AppDatabase>().pendingDocumentIds,
+                    builder: (context, pendingIds, _) => _ProfileMenuTile(
+                      icon: Iconsax.cloud_add,
+                      iconColor: context.primary,
+                      label: AppLocalizations.of(context).setUpBackup,
+                      subtitle: 'Keep documents backed up to Google Drive',
+                      trailing: pendingIds.isEmpty
+                          ? null
+                          : PendingBackupCountBadge(count: pendingIds.length),
+                      onTap: vm.setUpBackup,
+                    ),
                   ),
                   if (vm.isSignedIn) ...[
                     heightBox(20),
@@ -324,6 +331,7 @@ class _ProfileMenuTile extends StatelessWidget {
   final Color iconColor;
   final String label;
   final String? subtitle;
+  final Widget? trailing;
   final VoidCallback onTap;
   final bool isDestructive;
 
@@ -332,6 +340,7 @@ class _ProfileMenuTile extends StatelessWidget {
     required this.iconColor,
     required this.label,
     this.subtitle,
+    this.trailing,
     required this.onTap,
     this.isDestructive = false,
   });
@@ -397,6 +406,7 @@ class _ProfileMenuTile extends StatelessWidget {
                 ],
               ),
             ),
+            if (trailing != null) ...[widthBox(10), trailing!],
             if (!isDestructive)
               Icon(
                 Iconsax.arrow_right_3,

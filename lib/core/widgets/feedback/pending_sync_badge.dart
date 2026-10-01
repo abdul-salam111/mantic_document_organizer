@@ -38,3 +38,42 @@ class PendingSyncBadge extends StatelessWidget {
     },
   );
 }
+
+/// A compact count shown on backup entry points when local changes are queued
+/// and waiting for an explicit backup.
+class PendingBackupCountBadge extends StatelessWidget {
+  const PendingBackupCountBadge({super.key, required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) => Tooltip(
+    message:
+        '$count ${count == 1 ? 'file is' : 'files are'} waiting to back up',
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFC857).withValues(alpha: .16),
+        borderRadius: BorderRadius.circular(99),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.cloud_upload_outlined,
+            size: 15,
+            color: Color(0xFFFFC857),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            '$count pending',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: const Color(0xFFE2A72E),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}

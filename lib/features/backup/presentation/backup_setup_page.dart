@@ -25,6 +25,7 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
   static const _appScheme = 'mantic-drive-auth';
   BackupSpace? _space;
   bool _loading = false;
+  bool _syncing = false;
 
   @override
   void initState() {
@@ -47,22 +48,33 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
         if (mounted) setState(() => _loading = false);
       case Success(:final value):
         await storage.setValues(StorageKeys.backupSpaceId, value.id);
-        // Render the connected-state UI (and its sync progress card) right
-        // away instead of holding the full-page spinner up through the sync
-        // below — that's what used to make syncing look like a dead loader.
+        // Preparing the backup only loads its state. Syncing is user-driven so
+        // people can review the pending count and choose when to use data.
         if (mounted) {
           setState(() {
             _space = value;
             _loading = false;
           });
         }
-        if (value.isDriveConnected) {
-          await sl<AppDatabase>().queueExistingDocumentsForSync();
-          await _runSync(token: token, spaceId: value.id);
-          // Home keeps an in-memory document list. Reload it after restore so
-          // the documents pulled into SQLite are visible immediately.
-          await sl<DocumentUseCases>().init();
-        }
+    }
+  }
+
+  Future<void> _backUpNow() async {
+    final token = SessionController.instance.userToken;
+    final space = _space;
+    if (token == null || space == null || !space.isDriveConnected || _syncing) {
+      return;
+    }
+
+    setState(() => _syncing = true);
+    try {
+      await sl<AppDatabase>().queueExistingDocumentsForSync();
+      await _runSync(token: token, spaceId: space.id);
+      // Home keeps an in-memory document list. Reload it after a restore so
+      // downloaded documents are visible without reopening the application.
+      await sl<DocumentUseCases>().init();
+    } finally {
+      if (mounted) setState(() => _syncing = false);
     }
   }
 
@@ -119,18 +131,12 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
       return;
     }
 
-    // _prepare() already runs the sync (with live progress) once it sees
-    // this space is Drive-connected, so there's no need to kick off a
-    // second one here.
     await _prepare();
     if (!mounted || _space?.isDriveConnected != true) return;
     await storage.setValues(StorageKeys.backupEnabled, 'true');
     AppToastsUtils.success(
-      'Google Drive connected. Your documents are syncing in the background.',
+      'Google Drive connected. Tap Back up now when you are ready.',
     );
-    // This is the end of the account-and-backup onboarding flow. Replacing
-    // the route prevents Back from returning to sign-in or closing the app.
-    if (mounted) AppNavigator.goNamed(RouteNames.home);
   }
 
   void _goToProfile() => AppNavigator.goNamed(RouteNames.profile);
@@ -202,12 +208,22 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
                     isLoading: _loading,
                     onPressed: _loading ? null : _connect,
                   )
-                else
+                else ...[
                   CustomButton(
-                    text: 'Go to Home',
-                    icon: Icons.home_outlined,
-                    onPressed: () => AppNavigator.goNamed(RouteNames.home),
+                    text: 'Back up now',
+                    icon: Icons.cloud_upload_outlined,
+                    isLoading: _syncing,
+                    onPressed: _syncing ? null : _backUpNow,
                   ),
+                  heightBox(6),
+                  Center(
+                    child: TextButton.icon(
+                      onPressed: () => AppNavigator.goNamed(RouteNames.home),
+                      icon: const Icon(Icons.home_outlined, size: 18),
+                      label: const Text('Go to Home'),
+                    ),
+                  ),
+                ],
               ],
             ],
           ),
@@ -334,7 +350,7 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
                 heightBox(4),
                 Text(
                   connected
-                      ? 'Syncing with ${_space!.name}'
+                      ? 'Ready to back up to ${_space!.name}'
                       : 'Connect Drive to protect your documents.',
                   style: context.bodySmall.copyWith(
                     color: context.textSecondary,
@@ -345,7 +361,7 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
           ),
           if (pendingCount > 0) ...[
             widthBox(10),
-            _PendingCountBadge(count: pendingCount),
+            PendingBackupCountBadge(count: pendingCount),
           ],
         ],
       ),
@@ -378,43 +394,6 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
           ),
         ),
       ],
-    ),
-  );
-}
-
-class _PendingCountBadge extends StatelessWidget {
-  const _PendingCountBadge({required this.count});
-
-  final int count;
-
-  @override
-  Widget build(BuildContext context) => Tooltip(
-    message:
-        '$count ${count == 1 ? 'file is' : 'files are'} waiting to back up',
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFC857).withValues(alpha: .16),
-        borderRadius: BorderRadius.circular(99),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.cloud_upload_outlined,
-            size: 15,
-            color: Color(0xFFFFC857),
-          ),
-          widthBox(5),
-          Text(
-            '$count pending',
-            style: context.labelSmall.copyWith(
-              color: const Color(0xFFE2A72E),
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
     ),
   );
 }
