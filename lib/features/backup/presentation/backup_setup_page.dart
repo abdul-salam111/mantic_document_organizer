@@ -275,27 +275,33 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: .18),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.shield_outlined,
-            color: Colors.white,
-            size: 22,
-          ),
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: .18),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.shield_outlined,
+                color: Colors.white,
+                size: 22,
+              ),
+            ),
+            widthBox(10),
+            Expanded(
+              child: Text(
+                'Keep your documents protected',
+                style: context.titleLarge.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
         ),
-        heightBox(10),
-        Text(
-          'Keep your documents protected',
-          style: context.titleLarge.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        heightBox(4),
+        heightBox(8),
         Text(
           'Your device remains your primary workspace. Backup happens quietly when you are online.',
           style: context.bodySmall.copyWith(
