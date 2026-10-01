@@ -142,7 +142,7 @@ class DocumentViewerView extends StatelessWidget {
       case _DocumentAction.exportPdf:
         return persistAction(context, () => vm.exportPdf(current)).then((_) {});
       case _DocumentAction.rename:
-        return _showRenameDialog(context, vm, current);
+        return _showRenameSheet(context, vm, current);
       case _DocumentAction.move:
         return _showMovePicker(context, vm, current);
       case _DocumentAction.delete:
@@ -150,59 +150,20 @@ class DocumentViewerView extends StatelessWidget {
     }
   }
 
-  Future<void> _showRenameDialog(
+  Future<void> _showRenameSheet(
     BuildContext context,
     DocumentViewerViewModel vm,
     DocumentItem current,
   ) async {
-    final controller = TextEditingController(text: current.title);
-    final formKey = GlobalKey<FormState>();
-    final newTitle = await showDialog<String>(
+    final newTitle = await showModalBottomSheet<String>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: context.surfaceElevated,
-        shape: RoundedRectangleBorder(borderRadius: .circular(20)),
-        titlePadding: const .fromLTRB(24, 24, 24, 4),
-        contentPadding: const .fromLTRB(24, 12, 24, 8),
-        title: Text(
-          AppLocalizations.of(context).renameDocument,
-          style: context.titleMedium.copyWith(fontWeight: .bold),
-        ),
-        content: Form(
-          key: formKey,
-          child: CustomTextFormField(
-            label: AppLocalizations.of(context).documentTitleLabel,
-            hintText: AppLocalizations.of(context).documentTitleHint,
-            controller: controller,
-            isRequired: true,
-            autofocus: true,
-            textCapitalization: .sentences,
-            validator: (value) => (value == null || value.trim().isEmpty)
-                ? AppLocalizations.of(context).documentTitleRequired
-                : null,
-          ),
-        ),
-        actionsPadding: const .fromLTRB(12, 0, 12, 12),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: context.primary,
-              shape: RoundedRectangleBorder(borderRadius: .circular(10)),
-            ),
-            onPressed: () {
-              if (formKey.currentState?.validate() != true) return;
-              Navigator.of(dialogContext).pop(controller.text.trim());
-            },
-            child: Text(AppLocalizations.of(context).save),
-          ),
-        ],
+      isScrollControlled: true,
+      backgroundColor: context.surfaceElevated,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
+      builder: (_) => _RenameDocumentSheet(initialTitle: current.title),
     );
-    controller.dispose();
     if (newTitle == null || !context.mounted) return;
     if (!await persistAction(context, () => vm.rename(newTitle))) return;
     if (!context.mounted) return;
@@ -280,6 +241,112 @@ class DocumentViewerView extends StatelessWidget {
       AppLocalizations.of(context).documentTrashedToast(current.title),
     );
   }
+}
+
+class _RenameDocumentSheet extends StatefulWidget {
+  const _RenameDocumentSheet({required this.initialTitle});
+
+  final String initialTitle;
+
+  @override
+  State<_RenameDocumentSheet> createState() => _RenameDocumentSheetState();
+}
+
+class _RenameDocumentSheetState extends State<_RenameDocumentSheet> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.initialTitle,
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    if (_formKey.currentState?.validate() != true) return;
+    Navigator.of(context).pop(_controller.text.trim());
+  }
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: EdgeInsets.fromLTRB(
+      20,
+      12,
+      20,
+      MediaQuery.viewInsetsOf(context).bottom + 20,
+    ),
+    child: SafeArea(
+      top: false,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 42,
+              height: 4,
+              decoration: BoxDecoration(
+                color: context.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          heightBox(20),
+          Text(
+            AppLocalizations.of(context).renameDocument,
+            style: context.titleLarge.copyWith(fontWeight: .bold),
+          ),
+          heightBox(6),
+          Text(
+            'Choose a clear name so you can find this document later.',
+            style: context.bodySmall.copyWith(color: context.textSecondary),
+          ),
+          heightBox(20),
+          Form(
+            key: _formKey,
+            child: CustomTextFormField(
+              label: AppLocalizations.of(context).documentTitleLabel,
+              hintText: AppLocalizations.of(context).documentTitleHint,
+              controller: _controller,
+              isRequired: true,
+              autofocus: true,
+              textCapitalization: TextCapitalization.sentences,
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) => _save(),
+              validator: (value) => (value == null || value.trim().isEmpty)
+                  ? AppLocalizations.of(context).documentTitleRequired
+                  : null,
+            ),
+          ),
+          heightBox(20),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(
+                    MaterialLocalizations.of(context).cancelButtonLabel,
+                  ),
+                ),
+              ),
+              widthBox(12),
+              Expanded(
+                child: FilledButton(
+                  onPressed: _save,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: context.primary,
+                  ),
+                  child: Text(AppLocalizations.of(context).save),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _MenuRow extends StatelessWidget {
