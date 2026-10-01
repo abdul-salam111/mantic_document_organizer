@@ -2,12 +2,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../categories/domain/entities/category_item.dart';
 import '../../../documents/domain/entities/document_item.dart';
+import '../../domain/entities/sync_progress.dart';
 
 /// Sends durable local document mutations after backup setup. Local writes
 /// always succeed first; failed HTTP work remains in SQLite for a later run.
@@ -18,24 +20,63 @@ class DocumentSyncService {
   final Dio _dio;
   bool _running = false;
 
+  /// Live status of the current/last run, for the setup/profile UI to show
+  /// a real progress bar instead of a bare spinner.
+  final ValueNotifier<SyncProgress> progress = ValueNotifier(
+    const SyncProgress.idle(),
+  );
+
   Future<void> sync({required String token, required String spaceId}) async {
     if (_running) return;
     _running = true;
+    progress.value = const SyncProgress(stage: SyncStage.preparing);
     try {
+      progress.value = const SyncProgress(stage: SyncStage.categories);
       await _syncCategories(token: token, spaceId: spaceId);
-      for (final item in await _database.pendingSyncOperations()) {
+
+      final pending = await _database.pendingSyncOperations();
+      for (var i = 0; i < pending.length; i++) {
+        final item = pending[i];
         final id = item['id'] as int;
+        progress.value = SyncProgress(
+          stage: SyncStage.documents,
+          direction: SyncDirection.upload,
+          current: i + 1,
+          total: pending.length,
+          itemLabel: _uploadLabel(item),
+        );
         try {
           await _syncDocument(item, token: token, spaceId: spaceId);
           await _database.completeSyncOperation(id);
         } catch (_) {
+          // Keep going: one stuck/failing item (e.g. a Drive-side folder
+          // that no longer exists) must not block every other queued
+          // document — including brand-new ones — from ever being
+          // attempted, since this queue is processed oldest-first forever.
           await _database.recordSyncFailure(id);
-          break;
         }
       }
+
       await _pullRemoteDocuments(token: token, spaceId: spaceId);
+      progress.value = const SyncProgress(stage: SyncStage.completed);
+    } catch (error) {
+      progress.value = SyncProgress(
+        stage: SyncStage.failed,
+        errorMessage: error.toString(),
+      );
+      rethrow;
     } finally {
       _running = false;
+    }
+  }
+
+  String? _uploadLabel(Map<String, Object?> operation) {
+    if (operation['operation'] == 'delete') return 'Removing a document';
+    try {
+      final payload = jsonDecode(operation['payload'] as String) as Map;
+      return payload['title'] as String?;
+    } catch (_) {
+      return null;
     }
   }
 
@@ -48,9 +89,16 @@ class DocumentSyncService {
       '${ApiEndPoints.baseUrl}spaces/$spaceId/categories',
       options: headers,
     );
+    final remoteCategories = List<Map<String, dynamic>>.from(
+      (remoteResponse.data as List).map(
+        (value) => Map<String, dynamic>.from(value as Map),
+      ),
+    );
+    final remoteById = {
+      for (final remote in remoteCategories) remote['id'] as String: remote,
+    };
     final localCategories = await _database.fetchCategories();
-    for (final value in remoteResponse.data as List) {
-      final remote = Map<String, dynamic>.from(value as Map);
+    for (final remote in remoteCategories) {
       final remoteId = remote['id'] as String;
       var localId = await _database.localCategoryIdForRemoteId(remoteId);
       CategoryItem? localCategory;
@@ -102,13 +150,23 @@ class DocumentSyncService {
       );
     }
 
-    // Send the current local appearance too. This backfills built-in category
-    // colors created by older app versions and keeps custom category edits
-    // consistent for every device in the space.
+    // Backfills built-in category colors created by older app versions and
+    // keeps custom category edits consistent for every device in the space.
+    // Only categories that actually differ from the server are sent — the
+    // GET above already told us what the server has, so comparing against
+    // `remoteById` instead of PATCHing unconditionally is what stops every
+    // category being re-sent (and its revision bumped) on every sync.
     for (final category in await _database.fetchCategories()) {
       if (category.id == uncategorizedCategoryId) continue;
       final remoteId = await _database.remoteCategoryIdForLocalId(category.id);
       if (remoteId == null) continue;
+      final remote = remoteById[remoteId];
+      final matchesRemote =
+          remote != null &&
+          remote['name'] == category.name &&
+          (remote['icon_key'] as String? ?? '') == category.iconKey &&
+          _colorFromRemote(remote['color']) == category.colorValue;
+      if (matchesRemote) continue;
       await _dio.patch(
         '${ApiEndPoints.baseUrl}spaces/$spaceId/categories/$remoteId',
         data: {
@@ -134,13 +192,33 @@ class DocumentSyncService {
       '${ApiEndPoints.baseUrl}spaces/$spaceId/documents',
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
-    for (final value in response.data as List) {
-      final remote = Map<String, dynamic>.from(value as Map);
+    final items = response.data as List;
+    for (var i = 0; i < items.length; i++) {
+      final remote = Map<String, dynamic>.from(items[i] as Map);
+      progress.value = SyncProgress(
+        stage: SyncStage.documents,
+        direction: SyncDirection.download,
+        current: i + 1,
+        total: items.length,
+        itemLabel: remote['title'] as String?,
+      );
       final remoteId = remote['id'] as String;
+      final remoteRevision = remote['revision'] as int;
       final localId =
           await _database.localDocumentIdForRemoteId(remoteId) ?? remoteId;
+      final currentState = await _database.documentSyncState(localId);
+      if (currentState != null &&
+          currentState['remote_revision'] == remoteRevision) {
+        // Already current locally — most commonly because we're the one
+        // that just pushed this exact revision in the upload step above.
+        // Nothing changed server-side, so there's nothing to pull: skip
+        // the DB rewrite and attachment work entirely.
+        continue;
+      }
       final existing = await _database.documentById(localId);
       final attachmentPaths = await _downloadAttachments(
+        localId: localId,
+        remoteDocumentId: remoteId,
         attachments: List<Map<String, dynamic>>.from(
           (remote['attachments'] as List? ?? const []).map(
             (value) => Map<String, dynamic>.from(value as Map),
@@ -180,12 +258,14 @@ class DocumentSyncService {
       await _database.saveDocumentSyncState(
         localId: localId,
         remoteId: remoteId,
-        revision: remote['revision'] as int,
+        revision: remoteRevision,
       );
     }
   }
 
   Future<List<String>> _downloadAttachments({
+    required String localId,
+    required String remoteDocumentId,
     required List<Map<String, dynamic>> attachments,
     required String token,
   }) async {
@@ -203,12 +283,46 @@ class DocumentSyncService {
       final path = '${directory.path}/remote_${id}_$filename';
       final file = File(path);
       if (!await file.exists()) {
-        await _dio.download(
-          '${ApiEndPoints.baseUrl}attachments/$id/content',
-          path,
-          options: Options(headers: {'Authorization': 'Bearer $token'}),
-        );
+        try {
+          await _dio.download(
+            '${ApiEndPoints.baseUrl}attachments/$id/content',
+            path,
+            options: Options(headers: {'Authorization': 'Bearer $token'}),
+          );
+        } on DioException catch (error) {
+          if (error.response?.statusCode == 404) {
+            // The file was removed directly in Drive, outside the app.
+            // If this device is the one that originally uploaded it, it
+            // still has the bytes locally — push them back up to repair
+            // the Drive copy instead of leaving the attachment orphaned.
+            final ownPath = await _database.localPathForRemoteAttachment(
+              localId,
+              id,
+            );
+            if (ownPath != null && await File(ownPath).exists()) {
+              await _database.clearAttachmentUploaded(localId, id);
+              await _pushAttachment(
+                localId: localId,
+                remoteDocumentId: remoteDocumentId,
+                path: ownPath,
+                token: token,
+              );
+              paths.add(ownPath);
+            }
+            continue;
+          }
+          rethrow;
+        }
       }
+      // This file now exists both locally and on the server under this
+      // path — record it as already uploaded so a later edit of this
+      // document (which re-sends its current file_paths) doesn't push the
+      // exact same attachment back up as if it were new.
+      await _database.markAttachmentUploaded(
+        documentId: localId,
+        path: path,
+        remoteAttachmentId: id,
+      );
       paths.add(path);
     }
     return paths;
@@ -296,17 +410,31 @@ class DocumentSyncService {
       if (await _database.isAttachmentUploaded(localId, path)) continue;
       final file = File(path);
       if (!await file.exists()) continue;
-      final response = await _dio.post(
-        '${ApiEndPoints.baseUrl}documents/$remoteDocumentId/attachments',
-        data: FormData.fromMap({'file': await MultipartFile.fromFile(path)}),
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
-      );
-      final remote = Map<String, dynamic>.from(response.data as Map);
-      await _database.markAttachmentUploaded(
-        documentId: localId,
+      await _pushAttachment(
+        localId: localId,
+        remoteDocumentId: remoteDocumentId,
         path: path,
-        remoteAttachmentId: remote['id'] as String,
+        token: token,
       );
     }
+  }
+
+  Future<void> _pushAttachment({
+    required String localId,
+    required String remoteDocumentId,
+    required String path,
+    required String token,
+  }) async {
+    final response = await _dio.post(
+      '${ApiEndPoints.baseUrl}documents/$remoteDocumentId/attachments',
+      data: FormData.fromMap({'file': await MultipartFile.fromFile(path)}),
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+    final remote = Map<String, dynamic>.from(response.data as Map);
+    await _database.markAttachmentUploaded(
+      documentId: localId,
+      path: path,
+      remoteAttachmentId: remote['id'] as String,
+    );
   }
 }

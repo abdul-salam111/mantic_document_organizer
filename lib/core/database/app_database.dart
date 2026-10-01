@@ -156,12 +156,25 @@ class AppDatabase {
   Future<List<Map<String, Object?>>> pendingSyncOperations() =>
       _requireDb.query('sync_outbox', orderBy: 'id ASC');
 
-  /// Adds pre-backup documents to the outbox once. This is needed when a
-  /// person connects Drive after already using the offline app for a while.
+  /// Backfills documents that predate backup connection into the outbox —
+  /// needed when a person connects Drive after already using the offline
+  /// app for a while. Only documents with no `sync_document_state` row are
+  /// queued: a document already known to the server is kept in sync by its
+  /// own edit/delete calls (`upsertDocument`/`softDeleteDocument`), not by
+  /// being wholesale re-pushed here every time this runs. Re-queuing an
+  /// already-synced document is how re-uploads/duplicate attachments used
+  /// to happen on every repeat sync.
   Future<void> queueExistingDocumentsForSync() async {
     final documents = await fetchDocuments();
     await _requireDb.transaction((txn) async {
       for (final document in documents) {
+        final synced = await txn.query(
+          'sync_document_state',
+          columns: ['local_document_id'],
+          where: 'local_document_id = ?',
+          whereArgs: [document.id],
+        );
+        if (synced.isNotEmpty) continue;
         await _enqueueDocumentMutation(txn, document, 'upsert');
       }
     });
@@ -270,6 +283,31 @@ class AppDatabase {
     'local_path': path,
     'remote_attachment_id': remoteAttachmentId,
   }, conflictAlgorithm: ConflictAlgorithm.replace);
+
+  /// The local path this device originally pushed as [remoteAttachmentId],
+  /// if any — lets a failed download (the server's copy is gone) fall back
+  /// to re-uploading the file this device still has, instead of just
+  /// giving up on it.
+  Future<String?> localPathForRemoteAttachment(
+    String documentId,
+    String remoteAttachmentId,
+  ) async {
+    final rows = await _requireDb.query(
+      'sync_uploaded_attachments',
+      where: 'local_document_id = ? AND remote_attachment_id = ?',
+      whereArgs: [documentId, remoteAttachmentId],
+    );
+    return rows.isEmpty ? null : rows.first['local_path'] as String;
+  }
+
+  Future<void> clearAttachmentUploaded(
+    String documentId,
+    String remoteAttachmentId,
+  ) => _requireDb.delete(
+    'sync_uploaded_attachments',
+    where: 'local_document_id = ? AND remote_attachment_id = ?',
+    whereArgs: [documentId, remoteAttachmentId],
+  );
 
   // ---------------------------------------------------------------------
   // Categories

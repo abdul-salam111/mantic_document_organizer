@@ -11,6 +11,7 @@ import '../../../core/utils/utils_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
 import '../../documents/domain/usecases/document_usecases.dart';
 import '../domain/entities/backup_space.dart';
+import '../domain/entities/sync_progress.dart';
 import '../domain/usecases/backup_usecases.dart';
 import '../data/services/document_sync_service.dart';
 
@@ -43,18 +44,34 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
     switch (result) {
       case Failure(:final error):
         AppToastsUtils.error(error.message);
+        if (mounted) setState(() => _loading = false);
       case Success(:final value):
-        _space = value;
         await storage.setValues(StorageKeys.backupSpaceId, value.id);
+        // Render the connected-state UI (and its sync progress card) right
+        // away instead of holding the full-page spinner up through the sync
+        // below — that's what used to make syncing look like a dead loader.
+        if (mounted) {
+          setState(() {
+            _space = value;
+            _loading = false;
+          });
+        }
         if (value.isDriveConnected) {
           await sl<AppDatabase>().queueExistingDocumentsForSync();
-          await sl<DocumentSyncService>().sync(token: token, spaceId: value.id);
+          await _runSync(token: token, spaceId: value.id);
           // Home keeps an in-memory document list. Reload it after restore so
           // the documents pulled into SQLite are visible immediately.
           await sl<DocumentUseCases>().init();
         }
     }
-    if (mounted) setState(() => _loading = false);
+  }
+
+  Future<void> _runSync({required String token, required String spaceId}) async {
+    try {
+      await sl<DocumentSyncService>().sync(token: token, spaceId: spaceId);
+    } catch (error) {
+      debugPrint('Document sync failed: $error');
+    }
   }
 
   Future<void> _connect() async {
@@ -99,16 +116,14 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
       return;
     }
 
+    // _prepare() already runs the sync (with live progress) once it sees
+    // this space is Drive-connected, so there's no need to kick off a
+    // second one here.
     await _prepare();
     if (!mounted || _space?.isDriveConnected != true) return;
     await storage.setValues(StorageKeys.backupEnabled, 'true');
-    // Fire-and-forget: the durable outbox retains failures for the next run.
-    final token = SessionController.instance.userToken;
-    if (token != null) {
-      await sl<DocumentSyncService>().sync(token: token, spaceId: _space!.id);
-    }
     AppToastsUtils.success(
-      'Google Drive connected. Backup will run in the background.',
+      'Google Drive connected. Your documents are syncing in the background.',
     );
     // This is the end of the account-and-backup onboarding flow. Replacing
     // the route prevents Back from returning to sign-in or closing the app.
@@ -127,7 +142,7 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
     ),
     body: SafeArea(
       child: _space == null
-          ? const Center(child: CircularProgressIndicator())
+          ? _initialLoadingState(context)
           : SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
               child: Column(
@@ -136,6 +151,16 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
                   _hero(context),
                   heightBox(24),
                   _connectionCard(context),
+                  if (_space!.isDriveConnected) ...[
+                    heightBox(16),
+                    _SyncStatusCard(
+                      onRetry: () {
+                        final token = SessionController.instance.userToken;
+                        if (token == null) return;
+                        _runSync(token: token, spaceId: _space!.id);
+                      },
+                    ),
+                  ],
                   heightBox(24),
                   Text('How your backup works', style: context.titleMedium),
                   heightBox(12),
@@ -173,6 +198,36 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
                 ],
               ),
             ),
+    ),
+  );
+
+  Widget _initialLoadingState(BuildContext context) => Center(
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: context.primary.withValues(alpha: .12),
+            shape: BoxShape.circle,
+          ),
+          child: SizedBox(
+            width: 36,
+            height: 36,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.6,
+              valueColor: AlwaysStoppedAnimation(context.primary),
+            ),
+          ),
+        ),
+        heightBox(18),
+        Text('Setting up your backup…', style: context.titleMedium),
+        heightBox(6),
+        Text(
+          'This will only take a moment',
+          style: context.bodySmall.copyWith(color: context.textSecondary),
+        ),
+      ],
     ),
   );
 
@@ -292,6 +347,212 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
               ),
             ],
           ),
+        ),
+      ],
+    ),
+  );
+}
+
+typedef _SyncVisuals = ({
+  IconData icon,
+  Color color,
+  String title,
+  String subtitle,
+});
+
+/// Shows what `DocumentSyncService` is doing right now — uploading,
+/// downloading, or done — instead of leaving the page on a bare spinner
+/// while a backup sync runs in the background.
+class _SyncStatusCard extends StatelessWidget {
+  final VoidCallback onRetry;
+
+  const _SyncStatusCard({required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) => ValueListenableBuilder<SyncProgress>(
+    valueListenable: sl<DocumentSyncService>().progress,
+    builder: (context, progress, _) {
+      if (progress.stage == SyncStage.idle) return const SizedBox.shrink();
+      final visuals = _visualsFor(context, progress);
+      return AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        width: double.infinity,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: context.surfaceElevated,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: visuals.color.withValues(alpha: .25)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                _StatusIcon(
+                  color: visuals.color,
+                  icon: visuals.icon,
+                  showRing: progress.isActive,
+                  ringValue: progress.fraction,
+                ),
+                widthBox(14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(visuals.title, style: context.titleMedium),
+                      heightBox(4),
+                      Text(
+                        visuals.subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.bodySmall.copyWith(
+                          color: context.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (progress.stage == SyncStage.documents &&
+                    progress.fraction != null)
+                  Text(
+                    '${(progress.fraction! * 100).round()}%',
+                    style: context.labelMedium.copyWith(
+                      color: visuals.color,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+              ],
+            ),
+            if (progress.isActive) ...[
+              heightBox(14),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LinearProgressIndicator(
+                  value: progress.fraction,
+                  minHeight: 6,
+                  backgroundColor: visuals.color.withValues(alpha: .12),
+                  valueColor: AlwaysStoppedAnimation(visuals.color),
+                ),
+              ),
+            ],
+            if (progress.stage == SyncStage.failed) ...[
+              heightBox(10),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: onRetry,
+                  icon: const Icon(Icons.refresh, size: 16),
+                  label: const Text('Retry'),
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
+    },
+  );
+
+  _SyncVisuals _visualsFor(BuildContext context, SyncProgress progress) =>
+      switch (progress.stage) {
+        SyncStage.idle => (
+          icon: Icons.sync,
+          color: context.textSecondary,
+          title: '',
+          subtitle: '',
+        ),
+        SyncStage.preparing => (
+          icon: Icons.sync,
+          color: context.primary,
+          title: 'Preparing backup…',
+          subtitle: 'Getting your documents ready to sync',
+        ),
+        SyncStage.categories => (
+          icon: Icons.folder_copy_outlined,
+          color: context.primary,
+          title: 'Syncing categories…',
+          subtitle: 'Matching your categories with Drive',
+        ),
+        SyncStage.documents => (
+          icon: progress.direction == SyncDirection.upload
+              ? Icons.cloud_upload_outlined
+              : Icons.cloud_download_outlined,
+          color: context.primary,
+          title: progress.total > 0
+              ? '${progress.direction == SyncDirection.upload ? 'Uploading' : 'Downloading'} ${progress.current} of ${progress.total}'
+              : '${progress.direction == SyncDirection.upload ? 'Uploading' : 'Downloading'} documents…',
+          subtitle:
+              progress.itemLabel ??
+              (progress.direction == SyncDirection.upload
+                  ? 'Sending your documents to Drive'
+                  : 'Pulling documents from Drive'),
+        ),
+        SyncStage.completed => (
+          icon: Icons.check_circle_outline,
+          color: context.success,
+          title: 'Backup up to date',
+          subtitle: 'All your documents are synced with Drive',
+        ),
+        SyncStage.failed => (
+          icon: Icons.error_outline,
+          color: context.error,
+          title: 'Sync ran into a problem',
+          subtitle: "We'll retry automatically, or tap retry now",
+        ),
+      };
+}
+
+/// A small icon badge that doubles as a progress ring — indeterminate while
+/// [ringValue] is null and active, filled to [ringValue] once it's known,
+/// and a plain tinted badge once the sync is no longer active.
+class _StatusIcon extends StatelessWidget {
+  final Color color;
+  final IconData icon;
+  final bool showRing;
+  final double? ringValue;
+
+  const _StatusIcon({
+    required this.color,
+    required this.icon,
+    required this.showRing,
+    this.ringValue,
+  });
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: 46,
+    height: 46,
+    child: Stack(
+      alignment: Alignment.center,
+      children: [
+        if (showRing)
+          SizedBox(
+            width: 46,
+            height: 46,
+            child: CircularProgressIndicator(
+              value: ringValue,
+              strokeWidth: 2.6,
+              backgroundColor: color.withValues(alpha: .15),
+              valueColor: AlwaysStoppedAnimation(color),
+            ),
+          )
+        else
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: .12),
+              shape: BoxShape.circle,
+            ),
+          ),
+        Container(
+          width: 34,
+          height: 34,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: .14),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: color, size: 18),
         ),
       ],
     ),
