@@ -34,6 +34,18 @@ class DocumentSyncService {
       progress.value = const SyncProgress(stage: SyncStage.categories);
       await _syncCategories(token: token, spaceId: spaceId);
 
+      // A document can be removed directly from Neon (or by a recovery
+      // operation) while its local copy and files still exist. Its old sync
+      // state would otherwise make us PATCH a non-existent remote ID, or
+      // skip attachments because they were previously uploaded. Resolve this
+      // before processing the outbox: the active local document becomes a
+      // new create/upload, while an intentional local delete remains a
+      // delete operation and is never resurrected.
+      await _requeueLocalDocumentsMissingFromRemote(
+        token: token,
+        spaceId: spaceId,
+      );
+
       final pending = await _database.pendingSyncOperations();
       for (var i = 0; i < pending.length; i++) {
         final item = pending[i];
@@ -182,6 +194,27 @@ class DocumentSyncService {
   int? _colorFromRemote(Object? value) {
     final hex = value as String?;
     return hex == null ? null : int.tryParse(hex, radix: 16);
+  }
+
+  Future<void> _requeueLocalDocumentsMissingFromRemote({
+    required String token,
+    required String spaceId,
+  }) async {
+    final response = await _dio.get(
+      '${ApiEndPoints.baseUrl}spaces/$spaceId/documents',
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+    final remoteIds = (response.data as List)
+        .map((value) => (value as Map)['id'] as String)
+        .toSet();
+
+    for (final document in await _database.fetchDocuments()) {
+      final state = await _database.documentSyncState(document.id);
+      if (state == null || remoteIds.contains(state['remote_document_id'])) {
+        continue;
+      }
+      await _database.requeueDocumentForRemoteRestore(document);
+    }
   }
 
   Future<void> _pullRemoteDocuments({
@@ -338,10 +371,17 @@ class DocumentSyncService {
     final headers = Options(headers: {'Authorization': 'Bearer $token'});
     if (operation['operation'] == 'delete') {
       if (state != null) {
-        await _dio.delete(
-          '${ApiEndPoints.baseUrl}documents/${state['remote_document_id']}',
-          options: headers,
-        );
+        try {
+          await _dio.delete(
+            '${ApiEndPoints.baseUrl}documents/${state['remote_document_id']}',
+            options: headers,
+          );
+        } on DioException catch (error) {
+          // Delete is idempotent. If it was already removed from Neon, this
+          // queued local delete is complete rather than a permanent retry.
+          if (error.response?.statusCode != 404) rethrow;
+        }
+        await _database.clearDocumentRemoteState(localId);
       }
       return;
     }

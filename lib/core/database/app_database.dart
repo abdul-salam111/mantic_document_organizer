@@ -265,6 +265,36 @@ class AppDatabase {
     'remote_revision': revision,
   }, conflictAlgorithm: ConflictAlgorithm.replace);
 
+  /// The server copy was removed outside the app while this active local
+  /// document still exists. Forget its obsolete remote identity and queue a
+  /// full create/upload so the local-first copy is never lost.
+  Future<void> requeueDocumentForRemoteRestore(DocumentItem document) =>
+      _requireDb.transaction((txn) async {
+        await _clearDocumentRemoteState(txn, document.id);
+        await _enqueueDocumentMutation(txn, document, 'upsert');
+      });
+
+  /// Removes mappings to a remote document that no longer exists. Used for
+  /// an idempotent delete as well as restoring an active local document.
+  Future<void> clearDocumentRemoteState(String documentId) => _requireDb
+      .transaction((txn) => _clearDocumentRemoteState(txn, documentId));
+
+  Future<void> _clearDocumentRemoteState(
+    DatabaseExecutor db,
+    String documentId,
+  ) async {
+    await db.delete(
+      'sync_document_state',
+      where: 'local_document_id = ?',
+      whereArgs: [documentId],
+    );
+    await db.delete(
+      'sync_uploaded_attachments',
+      where: 'local_document_id = ?',
+      whereArgs: [documentId],
+    );
+  }
+
   Future<bool> isAttachmentUploaded(String documentId, String path) async {
     final rows = await _requireDb.query(
       'sync_uploaded_attachments',
