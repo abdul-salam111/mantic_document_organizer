@@ -1,5 +1,6 @@
 import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
 import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
+import 'dart:convert';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -18,7 +19,7 @@ class AppDatabase {
     final path = join(await getDatabasesPath(), 'mantic.db');
     _db = await openDatabase(
       path,
-      version: 2,
+      version: 4,
       onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: (db, version) async {
         await db.execute('''
@@ -63,6 +64,8 @@ class AppDatabase {
             PRIMARY KEY (document_id, sort_order)
           )
         ''');
+        await _createSyncOutbox(db);
+        await _createSyncState(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -70,9 +73,101 @@ class AppDatabase {
             'ALTER TABLE documents ADD COLUMN deleted_at INTEGER',
           );
         }
+        if (oldVersion < 3) {
+          await _createSyncOutbox(db);
+        }
+        if (oldVersion < 4) {
+          await _createSyncState(db);
+        }
       },
     );
   }
+
+  /// Durable, local-first queue.  A mutation enters this table in the same
+  /// transaction as the local database write; network availability never
+  /// changes whether the user can save a document.
+  Future<void> _createSyncOutbox(DatabaseExecutor db) => db.execute('''
+    CREATE TABLE IF NOT EXISTS sync_outbox (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      entity_type TEXT NOT NULL,
+      entity_id TEXT NOT NULL,
+      operation TEXT NOT NULL,
+      payload TEXT NOT NULL,
+      attempt_count INTEGER NOT NULL DEFAULT 0,
+      created_at INTEGER NOT NULL,
+      UNIQUE(entity_type, entity_id)
+    )
+  ''');
+
+  Future<void> _createSyncState(DatabaseExecutor db) => db.execute('''
+    CREATE TABLE IF NOT EXISTS sync_document_state (
+      local_document_id TEXT PRIMARY KEY,
+      remote_document_id TEXT NOT NULL,
+      remote_revision INTEGER NOT NULL
+    )
+  ''');
+
+  Future<void> _enqueueDocumentMutation(
+    DatabaseExecutor db,
+    DocumentItem document,
+    String operation,
+  ) => db.insert('sync_outbox', {
+    'entity_type': 'document',
+    'entity_id': document.id,
+    'operation': operation,
+    'payload': _documentToSyncPayload(document),
+    'created_at': DateTime.now().millisecondsSinceEpoch,
+  }, conflictAlgorithm: ConflictAlgorithm.replace);
+
+  String _documentToSyncPayload(DocumentItem document) => jsonEncode({
+    'title': document.title,
+    'description': document.description,
+    'category_id': document.categoryId,
+    'is_expirable': document.isExpirable,
+    'expiry_date': document.expiryDate?.toIso8601String(),
+    'file_paths': document.filePaths,
+  });
+
+  Future<List<Map<String, Object?>>> pendingSyncOperations() =>
+      _requireDb.query('sync_outbox', orderBy: 'id ASC');
+
+  /// Adds pre-backup documents to the outbox once. This is needed when a
+  /// person connects Drive after already using the offline app for a while.
+  Future<void> queueExistingDocumentsForSync() async {
+    final documents = await fetchDocuments();
+    await _requireDb.transaction((txn) async {
+      for (final document in documents) {
+        await _enqueueDocumentMutation(txn, document, 'upsert');
+      }
+    });
+  }
+
+  Future<void> completeSyncOperation(int id) =>
+      _requireDb.delete('sync_outbox', where: 'id = ?', whereArgs: [id]);
+
+  Future<void> recordSyncFailure(int id) => _requireDb.rawUpdate(
+    'UPDATE sync_outbox SET attempt_count = attempt_count + 1 WHERE id = ?',
+    [id],
+  );
+
+  Future<Map<String, Object?>?> documentSyncState(String localId) async {
+    final rows = await _requireDb.query(
+      'sync_document_state',
+      where: 'local_document_id = ?',
+      whereArgs: [localId],
+    );
+    return rows.isEmpty ? null : rows.first;
+  }
+
+  Future<void> saveDocumentSyncState({
+    required String localId,
+    required String remoteId,
+    required int revision,
+  }) => _requireDb.insert('sync_document_state', {
+    'local_document_id': localId,
+    'remote_document_id': remoteId,
+    'remote_revision': revision,
+  }, conflictAlgorithm: ConflictAlgorithm.replace);
 
   // ---------------------------------------------------------------------
   // Categories
@@ -204,6 +299,7 @@ class AppDatabase {
             'sort_order': i,
           });
         }
+        await _enqueueDocumentMutation(txn, document, 'upsert');
       });
   Future<void> deleteDocument(String id) =>
       _requireDb.delete('documents', where: 'id = ?', whereArgs: [id]);
@@ -219,12 +315,26 @@ class AppDatabase {
   }
 
   Future<void> softDeleteDocument(String id, DateTime deletedAt) =>
-      _requireDb.update(
-        'documents',
-        {'deleted_at': deletedAt.millisecondsSinceEpoch},
-        where: 'id = ?',
-        whereArgs: [id],
-      );
+      _requireDb.transaction((txn) async {
+        await txn.update(
+          'documents',
+          {'deleted_at': deletedAt.millisecondsSinceEpoch},
+          where: 'id = ?',
+          whereArgs: [id],
+        );
+        final rows = await txn.query(
+          'documents',
+          where: 'id = ?',
+          whereArgs: [id],
+        );
+        if (rows.isNotEmpty) {
+          await _enqueueDocumentMutation(
+            txn,
+            _documentFromRow(rows.first, tags: const [], filePaths: const []),
+            'delete',
+          );
+        }
+      });
   Future<void> restoreDocument(String id) => _requireDb.update(
     'documents',
     {'deleted_at': null},

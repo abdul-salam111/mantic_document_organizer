@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
+import '../../../core/database/database_exports.dart';
 import '../../../core/di/di_exports.dart';
 import '../../../core/local_storage/local_storage_exports.dart';
 import '../../../core/services/services_exports.dart';
@@ -9,6 +10,7 @@ import '../../../core/utils/utils_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
 import '../domain/entities/backup_space.dart';
 import '../domain/usecases/backup_usecases.dart';
+import '../data/services/document_sync_service.dart';
 
 class BackupSetupPage extends StatefulWidget {
   const BackupSetupPage({super.key});
@@ -42,6 +44,10 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
       case Success(:final value):
         _space = value;
         await storage.setValues(StorageKeys.backupSpaceId, value.id);
+        if (value.isDriveConnected) {
+          await sl<AppDatabase>().queueExistingDocumentsForSync();
+          await sl<DocumentSyncService>().sync(token: token, spaceId: value.id);
+        }
     }
     if (mounted) setState(() => _loading = false);
   }
@@ -91,6 +97,11 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
     await _prepare();
     if (!mounted || _space?.isDriveConnected != true) return;
     await storage.setValues(StorageKeys.backupEnabled, 'true');
+    // Fire-and-forget: the durable outbox retains failures for the next run.
+    final token = SessionController.instance.userToken;
+    if (token != null) {
+      await sl<DocumentSyncService>().sync(token: token, spaceId: _space!.id);
+    }
     AppToastsUtils.success(
       'Google Drive connected. Backup will run in the background.',
     );
@@ -98,36 +109,170 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Set up backup')),
+    appBar: AppBar(title: const Text('Backup')),
     body: SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(Icons.backup_outlined, size: 56, color: context.primary),
-            heightBox(20),
-            Text('Keep your documents safe', style: context.headlineSmall),
-            heightBox(8),
-            Text(
-              'Your documents remain available offline. Google Drive will securely store file backups.',
-              style: context.bodyMedium.copyWith(color: context.textSecondary),
-            ),
-            const Spacer(),
-            if (_space == null)
-              const Center(child: CircularProgressIndicator())
-            else if (_space!.isDriveConnected)
-              Text('Google Drive is connected to ${_space!.name}.')
-            else
-              CustomButton(
-                text: 'Connect Google Drive',
-                isLoading: _loading,
-                onPressed: _loading ? null : _connect,
+      child: _space == null
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _hero(context),
+                  heightBox(24),
+                  _connectionCard(context),
+                  heightBox(24),
+                  Text('How your backup works', style: context.titleMedium),
+                  heightBox(12),
+                  _benefit(
+                    context,
+                    Icons.phone_android_outlined,
+                    'Always available offline',
+                    'Your documents stay on this device first.',
+                  ),
+                  _benefit(
+                    context,
+                    Icons.cloud_outlined,
+                    'Protected in Drive',
+                    'A secure copy is kept in your connected Google Drive.',
+                  ),
+                  _benefit(
+                    context,
+                    Icons.sync_outlined,
+                    'Syncs when online',
+                    'Changes wait safely until an internet connection is available.',
+                  ),
+                  heightBox(28),
+                  if (!_space!.isDriveConnected)
+                    CustomButton(
+                      text: 'Connect Google Drive',
+                      isLoading: _loading,
+                      onPressed: _loading ? null : _connect,
+                    ),
+                ],
               ),
-            heightBox(16),
-          ],
+            ),
+    ),
+  );
+
+  Widget _hero(BuildContext context) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(22),
+    decoration: BoxDecoration(
+      color: context.primary,
+      borderRadius: BorderRadius.circular(24),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(11),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: .18),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.shield_outlined,
+            color: Colors.white,
+            size: 28,
+          ),
         ),
+        heightBox(20),
+        Text(
+          'Keep your documents protected',
+          style: context.headlineSmall.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        heightBox(8),
+        Text(
+          'Your device remains your primary workspace. Backup happens quietly when you are online.',
+          style: context.bodyMedium.copyWith(
+            color: Colors.white.withValues(alpha: .88),
+            height: 1.45,
+          ),
+        ),
+      ],
+    ),
+  );
+
+  Widget _connectionCard(BuildContext context) {
+    final connected = _space!.isDriveConnected;
+    final color = connected ? Colors.green : context.textSecondary;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: context.surfaceElevated,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: .25)),
       ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(11),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: .12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              connected ? Icons.check_circle_outline : Icons.cloud_off_outlined,
+              color: color,
+            ),
+          ),
+          widthBox(14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  connected ? 'Google Drive connected' : 'Backup not connected',
+                  style: context.titleMedium,
+                ),
+                heightBox(4),
+                Text(
+                  connected
+                      ? 'Syncing with ${_space!.name}'
+                      : 'Connect Drive to protect your documents.',
+                  style: context.bodySmall.copyWith(
+                    color: context.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _benefit(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String subtitle,
+  ) => Padding(
+    padding: const EdgeInsets.only(bottom: 14),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: context.primary, size: 22),
+        widthBox(14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: context.titleSmall),
+              heightBox(3),
+              Text(
+                subtitle,
+                style: context.bodySmall.copyWith(color: context.textSecondary),
+              ),
+            ],
+          ),
+        ),
+      ],
     ),
   );
 }

@@ -29,6 +29,7 @@ import '../security/security_exports.dart';
 import '../theme/theme_exports.dart';
 import '../../features/auth/auth_exports.dart';
 import '../../features/backup/backup_exports.dart';
+import '../../features/backup/data/services/document_sync_service.dart';
 
 import '../../features/categories/presentation/manage_categories/manage_categories_exports.dart';
 import '../../features/search/search_exports.dart';
@@ -149,6 +150,7 @@ Future<void> authDependencies() async {
 }
 
 Future<void> backupDependencies() async {
+  sl.registerLazySingleton(() => DocumentSyncService(sl(), sl()));
   sl.registerLazySingleton<IBackupRemoteDataSource>(
     () => BackupRemoteDataSourceImpl(dioHelper: sl()),
   );
