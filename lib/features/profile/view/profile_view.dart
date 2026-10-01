@@ -12,76 +12,87 @@ import '../viewmodel/profile_viewmodel.dart';
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
 
+  void _goHome() => AppNavigator.goNamed(RouteNames.home);
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => sl<ProfileViewModel>(),
-      child: Scaffold(
-        appBar: CustomAppBar(title: AppLocalizations.of(context).profileTitle),
-        body: SafeArea(
-          child: Consumer<ProfileViewModel>(
-            builder: (context, vm, _) {
-              return ListView(
-                padding: const .all(16),
-                children: [
-                  _ProfileHeaderCard(vm: vm),
-                  heightBox(16),
-                  _StatsRow(vm: vm),
-                  heightBox(24),
-                  _ProfileMenuTile(
-                    icon: Iconsax.setting_2,
-                    iconColor: context.primary,
-                    label: AppLocalizations.of(context).settings,
-                    subtitle: AppLocalizations.of(context).settingsSubtitle,
-                    onTap: () => AppNavigator.pushNamed(RouteNames.settings),
-                  ),
-                  heightBox(10),
-                  _ProfileMenuTile(
-                    icon: Iconsax.trash,
-                    iconColor: context.warning,
-                    label: AppLocalizations.of(context).trash,
-                    subtitle: AppLocalizations.of(context).trashSubtitle,
-                    onTap: () => AppNavigator.pushNamed(RouteNames.trash),
-                  ),
-                  heightBox(10),
-                  ValueListenableBuilder<Set<String>>(
-                    valueListenable: sl<AppDatabase>().pendingDocumentIds,
-                    builder: (context, pendingIds, _) => _ProfileMenuTile(
-                      icon: Iconsax.cloud_add,
-                      iconColor: context.primary,
-                      label: AppLocalizations.of(context).setUpBackup,
-                      subtitle: 'Keep documents backed up to Google Drive',
-                      trailing: pendingIds.isEmpty
-                          ? null
-                          : PendingBackupCountBadge(count: pendingIds.length),
-                      onTap: vm.setUpBackup,
-                    ),
-                  ),
-                  if (vm.isSignedIn) ...[
-                    heightBox(20),
-                    Divider(color: context.divider, height: 1),
-                    heightBox(20),
+      child: PopScope<Object?>(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop) _goHome();
+        },
+        child: Scaffold(
+          appBar: CustomAppBar(
+            title: AppLocalizations.of(context).profileTitle,
+            onBackPressed: _goHome,
+          ),
+          body: SafeArea(
+            child: Consumer<ProfileViewModel>(
+              builder: (context, vm, _) {
+                return ListView(
+                  padding: const .all(16),
+                  children: [
+                    _ProfileHeaderCard(vm: vm),
+                    heightBox(16),
+                    _StatsRow(vm: vm),
+                    heightBox(24),
                     _ProfileMenuTile(
-                      icon: Iconsax.logout,
-                      iconColor: context.errorAccent,
-                      label: AppLocalizations.of(context).signOut,
-                      isDestructive: true,
-                      onTap: () => _confirmSignOut(context, vm),
+                      icon: Iconsax.setting_2,
+                      iconColor: context.primary,
+                      label: AppLocalizations.of(context).settings,
+                      subtitle: AppLocalizations.of(context).settingsSubtitle,
+                      onTap: () => AppNavigator.pushNamed(RouteNames.settings),
                     ),
-                  ],
-                  heightBox(24),
-                  if (vm.appVersion != null)
-                    Center(
-                      child: Text(
-                        vm.appVersion!,
-                        style: context.labelSmall.copyWith(
-                          color: context.textSecondary,
-                        ),
+                    heightBox(10),
+                    _ProfileMenuTile(
+                      icon: Iconsax.trash,
+                      iconColor: context.warning,
+                      label: AppLocalizations.of(context).trash,
+                      subtitle: AppLocalizations.of(context).trashSubtitle,
+                      onTap: () => AppNavigator.pushNamed(RouteNames.trash),
+                    ),
+                    heightBox(10),
+                    ValueListenableBuilder<Set<String>>(
+                      valueListenable: sl<AppDatabase>().pendingDocumentIds,
+                      builder: (context, pendingIds, _) => _ProfileMenuTile(
+                        icon: Iconsax.cloud_add,
+                        iconColor: context.primary,
+                        label: AppLocalizations.of(context).setUpBackup,
+                        subtitle: 'Keep documents backed up to Google Drive',
+                        trailing: pendingIds.isEmpty
+                            ? null
+                            : PendingBackupCountBadge(count: pendingIds.length),
+                        onTap: vm.setUpBackup,
                       ),
                     ),
-                ],
-              );
-            },
+                    if (vm.isSignedIn) ...[
+                      heightBox(20),
+                      Divider(color: context.divider, height: 1),
+                      heightBox(20),
+                      _ProfileMenuTile(
+                        icon: Iconsax.logout,
+                        iconColor: context.errorAccent,
+                        label: AppLocalizations.of(context).signOut,
+                        isDestructive: true,
+                        onTap: () => _confirmSignOut(context, vm),
+                      ),
+                    ],
+                    heightBox(24),
+                    if (vm.appVersion != null)
+                      Center(
+                        child: Text(
+                          vm.appVersion!,
+                          style: context.labelSmall.copyWith(
+                            color: context.textSecondary,
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),
