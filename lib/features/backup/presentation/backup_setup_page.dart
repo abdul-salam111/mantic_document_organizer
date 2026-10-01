@@ -267,16 +267,16 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
 
   Widget _hero(BuildContext context) => Container(
     width: double.infinity,
-    padding: const EdgeInsets.all(22),
+    padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
       color: context.primary,
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(18),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.all(11),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: .18),
             shape: BoxShape.circle,
@@ -284,23 +284,23 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
           child: const Icon(
             Icons.shield_outlined,
             color: Colors.white,
-            size: 28,
+            size: 22,
           ),
         ),
-        heightBox(20),
+        heightBox(10),
         Text(
           'Keep your documents protected',
-          style: context.headlineSmall.copyWith(
+          style: context.titleLarge.copyWith(
             color: Colors.white,
             fontWeight: FontWeight.w700,
           ),
         ),
-        heightBox(8),
+        heightBox(4),
         Text(
           'Your device remains your primary workspace. Backup happens quietly when you are online.',
-          style: context.bodyMedium.copyWith(
+          style: context.bodySmall.copyWith(
             color: Colors.white.withValues(alpha: .88),
-            height: 1.45,
+            height: 1.35,
           ),
         ),
       ],
@@ -319,16 +319,16 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
     final color = connected ? Colors.green : context.textSecondary;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: context.surfaceElevated,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color.withValues(alpha: .25)),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(11),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: color.withValues(alpha: .12),
               shape: BoxShape.circle,
@@ -336,23 +336,26 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
             child: Icon(
               connected ? Icons.check_circle_outline : Icons.cloud_off_outlined,
               color: color,
+              size: 20,
             ),
           ),
-          widthBox(14),
+          widthBox(10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   connected ? 'Google Drive connected' : 'Backup not connected',
-                  style: context.titleMedium,
+                  style: context.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-                heightBox(4),
+                heightBox(2),
                 Text(
                   connected
                       ? 'Ready to back up to ${_space!.name}'
                       : 'Connect Drive to protect your documents.',
-                  style: context.bodySmall.copyWith(
+                  style: context.labelSmall.copyWith(
                     color: context.textSecondary,
                   ),
                 ),
