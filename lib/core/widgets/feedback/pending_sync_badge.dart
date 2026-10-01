@@ -51,7 +51,7 @@ class PendingBackupCountBadge extends StatelessWidget {
     message:
         '$count ${count == 1 ? 'file is' : 'files are'} waiting to back up',
     child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
       decoration: BoxDecoration(
         color: const Color(0xFFFFC857).withValues(alpha: .16),
         borderRadius: BorderRadius.circular(99),
@@ -61,13 +61,14 @@ class PendingBackupCountBadge extends StatelessWidget {
         children: [
           const Icon(
             Icons.cloud_upload_outlined,
-            size: 15,
+            size: 13,
             color: Color(0xFFFFC857),
           ),
-          const SizedBox(width: 5),
+          const SizedBox(width: 4),
           Text(
             '$count pending',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              fontSize: 10,
               color: const Color(0xFFE2A72E),
               fontWeight: FontWeight.w700,
             ),
