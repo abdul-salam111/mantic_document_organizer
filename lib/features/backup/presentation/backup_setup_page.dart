@@ -4,10 +4,12 @@ import '../../../core/database/database_exports.dart';
 import '../../../core/di/di_exports.dart';
 import '../../../core/local_storage/local_storage_exports.dart';
 import '../../../core/services/services_exports.dart';
+import '../../../routes/routes_exports.dart';
 import '../../../core/shared/shared_exports.dart';
 import '../../../core/theme/theme_exports.dart';
 import '../../../core/utils/utils_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
+import '../../documents/domain/usecases/document_usecases.dart';
 import '../domain/entities/backup_space.dart';
 import '../domain/usecases/backup_usecases.dart';
 import '../data/services/document_sync_service.dart';
@@ -47,6 +49,9 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
         if (value.isDriveConnected) {
           await sl<AppDatabase>().queueExistingDocumentsForSync();
           await sl<DocumentSyncService>().sync(token: token, spaceId: value.id);
+          // Home keeps an in-memory document list. Reload it after restore so
+          // the documents pulled into SQLite are visible immediately.
+          await sl<DocumentUseCases>().init();
         }
     }
     if (mounted) setState(() => _loading = false);
@@ -105,11 +110,21 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
     AppToastsUtils.success(
       'Google Drive connected. Backup will run in the background.',
     );
+    // This is the end of the account-and-backup onboarding flow. Replacing
+    // the route prevents Back from returning to sign-in or closing the app.
+    if (mounted) AppNavigator.goNamed(RouteNames.home);
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Backup')),
+    appBar: AppBar(
+      title: const Text('Backup'),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        tooltip: 'Go to Home',
+        onPressed: () => AppNavigator.goNamed(RouteNames.home),
+      ),
+    ),
     body: SafeArea(
       child: _space == null
           ? const Center(child: CircularProgressIndicator())
@@ -148,6 +163,12 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
                       text: 'Connect Google Drive',
                       isLoading: _loading,
                       onPressed: _loading ? null : _connect,
+                    )
+                  else
+                    CustomButton(
+                      text: 'Go to Home',
+                      icon: Icons.home_outlined,
+                      onPressed: () => AppNavigator.goNamed(RouteNames.home),
                     ),
                 ],
               ),

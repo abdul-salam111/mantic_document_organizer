@@ -3,7 +3,6 @@ import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-
 import '../../../../core/networks/exceptions/app_exceptions.dart';
 
 class SocialIdentity {

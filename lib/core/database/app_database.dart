@@ -19,7 +19,7 @@ class AppDatabase {
     final path = join(await getDatabasesPath(), 'mantic.db');
     _db = await openDatabase(
       path,
-      version: 4,
+      version: 6,
       onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: (db, version) async {
         await db.execute('''
@@ -66,6 +66,8 @@ class AppDatabase {
         ''');
         await _createSyncOutbox(db);
         await _createSyncState(db);
+        await _createUploadedAttachments(db);
+        await _createCategorySyncState(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -78,6 +80,12 @@ class AppDatabase {
         }
         if (oldVersion < 4) {
           await _createSyncState(db);
+        }
+        if (oldVersion < 5) {
+          await _createUploadedAttachments(db);
+        }
+        if (oldVersion < 6) {
+          await _createCategorySyncState(db);
         }
       },
     );
@@ -107,6 +115,22 @@ class AppDatabase {
     )
   ''');
 
+  Future<void> _createUploadedAttachments(DatabaseExecutor db) => db.execute('''
+    CREATE TABLE IF NOT EXISTS sync_uploaded_attachments (
+      local_document_id TEXT NOT NULL,
+      local_path TEXT NOT NULL,
+      remote_attachment_id TEXT NOT NULL,
+      PRIMARY KEY(local_document_id, local_path)
+    )
+  ''');
+
+  Future<void> _createCategorySyncState(DatabaseExecutor db) => db.execute('''
+    CREATE TABLE IF NOT EXISTS sync_category_state (
+      local_category_id TEXT PRIMARY KEY,
+      remote_category_id TEXT NOT NULL UNIQUE
+    )
+  ''');
+
   Future<void> _enqueueDocumentMutation(
     DatabaseExecutor db,
     DocumentItem document,
@@ -122,6 +146,7 @@ class AppDatabase {
   String _documentToSyncPayload(DocumentItem document) => jsonEncode({
     'title': document.title,
     'description': document.description,
+    'ocr_text': document.ocrText,
     'category_id': document.categoryId,
     'is_expirable': document.isExpirable,
     'expiry_date': document.expiryDate?.toIso8601String(),
@@ -159,6 +184,64 @@ class AppDatabase {
     return rows.isEmpty ? null : rows.first;
   }
 
+  Future<String?> localDocumentIdForRemoteId(String remoteId) async {
+    final rows = await _requireDb.query(
+      'sync_document_state',
+      columns: ['local_document_id'],
+      where: 'remote_document_id = ?',
+      whereArgs: [remoteId],
+    );
+    return rows.isEmpty ? null : rows.first['local_document_id'] as String;
+  }
+
+  Future<String?> remoteCategoryIdForLocalId(String localId) async {
+    final rows = await _requireDb.query(
+      'sync_category_state',
+      columns: ['remote_category_id'],
+      where: 'local_category_id = ?',
+      whereArgs: [localId],
+    );
+    return rows.isEmpty ? null : rows.first['remote_category_id'] as String;
+  }
+
+  Future<String?> localCategoryIdForRemoteId(String remoteId) async {
+    final rows = await _requireDb.query(
+      'sync_category_state',
+      columns: ['local_category_id'],
+      where: 'remote_category_id = ?',
+      whereArgs: [remoteId],
+    );
+    return rows.isEmpty ? null : rows.first['local_category_id'] as String;
+  }
+
+  Future<void> saveCategorySyncState({
+    required String localId,
+    required String remoteId,
+  }) => _requireDb.insert('sync_category_state', {
+    'local_category_id': localId,
+    'remote_category_id': remoteId,
+  }, conflictAlgorithm: ConflictAlgorithm.replace);
+
+  Future<DocumentItem?> documentById(String id) async {
+    final rows = await _requireDb.query(
+      'documents',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (rows.isEmpty) return null;
+    final attachments = await _requireDb.query(
+      'document_attachments',
+      where: 'document_id = ?',
+      whereArgs: [id],
+      orderBy: 'sort_order ASC',
+    );
+    return _documentFromRow(
+      rows.first,
+      tags: const [],
+      filePaths: [for (final row in attachments) row['path'] as String],
+    );
+  }
+
   Future<void> saveDocumentSyncState({
     required String localId,
     required String remoteId,
@@ -167,6 +250,25 @@ class AppDatabase {
     'local_document_id': localId,
     'remote_document_id': remoteId,
     'remote_revision': revision,
+  }, conflictAlgorithm: ConflictAlgorithm.replace);
+
+  Future<bool> isAttachmentUploaded(String documentId, String path) async {
+    final rows = await _requireDb.query(
+      'sync_uploaded_attachments',
+      where: 'local_document_id = ? AND local_path = ?',
+      whereArgs: [documentId, path],
+    );
+    return rows.isNotEmpty;
+  }
+
+  Future<void> markAttachmentUploaded({
+    required String documentId,
+    required String path,
+    required String remoteAttachmentId,
+  }) => _requireDb.insert('sync_uploaded_attachments', {
+    'local_document_id': documentId,
+    'local_path': path,
+    'remote_attachment_id': remoteAttachmentId,
   }, conflictAlgorithm: ConflictAlgorithm.replace);
 
   // ---------------------------------------------------------------------
@@ -182,10 +284,22 @@ class AppDatabase {
     final countResult = Sqflite.firstIntValue(
       await _requireDb.rawQuery('SELECT COUNT(*) FROM categories'),
     );
-    if ((countResult ?? 0) > 0) return;
     final batch = _requireDb.batch();
-    for (final category in builtIns) {
-      batch.insert('categories', _categoryToRow(category));
+    if ((countResult ?? 0) == 0) {
+      for (final category in builtIns) {
+        batch.insert('categories', _categoryToRow(category));
+      }
+    } else {
+      // Earlier versions derived built-in colors in the UI and persisted
+      // null. Backfill only missing values so a user-selected color remains.
+      for (final category in builtIns) {
+        batch.update(
+          'categories',
+          {'color': category.colorValue},
+          where: 'id = ? AND color IS NULL',
+          whereArgs: [category.id],
+        );
+      }
     }
     await batch.commit(noResult: true);
   }
@@ -301,6 +415,34 @@ class AppDatabase {
         }
         await _enqueueDocumentMutation(txn, document, 'upsert');
       });
+
+  /// Applies a server document without creating another outbound mutation.
+  /// Used during restore on a newly installed device.
+  Future<void> applyRemoteDocument(DocumentItem document) =>
+      _requireDb.transaction((txn) async {
+        await txn.insert(
+          'documents',
+          _documentToRow(document),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+        await txn.delete(
+          'document_tags',
+          where: 'document_id = ?',
+          whereArgs: [document.id],
+        );
+        await txn.delete(
+          'document_attachments',
+          where: 'document_id = ?',
+          whereArgs: [document.id],
+        );
+        for (var i = 0; i < document.filePaths.length; i++) {
+          await txn.insert('document_attachments', {
+            'document_id': document.id,
+            'path': document.filePaths[i],
+            'sort_order': i,
+          });
+        }
+      });
   Future<void> deleteDocument(String id) =>
       _requireDb.delete('documents', where: 'id = ?', whereArgs: [id]);
   Future<void> deleteDocuments(Iterable<String> ids) async {
@@ -335,12 +477,27 @@ class AppDatabase {
           );
         }
       });
-  Future<void> restoreDocument(String id) => _requireDb.update(
-    'documents',
-    {'deleted_at': null},
-    where: 'id = ?',
-    whereArgs: [id],
-  );
+  Future<void> restoreDocument(String id) => _requireDb.transaction((
+    txn,
+  ) async {
+    await txn.update(
+      'documents',
+      {'deleted_at': null},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    final rows = await txn.query('documents', where: 'id = ?', whereArgs: [id]);
+    if (rows.isNotEmpty) {
+      // A restore must cancel a previously queued delete. Otherwise an
+      // offline trash action can delete the server copy after the user has
+      // already restored the document locally.
+      await _enqueueDocumentMutation(
+        txn,
+        _documentFromRow(rows.first, tags: const [], filePaths: const []),
+        'upsert',
+      );
+    }
+  });
   Future<void> purgeExpiredTrash(Duration retention) async {
     final cutoff = DateTime.now().subtract(retention).millisecondsSinceEpoch;
     await _requireDb.delete(

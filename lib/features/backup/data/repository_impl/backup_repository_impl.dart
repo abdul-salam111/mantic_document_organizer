@@ -26,6 +26,17 @@ class BackupRepositoryImpl extends BaseRepository implements IBackupRepository {
     if (space != null) {
       return Success(_toEntity(space));
     }
+    // Secure storage is intentionally cleared on uninstall. Reuse the
+    // account's existing active backup space on a new device instead of
+    // creating an empty "My backup" space and restoring from the wrong one.
+    for (final item in existing) {
+      if (item.storageStatus.toLowerCase() == 'active') {
+        return Success(_toEntity(item));
+      }
+    }
+    if (existing.isNotEmpty) {
+      return Success(_toEntity(existing.first));
+    }
     final created = await execute(
       call: () => remote.createPersonalSpace(token),
     );

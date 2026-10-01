@@ -220,11 +220,11 @@ class _ProfileHeaderCard extends StatelessWidget {
           if (!vm.isSignedIn) ...[
             heightBox(16),
             CustomButton(
-              text: AppLocalizations.of(context).signIn,
+              text: AppLocalizations.of(context).setUpBackup,
               backgroundColor: context.white,
               textColor: context.primary,
               radius: 12,
-              onPressed: () => AppNavigator.pushNamed(RouteNames.signin),
+              onPressed: vm.setUpBackup,
             ),
           ],
         ],
