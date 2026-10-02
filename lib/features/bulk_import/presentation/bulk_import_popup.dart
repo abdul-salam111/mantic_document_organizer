@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/constants_exports.dart';
 import '../../../routes/routes_exports.dart';
 import 'bulk_import_flow_content.dart';
 import 'viewmodel/bulk_import_viewmodel.dart';
@@ -11,6 +12,7 @@ class BulkImportPopup {
   const BulkImportPopup._();
 
   static Future<void> show(BuildContext context) async {
+    if (!AppConstants.bulkImportEnabled) return;
     final found = await showDialog<BulkImportViewModel>(
       context: context,
       builder: (dialogContext) => Dialog(

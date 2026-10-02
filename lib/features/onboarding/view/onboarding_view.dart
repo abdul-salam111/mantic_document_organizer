@@ -73,6 +73,17 @@ class _OnboardingViewState extends State<OnboardingView>
                           position: _slide,
                           child: Column(
                             children: [
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  'Docketly',
+                                  style: context.headlineSmall.copyWith(
+                                    color: context.white,
+                                    fontWeight: .w800,
+                                    letterSpacing: 0.4,
+                                  ),
+                                ),
+                              ),
                               const Spacer(),
                               const _HeroGraphic(),
                               const Spacer(),
@@ -176,17 +187,6 @@ class _HeroGraphic extends StatelessWidget {
             decoration: BoxDecoration(
               shape: .circle,
               color: context.white.withValues(alpha: 0.08),
-            ),
-          ),
-          // Wraps "DOCKETLY" around the bottom of the outer circle, badge/
-          // seal-style, instead of a plain top-of-screen wordmark.
-          CurvedText(
-            text: 'DOCKETLY',
-            radius: 142,
-            style: context.titleLarge.copyWith(
-              color: context.white,
-              fontWeight: .w800,
-              letterSpacing: 2.4,
             ),
           ),
           Container(

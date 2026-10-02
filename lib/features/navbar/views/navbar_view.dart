@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../core/di/di_exports.dart';
+import '../../../core/constants/constants_exports.dart';
 import '../../../core/local_storage/local_storage_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
 import '../../../routes/routes_exports.dart';
@@ -35,11 +36,13 @@ class _NavbarViewState extends State<NavbarView> {
     // Home is reached only once signup/login is complete, so this is the
     // one place "first time the user is actually in the app" can be
     // checked, regardless of which auth path got them here.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowBulkImportPrompt());
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _maybeShowBulkImportPrompt(),
+    );
   }
 
   Future<void> _maybeShowBulkImportPrompt() async {
-    if (!mounted) return;
+    if (!AppConstants.bulkImportEnabled || !mounted) return;
     final hasSeenImport = await storage.readValues(
       StorageKeys.hasSeenBulkImportPrompt,
     );

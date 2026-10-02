@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/di/di_exports.dart';
+import '../../../core/constants/constants_exports.dart';
 import '../../../core/localization/localization_exports.dart';
 import '../../../core/theme/theme_exports.dart';
 import '../../../core/utils/utils_exports.dart';
@@ -38,14 +39,16 @@ class ProfileView extends StatelessWidget {
                     heightBox(16),
                     _StatsRow(vm: vm),
                     heightBox(24),
-                    _ProfileMenuTile(
-                      icon: Iconsax.document_upload,
-                      iconColor: context.primary,
-                      label: 'Find more documents',
-                      subtitle: 'Scan your photo library for new documents',
-                      onTap: () => BulkImportPopup.show(context),
-                    ),
-                    heightBox(10),
+                    if (AppConstants.bulkImportEnabled) ...[
+                      _ProfileMenuTile(
+                        icon: Iconsax.document_upload,
+                        iconColor: context.primary,
+                        label: 'Find more documents',
+                        subtitle: 'Scan your photo library for new documents',
+                        onTap: () => BulkImportPopup.show(context),
+                      ),
+                      heightBox(10),
+                    ],
                     _ProfileMenuTile(
                       icon: Iconsax.setting_2,
                       iconColor: context.primary,
