@@ -37,10 +37,10 @@ class HomeView extends StatelessWidget {
                           Row(
                             children: [
                               const AppLogo(
-                                height: 36,
-                                width: 36,
-                              ).withRoundedCorners(10),
-                              widthBox(10),
+                                height: 48,
+                                width: 48,
+                              ).withRoundedCorners(12),
+                              widthBox(12),
                               Text(
                                 'Docketly',
                                 style: context.titleMedium.copyWith(

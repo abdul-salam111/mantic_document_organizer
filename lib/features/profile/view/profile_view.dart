@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/database/database_exports.dart';
 import '../../../core/di/di_exports.dart';
 import '../../../core/localization/localization_exports.dart';
 import '../../../core/theme/theme_exports.dart';
@@ -63,18 +62,12 @@ class ProfileView extends StatelessWidget {
                       onTap: () => AppNavigator.pushNamed(RouteNames.trash),
                     ),
                     heightBox(10),
-                    ValueListenableBuilder<Set<String>>(
-                      valueListenable: sl<AppDatabase>().pendingDocumentIds,
-                      builder: (context, pendingIds, _) => _ProfileMenuTile(
-                        icon: Iconsax.cloud_add,
-                        iconColor: context.primary,
-                        label: AppLocalizations.of(context).setUpBackup,
-                        subtitle: 'Keep documents backed up to Google Drive',
-                        trailing: pendingIds.isEmpty
-                            ? null
-                            : PendingBackupCountBadge(count: pendingIds.length),
-                        onTap: vm.setUpBackup,
-                      ),
+                    _ProfileMenuTile(
+                      icon: Iconsax.cloud_add,
+                      iconColor: context.primary,
+                      label: 'Sync & backup',
+                      subtitle: 'Keep your documents securely backed up',
+                      onTap: vm.setUpBackup,
                     ),
                     if (vm.isSignedIn) ...[
                       heightBox(20),
@@ -117,7 +110,9 @@ class ProfileView extends StatelessWidget {
       builder: (dialogContext) => AlertDialog(
         backgroundColor: context.surfaceElevated,
         title: const Text('Sign out?'),
-        content: const Text('You will need to sign in again to use backup.'),
+        content: const Text(
+          'You will need to sign in again to access your account.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -244,16 +239,6 @@ class _ProfileHeaderCard extends StatelessWidget {
                 ),
               ],
             ),
-          if (!vm.isSignedIn) ...[
-            heightBox(16),
-            CustomButton(
-              text: AppLocalizations.of(context).setUpBackup,
-              backgroundColor: context.white,
-              textColor: context.primary,
-              radius: 12,
-              onPressed: vm.setUpBackup,
-            ),
-          ],
         ],
       ),
     );
@@ -351,7 +336,6 @@ class _ProfileMenuTile extends StatelessWidget {
   final Color iconColor;
   final String label;
   final String? subtitle;
-  final Widget? trailing;
   final VoidCallback onTap;
   final bool isDestructive;
 
@@ -360,7 +344,6 @@ class _ProfileMenuTile extends StatelessWidget {
     required this.iconColor,
     required this.label,
     this.subtitle,
-    this.trailing,
     required this.onTap,
     this.isDestructive = false,
   });
@@ -426,7 +409,6 @@ class _ProfileMenuTile extends StatelessWidget {
                 ],
               ),
             ),
-            if (trailing != null) ...[widthBox(10), trailing!],
             if (!isDestructive)
               Icon(
                 Iconsax.arrow_right_3,
