@@ -323,7 +323,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get shareAppMessage =>
-      'Descubre Mantic Document Organizer: escanea, organiza y encuentra cualquier documento importante en segundos.';
+      'Descubre Docketly: escanea, organiza y encuentra cualquier documento importante en segundos.';
 
   @override
   String get appLocked => 'App bloqueada';
@@ -600,7 +600,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Aquí aparecerán los documentos con una fecha de vencimiento próxima.';
 
   @override
-  String get aiAssistantTitle => 'Pregunta a Mantic';
+  String get aiAssistantTitle => 'Pregunta a Docketly';
 
   @override
   String get aiAssistantInputHint => 'Pregunta sobre tus documentos...';

@@ -75,7 +75,7 @@ class _OnboardingViewState extends State<OnboardingView>
                           const _HeroGraphic(),
                           const Spacer(),
                           Text(
-                            'MANTIC',
+                            'DOCKETLY',
                             style: context.labelLarge.copyWith(
                               color: context.white,
                               fontWeight: .bold,

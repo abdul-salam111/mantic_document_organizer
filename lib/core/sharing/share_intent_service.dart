@@ -1,6 +1,6 @@
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
-/// Bridges Android/iOS "Share into Mantic" intents (a PDF emailed to you, a
+/// Bridges Android/iOS "Share into Docketly" intents (a PDF emailed to you, a
 /// photo shared from Gallery/WhatsApp, ...) to plain local file paths —
 /// hides the receive_sharing_intent SDK's own [SharedMediaFile]/
 /// [SharedMediaType] types from the rest of the app, same reasoning as

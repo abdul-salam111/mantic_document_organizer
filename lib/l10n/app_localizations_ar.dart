@@ -320,7 +320,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get shareAppMessage =>
-      'تعرّف على Mantic Document Organizer — امسح مستنداتك ضوئيًا، نظّمها، واعثر على أي مستند مهم خلال ثوانٍ.';
+      'تعرّف على Docketly — امسح مستنداتك ضوئيًا، نظّمها، واعثر على أي مستند مهم خلال ثوانٍ.';
 
   @override
   String get appLocked => 'التطبيق مُقفل';
@@ -595,7 +595,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'ستظهر هنا المستندات التي يقترب تاريخ انتهائها.';
 
   @override
-  String get aiAssistantTitle => 'اسأل Mantic';
+  String get aiAssistantTitle => 'اسأل Docketly';
 
   @override
   String get aiAssistantInputHint => 'اسأل عن مستنداتك...';

@@ -1,4 +1,4 @@
-# Mantic Document Organizer
+# Docketly
 
 A mobile app for scanning, organizing, and managing personal documents — driving licenses, passports, insurance, invoices, receipts, contracts, and more — each with its own fields and a to-do list, all on-device with no login required to start.
 
@@ -8,7 +8,7 @@ A mobile app for scanning, organizing, and managing personal documents — drivi
 
 ## Overview
 
-Mantic lets a user scan or import a document, drop it into a predefined category, fill in that category's own fields (e.g. license number and expiry for a Driving License), and attach to-dos to it (e.g. "renew before expiry"). No account is required to use the app — everything is stored locally on the device, and creating an account later is optional, only needed for cloud backup and sync.
+Docketly lets a user scan or import a document, drop it into a predefined category, fill in that category's own fields (e.g. license number and expiry for a Driving License), and attach to-dos to it (e.g. "renew before expiry"). No account is required to use the app — everything is stored locally on the device, and creating an account later is optional, only needed for cloud backup and sync.
 
 
 ```

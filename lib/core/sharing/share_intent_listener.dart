@@ -7,7 +7,7 @@ import '../../routes/routes_exports.dart';
 import 'share_intent_service.dart';
 
 /// Wraps the whole app (via `MaterialApp.router`'s `builder`, alongside
-/// AppLockGate) and routes any file "shared into Mantic" from another app
+/// AppLockGate) and routes any file "shared into Docketly" from another app
 /// (see [ShareIntentService]) straight into Add Document.
 ///
 /// The cold-start share is deliberately not consumed until the router has

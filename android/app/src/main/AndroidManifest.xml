@@ -13,7 +13,7 @@
     android:name="android.permission.READ_EXTERNAL_STORAGE"
     android:maxSdkVersion="32" />
     <application
-        android:label="Mantic Doc Org"
+        android:label="Docketly"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:networkSecurityConfig="@xml/network_security_config">
@@ -38,10 +38,10 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- "Share into Mantic" from other apps (receive_sharing_intent):
+            <!-- "Share into Docketly" from other apps (receive_sharing_intent):
                  lets a PDF/photo shared from Gmail, Gallery, WhatsApp, etc.
                  land directly in Add Document instead of requiring the user
-                 to open Mantic first. -->
+                 to open Docketly first. -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -78,7 +78,7 @@
             android:name="com.linusu.flutter_web_auth_2.CallbackActivity"
             android:exported="true"
             android:taskAffinity="">
-            <intent-filter android:label="Mantic Drive authorization">
+            <intent-filter android:label="Docketly Drive authorization">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />

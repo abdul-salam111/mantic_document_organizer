@@ -11,7 +11,7 @@
 class AppImages {
   AppImages._();
 
-  static const String appLogo = 'assets/images/app_logo.jpg';
+  static const String appLogo = 'assets/images/docketly_logo.png';
 
   static const String image = 'assets/images/image.png';
 }

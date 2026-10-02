@@ -92,7 +92,7 @@
   "support": "Assistance",
   "rateApp": "Évaluer l'application",
   "shareApp": "Partager l'application",
-  "shareAppMessage": "Découvrez Mantic Document Organizer : numérisez, organisez et retrouvez chaque document important en quelques secondes.",
+  "shareAppMessage": "Découvrez Docketly : numérisez, organisez et retrouvez chaque document important en quelques secondes.",
   "appLocked": "Application verrouillée",
   "unlockToContinue": "Authentifiez-vous pour continuer",
   "unlock": "Déverrouiller",
@@ -167,7 +167,7 @@
   "expiringSoonEmptyTitle": "Rien à signaler",
   "expiringSoonEmptySubtitle": "Les documents dont la date d'expiration approche s'afficheront ici.",
 
-  "aiAssistantTitle": "Demander à Mantic",
+  "aiAssistantTitle": "Demander à Docketly",
   "aiAssistantInputHint": "Posez une question sur vos documents...",
   "aiAssistantEmptyTitle": "Posez-moi une question sur vos documents",
   "aiAssistantEmptySubtitle": "Je peux parcourir ce que vous avez numérisé et trouver la réponse — essayez l'une de ces questions, ou posez la vôtre.",

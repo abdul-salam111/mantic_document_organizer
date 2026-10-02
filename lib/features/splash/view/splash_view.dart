@@ -40,7 +40,7 @@ class SplashView extends StatelessWidget {
                     const AppLogo(height: 96, width: 96).withRoundedCorners(22),
                     heightBox(20),
                     Text(
-                      'MANTIC',
+                      'DOCKETLY',
                       style: context.headlineSmall.copyWith(
                         color: context.white,
                         fontWeight: .bold,

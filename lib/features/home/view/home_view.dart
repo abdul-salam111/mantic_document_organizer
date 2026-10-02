@@ -42,7 +42,7 @@ class HomeView extends StatelessWidget {
                               ).withRoundedCorners(10),
                               widthBox(10),
                               Text(
-                                'Mantic',
+                                'Docketly',
                                 style: context.titleMedium.copyWith(
                                   color: context.primary,
                                   fontWeight: .bold,

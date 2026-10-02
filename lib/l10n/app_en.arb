@@ -215,7 +215,7 @@
   "@rateApp": {"description": "Settings menu entry"},
   "shareApp": "Share App",
   "@shareApp": {"description": "Settings menu entry"},
-  "shareAppMessage": "Check out Mantic Document Organizer — scan, organize, and find every important document in seconds.",
+  "shareAppMessage": "Check out Docketly — scan, organize, and find every important document in seconds.",
   "@shareAppMessage": {"description": "Text passed to the OS share sheet from Share App"},
   "appLocked": "App Locked",
   "@appLocked": {"description": "Lock screen title"},
@@ -418,7 +418,7 @@
   "expiringSoonEmptySubtitle": "Documents with an expiry date coming up will show here.",
   "@expiringSoonEmptySubtitle": {"description": "Expiring Soon screen empty state subtitle"},
 
-  "aiAssistantTitle": "Ask Mantic",
+  "aiAssistantTitle": "Ask Docketly",
   "@aiAssistantTitle": {"description": "AI Assistant screen app bar title"},
   "aiAssistantInputHint": "Ask about your documents...",
   "@aiAssistantInputHint": {"description": "AI Assistant screen chat input placeholder"},

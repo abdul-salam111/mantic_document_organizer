@@ -28,7 +28,7 @@ class AddDocumentView extends StatelessWidget {
   /// existing document on save instead of creating a new one.
   final DocumentItem? editingDocument;
 
-  /// Set when opened via a "Share into Mantic" intent from another app
+  /// Set when opened via a "Share into Docketly" intent from another app
   /// (see ShareIntentService/ShareIntentListener) — attaches these files
   /// immediately, same as a fresh camera/gallery/file pick.
   final List<String>? initialSharedFilePaths;
