@@ -92,7 +92,7 @@
   "support": "الدعم",
   "rateApp": "قيّم التطبيق",
   "shareApp": "مشاركة التطبيق",
-  "shareAppMessage": "تعرّف على Docketly — امسح مستنداتك ضوئيًا، نظّمها، واعثر على أي مستند مهم خلال ثوانٍ.",
+  "shareAppMessage": "تعرّف على Dockitly — امسح مستنداتك ضوئيًا، نظّمها، واعثر على أي مستند مهم خلال ثوانٍ.",
   "appLocked": "التطبيق مُقفل",
   "unlockToContinue": "صادِق للمتابعة",
   "unlock": "فتح القفل",
@@ -167,7 +167,7 @@
   "expiringSoonEmptyTitle": "لا يوجد شيء على وشك الانتهاء",
   "expiringSoonEmptySubtitle": "ستظهر هنا المستندات التي يقترب تاريخ انتهائها.",
 
-  "aiAssistantTitle": "اسأل Docketly",
+  "aiAssistantTitle": "اسأل Dockitly",
   "aiAssistantInputHint": "اسأل عن مستنداتك...",
   "aiAssistantEmptyTitle": "اسألني أي شيء عن مستنداتك",
   "aiAssistantEmptySubtitle": "يمكنني البحث فيما قمت بمسحه ضوئيًا واستخراج الإجابة — جرّب أحد هذه الأسئلة، أو اكتب سؤالك الخاص.",

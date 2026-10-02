@@ -92,7 +92,7 @@
   "support": "Soporte",
   "rateApp": "Calificar app",
   "shareApp": "Compartir app",
-  "shareAppMessage": "Descubre Docketly: escanea, organiza y encuentra cualquier documento importante en segundos.",
+  "shareAppMessage": "Descubre Dockitly: escanea, organiza y encuentra cualquier documento importante en segundos.",
   "appLocked": "App bloqueada",
   "unlockToContinue": "Autentícate para continuar",
   "unlock": "Desbloquear",
@@ -167,7 +167,7 @@
   "expiringSoonEmptyTitle": "Nada por vencer",
   "expiringSoonEmptySubtitle": "Aquí aparecerán los documentos con una fecha de vencimiento próxima.",
 
-  "aiAssistantTitle": "Pregunta a Docketly",
+  "aiAssistantTitle": "Pregunta a Dockitly",
   "aiAssistantInputHint": "Pregunta sobre tus documentos...",
   "aiAssistantEmptyTitle": "Pregúntame lo que quieras sobre tus documentos",
   "aiAssistantEmptySubtitle": "Puedo revisar lo que has escaneado y encontrar la respuesta — prueba una de estas o escribe tu propia pregunta.",

@@ -94,7 +94,8 @@ class AppColors {
   // BACKGROUND COLORS
   // ============================================
 
-  static const Color backgroundLight = white;
+  /// Very light cool gray that gives white cards visible separation.
+  static const Color backgroundLight = Color(0xFFF8FAFC);
 
   /// Material's canonical dark base rather than pure black — pure black
   /// gives elevated surfaces no headroom to read as "lighter" against it,

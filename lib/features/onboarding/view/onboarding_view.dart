@@ -76,7 +76,7 @@ class _OnboardingViewState extends State<OnboardingView>
                               Align(
                                 alignment: Alignment.centerLeft,
                                 child: Text(
-                                  'Docketly',
+                                  'Dockitly',
                                   style: context.headlineSmall.copyWith(
                                     color: context.white,
                                     fontWeight: .w800,

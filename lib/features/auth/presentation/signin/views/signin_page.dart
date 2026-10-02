@@ -142,6 +142,8 @@ class _SigninSheet extends StatelessWidget {
                   CustomTextFormField(
                     prefixIcon: Iconsax.sms,
                     hintText: 'you@example.com',
+                    fillColor: context.surfaceElevated,
+                    borderColor: context.grey300,
                     controller: emailController,
                     label: 'Email address',
                     validator: Validator.validateEmail,
@@ -156,6 +158,8 @@ class _SigninSheet extends StatelessWidget {
                   CustomTextFormField(
                     hintText: 'Enter your password',
                     prefixIcon: Iconsax.lock,
+                    fillColor: context.surfaceElevated,
+                    borderColor: context.grey300,
                     controller: passwordController,
                     obscureText: true,
                     label: 'Password',

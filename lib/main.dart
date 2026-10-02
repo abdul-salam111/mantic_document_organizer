@@ -85,7 +85,7 @@ class MyApp extends StatelessWidget {
       child: Consumer2<ThemeController, LocaleController>(
         builder: (context, themeController, localeController, _) {
           return MaterialApp.router(
-            title: 'Docketly',
+            title: 'Dockitly',
             theme: AppThemes.lightTheme,
             darkTheme: AppThemes.darkTheme,
             themeMode: themeController.themeMode,

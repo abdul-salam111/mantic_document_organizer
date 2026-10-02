@@ -162,9 +162,9 @@ class _BulkImportFlowContentState extends State<BulkImportFlowContent> {
           'documents automatically.';
     }
     if (_permissionDenied) {
-      return 'Docketly needs photo access to find your documents.';
+      return 'Dockitly needs photo access to find your documents.';
     }
-    return 'Docketly scans your photos with AI to find and organize IDs, '
+    return 'Dockitly scans your photos with AI to find and organize IDs, '
         'receipts, invoices, and bills for you. Requires internet.';
   }
 }

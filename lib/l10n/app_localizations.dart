@@ -609,7 +609,7 @@ abstract class AppLocalizations {
   /// Text passed to the OS share sheet from Share App
   ///
   /// In en, this message translates to:
-  /// **'Check out Docketly — scan, organize, and find every important document in seconds.'**
+  /// **'Check out Dockitly — scan, organize, and find every important document in seconds.'**
   String get shareAppMessage;
 
   /// Lock screen title
@@ -1035,7 +1035,7 @@ abstract class AppLocalizations {
   /// AI Assistant screen app bar title
   ///
   /// In en, this message translates to:
-  /// **'Ask Docketly'**
+  /// **'Ask Dockitly'**
   String get aiAssistantTitle;
 
   /// AI Assistant screen chat input placeholder

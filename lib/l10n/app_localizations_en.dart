@@ -322,7 +322,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shareAppMessage =>
-      'Check out Docketly — scan, organize, and find every important document in seconds.';
+      'Check out Dockitly — scan, organize, and find every important document in seconds.';
 
   @override
   String get appLocked => 'App Locked';
@@ -596,7 +596,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Documents with an expiry date coming up will show here.';
 
   @override
-  String get aiAssistantTitle => 'Ask Docketly';
+  String get aiAssistantTitle => 'Ask Dockitly';
 
   @override
   String get aiAssistantInputHint => 'Ask about your documents...';
