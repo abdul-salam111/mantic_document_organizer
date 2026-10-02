@@ -166,15 +166,7 @@ class _AddButton extends StatelessWidget {
             alignment: .center,
             decoration: BoxDecoration(
               shape: .circle,
-              gradient: LinearGradient(
-                begin: .topLeft,
-                end: .bottomRight,
-                colors: [
-                  context.primaryLight,
-                  context.primary,
-                  context.primaryDark,
-                ],
-              ),
+              color: context.primary,
               boxShadow: [
                 BoxShadow(
                   color: context.primary.withValues(alpha: 0.45),

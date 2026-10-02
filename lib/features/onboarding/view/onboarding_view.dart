@@ -51,80 +51,160 @@ class _OnboardingViewState extends State<OnboardingView>
             body: Container(
               width: double.infinity,
               height: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: .topLeft,
-                  end: .bottomRight,
-                  colors: [
-                    context.primaryDark,
-                    context.primary,
-                    context.primaryLight,
-                  ],
-                ),
-              ),
-              child: SafeArea(
-                child: Padding(
-                  padding: const .symmetric(horizontal: 28, vertical: 20),
-                  child: FadeTransition(
-                    opacity: _fade,
-                    child: SlideTransition(
-                      position: _slide,
-                      child: Column(
-                        children: [
-                          const Spacer(),
-                          const _HeroGraphic(),
-                          const Spacer(),
-                          Text(
-                            'DOCKETLY',
-                            style: context.labelLarge.copyWith(
-                              color: context.white,
-                              fontWeight: .bold,
-                              letterSpacing: 4,
-                            ),
+              color: context.primary,
+              child: Stack(
+                children: [
+                  Positioned(
+                    top: -110,
+                    right: -100,
+                    child: _BackgroundOrb(size: 270, opacity: 0.09),
+                  ),
+                  Positioned(
+                    bottom: -140,
+                    left: -120,
+                    child: _BackgroundOrb(size: 300, opacity: 0.06),
+                  ),
+                  SafeArea(
+                    child: Padding(
+                      padding: const .symmetric(horizontal: 28, vertical: 20),
+                      child: FadeTransition(
+                        opacity: _fade,
+                        child: SlideTransition(
+                          position: _slide,
+                          child: Column(
+                            children: [
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  'DOCKETLY',
+                                  style: context.labelLarge.copyWith(
+                                    color: context.white,
+                                    fontWeight: .w800,
+                                    letterSpacing: 3.2,
+                                  ),
+                                ),
+                              ),
+                              const Spacer(flex: 2),
+                              const _HeroGraphic(),
+                              const Spacer(),
+                              Text(
+                                AppLocalizations.of(context).onboardingHeadline,
+                                textAlign: .center,
+                                style: context.headlineMedium.copyWith(
+                                  color: context.white,
+                                  fontWeight: .w800,
+                                  height: 1.18,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              heightBox(14),
+                              Text(
+                                AppLocalizations.of(context).onboardingSubtitle,
+                                textAlign: .center,
+                                style: context.bodyMedium.copyWith(
+                                  color: context.white.withValues(alpha: 0.85),
+                                  height: 1.45,
+                                ),
+                              ),
+                              heightBox(30),
+                              Container(
+                                width: double.infinity,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  borderRadius: .circular(18),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: context.black.withValues(
+                                        alpha: 0.14,
+                                      ),
+                                      blurRadius: 18,
+                                      offset: const Offset(0, 8),
+                                    ),
+                                  ],
+                                ),
+                                child: ElevatedButton(
+                                  onPressed: vm.completeOnboarding,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: context.white,
+                                    foregroundColor: context.primary,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: .circular(18),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: .center,
+                                    children: [
+                                      Text(
+                                        AppLocalizations.of(
+                                          context,
+                                        ).onboardingGetStarted,
+                                        style: context.labelLarge.copyWith(
+                                          color: context.primary,
+                                          fontWeight: .w800,
+                                        ),
+                                      ),
+                                      widthBox(8),
+                                      Icon(
+                                        Icons.arrow_forward_rounded,
+                                        color: context.primary,
+                                        size: 20,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              heightBox(16),
+                              Container(
+                                padding: const .symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: context.white.withValues(alpha: 0.1),
+                                  borderRadius: .circular(12),
+                                  border: Border.all(
+                                    color: context.white.withValues(
+                                      alpha: 0.16,
+                                    ),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: .min,
+                                  children: [
+                                    Icon(
+                                      Icons.verified_user_outlined,
+                                      size: 15,
+                                      color: context.white.withValues(
+                                        alpha: 0.88,
+                                      ),
+                                    ),
+                                    widthBox(7),
+                                    Flexible(
+                                      child: Text(
+                                        AppLocalizations.of(
+                                          context,
+                                        ).onboardingNoSignIn,
+                                        textAlign: .center,
+                                        style: context.labelSmall.copyWith(
+                                          color: context.white.withValues(
+                                            alpha: 0.82,
+                                          ),
+                                          fontWeight: .w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              heightBox(6),
+                            ],
                           ),
-                          heightBox(18),
-                          Text(
-                            AppLocalizations.of(context).onboardingHeadline,
-                            textAlign: .center,
-                            style: context.headlineMedium.copyWith(
-                              color: context.white,
-                              fontWeight: .bold,
-                              height: 1.25,
-                            ),
-                          ),
-                          heightBox(12),
-                          Text(
-                            AppLocalizations.of(context).onboardingSubtitle,
-                            textAlign: .center,
-                            style: context.bodyMedium.copyWith(
-                              color: context.white.withValues(alpha: 0.85),
-                              height: 1.5,
-                            ),
-                          ),
-                          heightBox(32),
-                          CustomButton(
-                            text: AppLocalizations.of(
-                              context,
-                            ).onboardingGetStarted,
-                            backgroundColor: context.white,
-                            textColor: context.primary,
-                            radius: 16,
-                            onPressed: vm.completeOnboarding,
-                          ),
-                          heightBox(14),
-                          Text(
-                            AppLocalizations.of(context).onboardingNoSignIn,
-                            textAlign: .center,
-                            style: context.labelSmall.copyWith(
-                              color: context.white.withValues(alpha: 0.7),
-                            ),
-                          ),
-                          heightBox(4),
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
           );
@@ -140,42 +220,35 @@ class _HeroGraphic extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 260,
-      height: 260,
+      width: 250,
+      height: 250,
       child: Stack(
         alignment: .center,
         children: [
           Container(
-            width: 260,
-            height: 260,
+            width: 250,
+            height: 250,
             decoration: BoxDecoration(
               shape: .circle,
               color: context.white.withValues(alpha: 0.08),
             ),
           ),
           Container(
-            width: 202,
-            height: 202,
+            width: 196,
+            height: 196,
             decoration: BoxDecoration(
               shape: .circle,
               color: context.white.withValues(alpha: 0.12),
             ),
           ),
-          Transform.rotate(
-            angle: -0.22,
-            child: _DocCard(color: context.white.withValues(alpha: 0.55)),
-          ),
-          Transform.rotate(
-            angle: 0.16,
-            child: _DocCard(color: context.white.withValues(alpha: 0.85)),
-          ),
           Container(
-            width: 104,
-            height: 104,
+            width: 128,
+            height: 128,
             alignment: .center,
             decoration: BoxDecoration(
-              shape: .circle,
-              color: context.white,
+              borderRadius: .circular(30),
+              color: context.white.withValues(alpha: 0.14),
+              border: Border.all(color: context.white.withValues(alpha: 0.3)),
               boxShadow: [
                 BoxShadow(
                   color: context.black.withValues(alpha: 0.18),
@@ -184,20 +257,19 @@ class _HeroGraphic extends StatelessWidget {
                 ),
               ],
             ),
-            child: FaIcon(
-              FontAwesomeIcons.folderTree,
-              size: 46,
-              color: context.primary,
-            ),
+            child: const AppLogo(
+              height: 104,
+              width: 104,
+            ).withRoundedCorners(24),
           ),
           Positioned(
-            top: 4,
+            top: 12,
             right: 14,
             child: _AccentBadge(icon: FontAwesomeIcons.circleCheck),
           ),
           Positioned(
-            bottom: 8,
-            left: 8,
+            bottom: 14,
+            left: 10,
             child: _AccentBadge(icon: FontAwesomeIcons.shieldHalved),
           ),
         ],
@@ -206,52 +278,21 @@ class _HeroGraphic extends StatelessWidget {
   }
 }
 
-class _DocCard extends StatelessWidget {
-  final Color color;
+class _BackgroundOrb extends StatelessWidget {
+  final double size;
+  final double opacity;
 
-  const _DocCard({required this.color});
+  const _BackgroundOrb({required this.size, required this.opacity});
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 92,
-      height: 118,
-      padding: .all(14),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: .circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: context.black.withValues(alpha: 0.12),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: .start,
-        mainAxisAlignment: .center,
-        children: [
-          _line(context, width: double.infinity),
-          heightBox(8),
-          _line(context, width: 40),
-          heightBox(8),
-          _line(context, width: 56),
-        ],
-      ),
-    );
-  }
-
-  Widget _line(BuildContext context, {required double width}) {
-    return Container(
-      width: width,
-      height: 6,
-      decoration: BoxDecoration(
-        color: context.black.withValues(alpha: 0.12),
-        borderRadius: .circular(3),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Container(
+    width: size,
+    height: size,
+    decoration: BoxDecoration(
+      shape: .circle,
+      color: context.white.withValues(alpha: opacity),
+    ),
+  );
 }
 
 class _AccentBadge extends StatelessWidget {

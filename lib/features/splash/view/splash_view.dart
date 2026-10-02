@@ -8,84 +8,155 @@ import '../../../core/utils/utils_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
 import '../viewmodel/splash_viewmodel.dart';
 
-class SplashView extends StatelessWidget {
+class SplashView extends StatefulWidget {
   const SplashView({super.key});
+
+  @override
+  State<SplashView> createState() => _SplashViewState();
+}
+
+class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
+  late final AnimationController _entranceController;
+  late final AnimationController _exitController;
+
+  @override
+  void initState() {
+    super.initState();
+    _entranceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..forward();
+    _exitController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 360),
+    );
+  }
+
+  @override
+  void dispose() {
+    _entranceController.dispose();
+    _exitController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _playExit() async {
+    if (!mounted || _exitController.isCompleted) return;
+    _exitController.forward(from: 0);
+    // Start replacing Splash as the logo reaches the screen edges rather
+    // than holding on its final, fully-expanded frame.
+    await Future<void>.delayed(const Duration(milliseconds: 260));
+  }
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       lazy: false,
-      create: (_) => sl<SplashViewModel>()..resolveNextRoute(),
+      create: (_) =>
+          sl<SplashViewModel>()..resolveNextRoute(beforeNavigate: _playExit),
       child: Scaffold(
         body: Container(
           width: double.infinity,
           height: double.infinity,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: .topLeft,
-              end: .bottomRight,
-              colors: [
-                context.primaryDark,
-                context.primary,
-                context.primaryLight,
-              ],
-            ),
-          ),
-          child: Center(
-            child: Consumer<SplashViewModel>(
-              builder: (context, vm, _) {
-                return Column(
-                  mainAxisSize: .min,
-                  children: [
-                    const AppLogo(height: 96, width: 96).withRoundedCorners(22),
-                    heightBox(20),
-                    Text(
-                      'DOCKETLY',
-                      style: context.headlineSmall.copyWith(
-                        color: context.white,
-                        fontWeight: .bold,
-                        letterSpacing: 6,
-                      ),
-                    ),
-                    heightBox(6),
-                    Text(
-                      AppLocalizations.of(context).splashTagline,
-                      style: context.bodyMedium.copyWith(
-                        color: context.white.withValues(alpha: 0.8),
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                    if (vm.showUnlockRetry) ...[
-                      heightBox(28),
-                      Icon(
-                        biometricIconFor(vm.biometricKind),
-                        color: context.white,
-                        size: 32,
-                      ),
-                      heightBox(10),
-                      InkWell(
-                        onTap: vm.retryUnlock,
-                        borderRadius: .circular(8),
-                        child: Padding(
-                          padding: const .symmetric(
-                            horizontal: 12,
-                            vertical: 6,
+          color: context.primary,
+          child: ClipRect(
+            child: Center(
+              child: Consumer<SplashViewModel>(
+                builder: (context, vm, _) => AnimatedBuilder(
+                  animation: Listenable.merge([
+                    _entranceController,
+                    _exitController,
+                  ]),
+                  builder: (context, _) {
+                    final entrance = Curves.easeOutCubic.transform(
+                      _entranceController.value,
+                    );
+                    final exit = Curves.easeIn.transform(
+                      _exitController.value,
+                    );
+                    final logoScale = 1 + (1 - entrance) * 5.2 + exit * 8;
+                    final copyProgress = ((entrance - 0.62) / 0.38).clamp(
+                      0.0,
+                      1.0,
+                    );
+                    final copyOpacity =
+                        Curves.easeOut.transform(copyProgress) * (1 - exit);
+
+                    return Column(
+                      mainAxisSize: .min,
+                      children: [
+                        Opacity(
+                          opacity: 0.72 + (0.28 * entrance),
+                          child: Transform.scale(
+                            scale: logoScale,
+                            child: const AppLogo(
+                              height: 96,
+                              width: 96,
+                            ).withRoundedCorners(22),
                           ),
-                          child: Text(
-                            AppLocalizations.of(context).unlock,
-                            style: context.bodyMedium.copyWith(
-                              color: context.white,
-                              fontWeight: .bold,
-                              decoration: .underline,
-                              decorationColor: context.white,
+                        ),
+                        heightBox(20),
+                        Opacity(
+                          opacity: copyOpacity,
+                          child: Transform.translate(
+                            offset: Offset(
+                              0,
+                              12 * (1 - copyProgress) - 8 * exit,
+                            ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  'DOCKETLY',
+                                  style: context.headlineSmall.copyWith(
+                                    color: context.white,
+                                    fontWeight: .bold,
+                                    letterSpacing: 6,
+                                  ),
+                                ),
+                                heightBox(6),
+                                Text(
+                                  AppLocalizations.of(context).splashTagline,
+                                  style: context.bodyMedium.copyWith(
+                                    color: context.white.withValues(alpha: 0.8),
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ],
-                );
-              },
+                        if (vm.showUnlockRetry) ...[
+                          heightBox(28),
+                          Icon(
+                            biometricIconFor(vm.biometricKind),
+                            color: context.white,
+                            size: 32,
+                          ),
+                          heightBox(10),
+                          InkWell(
+                            onTap: vm.retryUnlock,
+                            borderRadius: .circular(8),
+                            child: Padding(
+                              padding: const .symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              child: Text(
+                                AppLocalizations.of(context).unlock,
+                                style: context.bodyMedium.copyWith(
+                                  color: context.white,
+                                  fontWeight: .bold,
+                                  decoration: .underline,
+                                  decorationColor: context.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    );
+                  },
+                ),
+              ),
             ),
           ),
         ),

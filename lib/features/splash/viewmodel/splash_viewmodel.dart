@@ -20,8 +20,12 @@ class SplashViewModel extends ChangeNotifier {
   BiometricKind get biometricKind => _biometricKind;
 
   String? _nextRouteName;
+  Future<void> Function()? _beforeNavigate;
 
-  Future<void> resolveNextRoute() async {
+  Future<void> resolveNextRoute({
+    Future<void> Function()? beforeNavigate,
+  }) async {
+    _beforeNavigate = beforeNavigate;
     // flutter_secure_storage's first-ever read on Android generates an
     // AES key via the Android Keystore, which can hang or throw on some
     // OEM builds — never let that leave the user stuck on splash forever.
@@ -37,6 +41,7 @@ class SplashViewModel extends ChangeNotifier {
     if (_securityController.isBiometricLockEnabled) {
       await _authenticateThenNavigate();
     } else {
+      await _beforeNavigate?.call();
       AppNavigator.goNamed(_nextRouteName!);
     }
   }
@@ -57,6 +62,7 @@ class SplashViewModel extends ChangeNotifier {
     final didAuthenticate = await _securityController.authenticate(reason);
 
     if (didAuthenticate) {
+      await _beforeNavigate?.call();
       AppNavigator.goNamed(_nextRouteName!);
     } else {
       _showUnlockRetry = true;
