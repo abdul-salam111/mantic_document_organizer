@@ -1,7 +1,7 @@
 # Bulk Import — Implementation Specification
 
-**Status:** proposed for Phase 2  
-**Working name:** Bulk Import  
+**Status:** proposed for Phase 2
+**Working name:** Bulk Import
 **Last reviewed:** 2026-10-02
 
 ## Purpose
@@ -66,7 +66,7 @@ Persist accepted documents and show result
 
 The post-onboarding screen says:
 
-> **Bring your documents together**  
+> **Bring your documents together**
 > Select existing files and review them before they are added to Docketly.
 
 Actions are **Import documents** and **Not now**. Dismissing it opens Home and
