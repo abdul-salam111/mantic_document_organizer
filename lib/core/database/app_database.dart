@@ -155,6 +155,7 @@ class AppDatabase {
     'title': document.title,
     'description': document.description,
     'ocr_text': document.ocrText,
+    'tags': document.tags,
     'category_id': document.categoryId,
     'is_expirable': document.isExpirable,
     'expiry_date': document.expiryDate?.toIso8601String(),
@@ -518,6 +519,12 @@ class AppDatabase {
           where: 'document_id = ?',
           whereArgs: [document.id],
         );
+        for (final tag in document.tags) {
+          await txn.insert('document_tags', {
+            'document_id': document.id,
+            'tag': tag,
+          });
+        }
         for (var i = 0; i < document.filePaths.length; i++) {
           await txn.insert('document_attachments', {
             'document_id': document.id,

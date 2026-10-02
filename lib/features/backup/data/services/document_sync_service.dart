@@ -236,27 +236,56 @@ class DocumentSyncService {
         itemLabel: remote['title'] as String?,
       );
       final remoteId = remote['id'] as String;
-      final remoteRevision = remote['revision'] as int;
+      var remoteRevision = remote['revision'] as int;
+      final remoteAttachments = List<Map<String, dynamic>>.from(
+        (remote['attachments'] as List? ?? const []).map(
+          (value) => Map<String, dynamic>.from(value as Map),
+        ),
+      );
       final localId =
           await _database.localDocumentIdForRemoteId(remoteId) ?? remoteId;
       final currentState = await _database.documentSyncState(localId);
+      final existing = await _database.documentById(localId);
+      final supportsTags = remote.containsKey('tags');
+      var remoteTags = supportsTags
+          ? List<String>.from(remote['tags'] as List? ?? const [])
+          : existing?.tags ?? const <String>[];
+
+      // Tags used to live only in the device database. Once the API supports
+      // them, publish an existing device's local tags exactly once even if the
+      // document itself has not otherwise changed. Do not attempt this against
+      // an older server which does not include a `tags` field in its response.
+      if (supportsTags &&
+          currentState != null &&
+          currentState['remote_revision'] == remoteRevision &&
+          remoteTags.isEmpty &&
+          existing != null &&
+          existing.tags.isNotEmpty) {
+        final tagResponse = await _dio.patch(
+          '${ApiEndPoints.baseUrl}documents/$remoteId',
+          data: {'tags': existing.tags, 'base_revision': remoteRevision},
+          options: Options(headers: {'Authorization': 'Bearer $token'}),
+        );
+        final taggedRemote = Map<String, dynamic>.from(tagResponse.data as Map);
+        remoteRevision = taggedRemote['revision'] as int;
+        remoteTags = List<String>.from(
+          taggedRemote['tags'] as List? ?? existing.tags,
+        );
+        remote['tags'] = remoteTags;
+      }
       if (currentState != null &&
-          currentState['remote_revision'] == remoteRevision) {
+          currentState['remote_revision'] == remoteRevision &&
+          await _attachmentsAreUsable(localId, remoteAttachments)) {
         // Already current locally — most commonly because we're the one
         // that just pushed this exact revision in the upload step above.
         // Nothing changed server-side, so there's nothing to pull: skip
         // the DB rewrite and attachment work entirely.
         continue;
       }
-      final existing = await _database.documentById(localId);
       final attachmentPaths = await _downloadAttachments(
         localId: localId,
         remoteDocumentId: remoteId,
-        attachments: List<Map<String, dynamic>>.from(
-          (remote['attachments'] as List? ?? const []).map(
-            (value) => Map<String, dynamic>.from(value as Map),
-          ),
-        ),
+        attachments: remoteAttachments,
         token: token,
       );
       final createdAt = DateTime.parse(
@@ -281,6 +310,7 @@ class DocumentSyncService {
           createdAt: createdAt,
           description: remote['description'] as String? ?? '',
           ocrText: remote['ocr_text'] as String? ?? '',
+          tags: remoteTags,
           isExpirable: remote['is_expirable'] as bool? ?? false,
           expiryDate: expiry == null ? null : DateTime.tryParse(expiry),
           filePaths: attachmentPaths.isEmpty
@@ -294,6 +324,31 @@ class DocumentSyncService {
         revision: remoteRevision,
       );
     }
+  }
+
+  /// A matching document revision alone is insufficient: an interrupted
+  /// download may leave a partial attachment behind while the database has
+  /// already recorded the remote revision. Verify the cached file before
+  /// skipping a restore.
+  Future<bool> _attachmentsAreUsable(
+    String localDocumentId,
+    List<Map<String, dynamic>> attachments,
+  ) async {
+    for (final attachment in attachments) {
+      final id = attachment['id'] as String;
+      final path = await _database.localPathForRemoteAttachment(
+        localDocumentId,
+        id,
+      );
+      if (path == null) return false;
+      final file = File(path);
+      if (!await file.exists()) return false;
+      final expectedBytes = (attachment['byte_size'] as num?)?.toInt();
+      if (expectedBytes != null && await file.length() != expectedBytes) {
+        return false;
+      }
+    }
+    return true;
   }
 
   Future<List<String>> _downloadAttachments({
@@ -315,14 +370,31 @@ class DocumentSyncService {
       );
       final path = '${directory.path}/remote_${id}_$filename';
       final file = File(path);
-      if (!await file.exists()) {
+      final expectedBytes = (attachment['byte_size'] as num?)?.toInt();
+      final isValidCachedFile =
+          await file.exists() &&
+          (expectedBytes == null || await file.length() == expectedBytes);
+      if (!isValidCachedFile) {
+        if (await file.exists()) await file.delete();
+        final temporaryFile = File('$path.download');
+        if (await temporaryFile.exists()) await temporaryFile.delete();
         try {
           await _dio.download(
             '${ApiEndPoints.baseUrl}attachments/$id/content',
-            path,
+            temporaryFile.path,
             options: Options(headers: {'Authorization': 'Bearer $token'}),
           );
+          if (expectedBytes != null &&
+              await temporaryFile.length() != expectedBytes) {
+            throw StateError(
+              'Downloaded attachment size did not match the remote file.',
+            );
+          }
+          // Rename only after a complete download, so the viewer never sees
+          // a partial file if the app closes or the network drops mid-sync.
+          await temporaryFile.rename(path);
         } on DioException catch (error) {
+          if (await temporaryFile.exists()) await temporaryFile.delete();
           if (error.response?.statusCode == 404) {
             // The file was removed directly in Drive, outside the app.
             // If this device is the one that originally uploaded it, it
@@ -344,6 +416,9 @@ class DocumentSyncService {
             }
             continue;
           }
+          rethrow;
+        } catch (_) {
+          if (await temporaryFile.exists()) await temporaryFile.delete();
           rethrow;
         }
       }
