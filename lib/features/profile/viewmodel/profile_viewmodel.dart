@@ -76,6 +76,9 @@ class ProfileViewModel extends ChangeNotifier {
     _isSignedIn = false;
     _isSigningOut = false;
     notifyListeners();
+    // Signup/login is mandatory — signing out leaves the app, it doesn't
+    // drop into a local-only in-app state.
+    AppNavigator.goNamed(RouteNames.signin);
   }
 
   Future<void> setUpBackup() async {

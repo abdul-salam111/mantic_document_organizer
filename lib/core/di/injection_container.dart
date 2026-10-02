@@ -16,6 +16,7 @@ import 'package:mantic_doc_org/features/categories/domain/usecases/category_usec
 import 'package:mantic_doc_org/features/documents/domain/usecases/document_usecases.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 
 import '../../features/categories/presentation/add_category/viewmodel/add_category_viewmodel.dart';
 import '../ai/ai_exports.dart';
@@ -44,6 +45,12 @@ import '../../features/documents/presentation/category_documents/category_docume
 import '../../features/documents/presentation/document_viewer/document_viewer_exports.dart';
 import '../../features/documents/presentation/trash/trash_exports.dart';
 import '../../features/documents/presentation/expiring_soon/expiring_soon_exports.dart';
+import '../../features/bulk_import/bulk_import_exports.dart';
+import '../../features/bulk_import/data/bulk_import_local_datasource.dart';
+import '../../features/bulk_import/data/discovery_watermark_store.dart';
+import '../../features/bulk_import/data/gallery_discovery_datasource.dart';
+import '../../features/bulk_import/domain/usecases/bulk_import_usecases.dart';
+import '../../features/bulk_import/domain/usecases/gallery_discovery_usecases.dart';
 
 // GENERATED_IMPORTS_START
 
@@ -74,6 +81,7 @@ Future<void> setupLocator() async {
   await documentViewerDependencies();
   await trashDependencies();
   await expiringSoonDependencies();
+  await bulkImportDependencies();
   // GENERATED_SETUP_CALLS_START
 
   await aiAssistantDependencies();
@@ -256,6 +264,23 @@ Future<void> navbarDependencies() async {
 
 Future<void> onboardingDependencies() async {
   sl.registerFactory<OnboardingViewModel>(() => OnboardingViewModel());
+}
+
+Future<void> bulkImportDependencies() async {
+  await BulkImportLocalDataSource.cleanupStaleSessions();
+  sl.registerFactory<BulkImportViewModel>(
+    () => BulkImportViewModel(
+      imports: BulkImportUseCases(BulkImportLocalDataSource()),
+      categories: sl(),
+      documents: sl(),
+      processing: sl(),
+      discovery: GalleryDiscoveryUseCases(GalleryDiscoveryDataSource()),
+      watermark: DiscoveryWatermarkStore(),
+      // Same connectivity check DioHelper already uses -- discovery is now
+      // AI-driven and cannot work offline at all.
+      checkConnectivity: () => InternetConnectionChecker.instance.hasConnection,
+    ),
+  );
 }
 
 Future<void> splashDependencies() async {

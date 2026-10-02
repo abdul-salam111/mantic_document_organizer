@@ -19,6 +19,8 @@ class RoutePaths {
   static const String documentViewer = "/document-viewer";
   static const String trash = "/trash";
   static const String expiringSoon = "/expiring-soon";
+  static const String bulkImport = "/bulk-import";
+  static const String bulkImportReview = "/bulk-import-review";
 
   // GENERATED_ROUTE_PATHS_START
 

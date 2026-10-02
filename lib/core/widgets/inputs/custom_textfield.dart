@@ -30,6 +30,9 @@ class CustomTextFormField extends StatefulWidget {
   final TextInputAction? textInputAction;
   final List<TextInputFormatter>? inputFormatters;
   final TextStyle? style;
+
+  /// Lets the operating system and password managers identify this field.
+  final Iterable<String>? autofillHints;
   final bool showBorder;
   final bool isCollapsed;
   final EdgeInsetsGeometry? contentPadding;
@@ -60,6 +63,7 @@ class CustomTextFormField extends StatefulWidget {
     this.textInputAction,
     this.inputFormatters,
     this.style,
+    this.autofillHints,
     this.showBorder = true,
     this.isCollapsed = false,
     this.contentPadding,
@@ -141,6 +145,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
           maxLines: widget.obscureText ? 1 : widget.maxLines,
           textInputAction: widget.textInputAction,
           inputFormatters: widget.inputFormatters,
+          autofillHints: widget.autofillHints,
           decoration: InputDecoration(
             isCollapsed: widget.isCollapsed,
             hintText: widget.hintText,

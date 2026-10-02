@@ -23,6 +23,7 @@ import '../features/documents/presentation/category_documents/category_documents
 import '../features/documents/presentation/document_viewer/document_viewer_exports.dart';
 import '../features/documents/presentation/trash/trash_exports.dart';
 import '../features/documents/presentation/expiring_soon/expiring_soon_exports.dart';
+import '../features/bulk_import/bulk_import_exports.dart';
 
 // GENERATED_IMPORTS_START
 
@@ -161,6 +162,20 @@ class AppRoutes {
         path: RoutePaths.expiringSoon,
         name: RouteNames.expiringSoon,
         builder: (context, state) => const ExpiringSoonView(),
+      ),
+      GoRoute(
+        path: RoutePaths.bulkImport,
+        name: RouteNames.bulkImport,
+        builder: (context, state) => const BulkImportIntroView(),
+      ),
+      GoRoute(
+        path: RoutePaths.bulkImportReview,
+        name: RouteNames.bulkImportReview,
+        builder: (context, state) => state.extra is BulkImportViewModel
+            ? BulkImportReviewView(
+                viewModel: state.extra! as BulkImportViewModel,
+              )
+            : const BulkImportIntroView(),
       ),
 
       // GENERATED_ROUTES_START

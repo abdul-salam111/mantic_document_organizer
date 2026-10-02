@@ -7,6 +7,7 @@ import '../../../core/theme/theme_exports.dart';
 import '../../../core/utils/utils_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
 import '../../../routes/routes_exports.dart';
+import '../../bulk_import/bulk_import_exports.dart';
 import '../viewmodel/profile_viewmodel.dart';
 
 class ProfileView extends StatelessWidget {
@@ -38,6 +39,14 @@ class ProfileView extends StatelessWidget {
                     heightBox(16),
                     _StatsRow(vm: vm),
                     heightBox(24),
+                    _ProfileMenuTile(
+                      icon: Iconsax.document_upload,
+                      iconColor: context.primary,
+                      label: 'Find more documents',
+                      subtitle: 'Scan your photo library for new documents',
+                      onTap: () => BulkImportPopup.show(context),
+                    ),
+                    heightBox(10),
                     _ProfileMenuTile(
                       icon: Iconsax.setting_2,
                       iconColor: context.primary,

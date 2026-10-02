@@ -15,6 +15,8 @@ class RouteNames {
   static const String documentViewer = "documentViewer";
   static const String trash = "trash";
   static const String expiringSoon = "expiringSoon";
+  static const String bulkImport = "bulkImport";
+  static const String bulkImportReview = "bulkImportReview";
 
   // GENERATED_ROUTE_NAMES_START
 

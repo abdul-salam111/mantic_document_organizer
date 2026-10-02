@@ -8,7 +8,10 @@ import '../networks/network_manager/dio_helper.dart';
 /// A best-effort suggestion for a newly-scanned document, produced by
 /// sending its OCR'd text to an AI model. Every field is a *suggestion* —
 /// [AddDocumentViewModel] pre-fills editable form fields with these, it
-/// never saves a document on this alone.
+/// never saves a document on this alone. [AiDocumentSuggestion.isDocument]
+/// is the exception: Bulk Import's discovery flow uses it as the actual
+/// inclusion decision for a candidate found in the photo library, not just
+/// a suggestion.
 /// Organizes a document's OCR'd text into a title/category/summary/expiry
 /// suggestion via an AI model, routed through OpenRouter
 /// (https://openrouter.ai) so the underlying model is swappable via
@@ -40,12 +43,27 @@ class AiDocumentService {
 
   String _systemPrompt(List<String> availableCategories) =>
       'You are a document-organizing assistant for a personal document '
-      'manager app. You will be given raw OCR text extracted from a '
-      'scanned document — expect OCR noise (misread characters, garbled '
-      'lines, stray symbols, broken word spacing); read through it to the '
-      'actual content rather than quoting it verbatim. Respond with ONLY a '
-      'single JSON object (no prose, no markdown fences, no code block) '
-      'with exactly these keys:\n\n'
+      'manager app. You will be given raw OCR text extracted from either '
+      'a document the user deliberately scanned, or a photo automatically '
+      'found in their photo library during a bulk-import scan — in the '
+      'latter case it may not be a document at all. Expect OCR noise '
+      '(misread characters, garbled lines, stray symbols, broken word '
+      'spacing); read through it to the actual content rather than '
+      'quoting it verbatim. Respond with ONLY a single JSON object (no '
+      'prose, no markdown fences, no code block) with exactly these '
+      'keys:\n\n'
+      '"isDocument": true only if this text comes from an actual personal '
+      'document worth keeping — a passport, ID/driver\'s license, receipt, '
+      'invoice, bill, contract/agreement, insurance policy, certificate, '
+      'or similar. false for incidental text in an ordinary photo: people '
+      '(even with text visible nearby or in the background), scenery, '
+      'signage, menus/price boards, screenshots of chats or social media, '
+      'memes, or any other non-document photo. When in doubt between a '
+      'real document and an ordinary photo, prefer false.\n\n'
+      'If "isDocument" is false, set every other key to null or an empty '
+      'value as appropriate ("title"/"category"/"description": null, '
+      '"tags": [], "isExpirable": false, "expiryDate": null) — none of '
+      'them will be used.\n\n'
       '"title": a short, natural, human-friendly title — 2 to 5 words. Do '
       'NOT copy the document\'s own printed heading. Lead with whatever a '
       'person would actually type to find this later: a person or company '
@@ -116,6 +134,10 @@ class AiDocumentService {
       final parsed = jsonDecode(content) as Map;
 
       return AiDocumentSuggestion(
+        // Missing/non-boolean defaults to true -- callers that don't care
+        // about this field (anything outside Bulk Import's discovery flow)
+        // are unaffected either way.
+        isDocument: parsed['isDocument'] != false,
         title: _cleanString(parsed['title']),
         categoryName: _cleanString(parsed['category']),
         description: _cleanString(parsed['description']) ?? '',

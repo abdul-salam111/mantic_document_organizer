@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/local_storage/local_storage_exports.dart';
 import '../../../core/localization/localization_exports.dart';
 import '../../../core/security/security_exports.dart';
+import '../../../core/services/services_exports.dart';
 import '../../../routes/routes_exports.dart';
 
 class SplashViewModel extends ChangeNotifier {
@@ -29,9 +30,19 @@ class SplashViewModel extends ChangeNotifier {
         .catchError((_) => false);
     await Future.delayed(_brandDelay);
     final hasSeenOnboarding = await hasSeenOnboardingFuture;
-    _nextRouteName = hasSeenOnboarding
-        ? RouteNames.home
-        : RouteNames.onboarding;
+    if (!hasSeenOnboarding) {
+      _nextRouteName = RouteNames.onboarding;
+    } else {
+      // Signup/login is mandatory past onboarding — same storage-hang
+      // safety net as the read above, since this also hits secure storage.
+      await SessionController.instance
+          .loadUserFromStorage()
+          .timeout(_storageTimeout, onTimeout: () {})
+          .catchError((_) {});
+      _nextRouteName = SessionController.instance.islogin
+          ? RouteNames.home
+          : RouteNames.signin;
+    }
 
     if (_securityController.isBiometricLockEnabled) {
       await _authenticateThenNavigate();

@@ -5,7 +5,7 @@ final _directives = RegExp(
   r'''^(?:import|export)\s+['"]([^'"]+)['"]''',
   multiLine: true,
 );
-const _features = ['categories', 'documents', 'favorites'];
+const _features = ['categories', 'documents', 'favorites', 'bulk_import'];
 
 Iterable<File> _files(String path) => Directory(path)
     .listSync(recursive: true)

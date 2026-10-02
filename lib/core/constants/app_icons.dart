@@ -11,6 +11,8 @@
 class AppIcons {
   AppIcons._();
 
+  static const String apple = 'assets/icons/apple.png';
+
   static const String bank = 'assets/icons/bank.png';
 
   static const String businessCard = 'assets/icons/business_card.png';
@@ -18,6 +20,8 @@ class AppIcons {
   static const String contracts = 'assets/icons/contracts.jpg';
 
   static const String drivingLicense = 'assets/icons/driving_license.webp';
+
+  static const String google = 'assets/icons/google.webp';
 
   static const String idcard = 'assets/icons/idcard.jpg';
 

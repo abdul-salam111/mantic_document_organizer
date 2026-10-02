@@ -73,24 +73,13 @@ class _OnboardingViewState extends State<OnboardingView>
                           position: _slide,
                           child: Column(
                             children: [
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  'DOCKETLY',
-                                  style: context.labelLarge.copyWith(
-                                    color: context.white,
-                                    fontWeight: .w800,
-                                    letterSpacing: 3.2,
-                                  ),
-                                ),
-                              ),
-                              const Spacer(flex: 2),
+                              const Spacer(),
                               const _HeroGraphic(),
                               const Spacer(),
                               Text(
                                 AppLocalizations.of(context).onboardingHeadline,
                                 textAlign: .center,
-                                style: context.headlineMedium.copyWith(
+                                style: context.headlineSmall.copyWith(
                                   color: context.white,
                                   fontWeight: .w800,
                                   height: 1.18,
@@ -101,7 +90,7 @@ class _OnboardingViewState extends State<OnboardingView>
                               Text(
                                 AppLocalizations.of(context).onboardingSubtitle,
                                 textAlign: .center,
-                                style: context.bodyMedium.copyWith(
+                                style: context.bodySmall.copyWith(
                                   color: context.white.withValues(alpha: 0.85),
                                   height: 1.45,
                                 ),
@@ -154,50 +143,6 @@ class _OnboardingViewState extends State<OnboardingView>
                                   ),
                                 ),
                               ),
-                              heightBox(16),
-                              Container(
-                                padding: const .symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: context.white.withValues(alpha: 0.1),
-                                  borderRadius: .circular(12),
-                                  border: Border.all(
-                                    color: context.white.withValues(
-                                      alpha: 0.16,
-                                    ),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: .min,
-                                  children: [
-                                    Icon(
-                                      Icons.verified_user_outlined,
-                                      size: 15,
-                                      color: context.white.withValues(
-                                        alpha: 0.88,
-                                      ),
-                                    ),
-                                    widthBox(7),
-                                    Flexible(
-                                      child: Text(
-                                        AppLocalizations.of(
-                                          context,
-                                        ).onboardingNoSignIn,
-                                        textAlign: .center,
-                                        style: context.labelSmall.copyWith(
-                                          color: context.white.withValues(
-                                            alpha: 0.82,
-                                          ),
-                                          fontWeight: .w500,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              heightBox(6),
                             ],
                           ),
                         ),
@@ -220,8 +165,8 @@ class _HeroGraphic extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 250,
-      height: 250,
+      width: 300,
+      height: 300,
       child: Stack(
         alignment: .center,
         children: [
@@ -231,6 +176,17 @@ class _HeroGraphic extends StatelessWidget {
             decoration: BoxDecoration(
               shape: .circle,
               color: context.white.withValues(alpha: 0.08),
+            ),
+          ),
+          // Wraps "DOCKETLY" around the bottom of the outer circle, badge/
+          // seal-style, instead of a plain top-of-screen wordmark.
+          CurvedText(
+            text: 'DOCKETLY',
+            radius: 142,
+            style: context.titleLarge.copyWith(
+              color: context.white,
+              fontWeight: .w800,
+              letterSpacing: 2.4,
             ),
           ),
           Container(
