@@ -13,6 +13,7 @@ class AppColors {
   /// Primary brand color - Main actions, CTAs
   static const Color primary = Color(0xFF197DCA);
   static const Color primaryDark = Color(0xFF4850E4);
+
   static const Color primaryLight = Color(0xFF9398EF);
 
   /// Dark-theme-tuned primary accent. [primary] itself stays the same

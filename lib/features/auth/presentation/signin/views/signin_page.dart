@@ -60,7 +60,7 @@ class _SigninPageState extends State<SigninPage> {
                   left: 24,
                   right: 24,
                   child: Column(
-                    children: [const AppLogo(height: 150, width: 150)],
+                    children: [const AppLogo(height: 120, width: 120)],
                   ),
                 ),
                 Align(
@@ -129,9 +129,7 @@ class _SigninSheet extends StatelessWidget {
                   const SizedBox(height: 20),
                   Text(
                     'Welcome back',
-                    style: context.headlineSmall.copyWith(
-                      fontWeight: .w700,
-                    ),
+                    style: context.headlineSmall.copyWith(fontWeight: .w700),
                   ),
                   const SizedBox(height: 6),
                   Text(
@@ -266,7 +264,7 @@ class _AuthBackdrop extends StatelessWidget {
   const _AuthBackdrop();
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.primary;
+    const color = Color(0xFF08254F);
     return IgnorePointer(
       child: Stack(
         children: [

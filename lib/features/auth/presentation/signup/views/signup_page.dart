@@ -1,6 +1,9 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../../core/constants/constants_exports.dart';
 import '../../../../../core/di/di_exports.dart';
 import '../../../../../core/theme/theme_exports.dart';
 import '../../../../../core/utils/utils_exports.dart';
@@ -54,10 +57,23 @@ class _SignupPageState extends State<SignupPage> {
                   top: 28,
                   left: 24,
                   right: 24,
-                  child: Center(child: AppLogo(height: 150, width: 150)),
+                  child: Center(child: AppLogo(height: 120, width: 120)),
+                ),
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: IconButton.filledTonal(
+                    tooltip: 'Back',
+                    onPressed: () => AppNavigator.goNamed(RouteNames.signin),
+                    style: IconButton.styleFrom(
+                      backgroundColor: const Color(0xFF08254F),
+                      foregroundColor: Colors.white,
+                    ),
+                    icon: const Icon(Icons.arrow_back),
+                  ),
                 ),
                 Positioned.fill(
-                  top: 190,
+                  top: 130,
                   child: AnimatedPadding(
                     duration: const Duration(milliseconds: 260),
                     curve: Curves.easeOutCubic,
@@ -99,19 +115,17 @@ class _SignupSheet extends StatelessWidget {
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 640),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
+        padding: const .fromLTRB(24, 20, 24, 28),
         child: AutofillGroup(
           child: Form(
             key: formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: .stretch,
               children: [
                 Text(
                   'Create your account',
-                  style: context.headlineSmall.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                  textAlign: TextAlign.center,
+                  style: context.headlineSmall.copyWith(fontWeight: .w700),
+                  textAlign: .center,
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -163,20 +177,74 @@ class _SignupSheet extends StatelessWidget {
                 Consumer<SignupViewModel>(
                   builder: (context, vm, _) => CustomButton(
                     radius: 12,
-                    onPressed: vm.isLoading ? null : () => onSubmit(vm),
-                    isLoading: vm.isLoading,
+                    onPressed: vm.isAnyLoading ? null : () => onSubmit(vm),
+                    isLoading: vm.isEmailLoading,
                     text: 'Create account',
                   ),
                 ),
                 const SizedBox(height: 16),
-                Text(
-                  'By creating an account, you can securely sync your documents across devices.',
-                  style: context.bodySmall.copyWith(
-                    color: context.textSecondary,
-                  ),
-                  textAlign: TextAlign.center,
+                Row(
+                  children: [
+                    const Expanded(child: Divider()),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        'or sign up with',
+                        style: context.bodySmall.copyWith(
+                          color: context.textSecondary,
+                        ),
+                      ),
+                    ),
+                    const Expanded(child: Divider()),
+                  ],
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 16),
+                Consumer<SignupViewModel>(
+                  builder: (context, vm, _) {
+                    final loading = vm.isGoogleLoading;
+                    return SizedBox(
+                      height: 52,
+                      child: OutlinedButton.icon(
+                        onPressed: vm.isAnyLoading ? null : vm.signUpWithGoogle,
+                        icon: loading
+                            ? const SizedBox.square(
+                                dimension: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Image.asset(
+                                AppIcons.google,
+                                width: 20,
+                                height: 20,
+                              ),
+                        label: Text(
+                          loading
+                              ? 'Connecting to Google…'
+                              : 'Continue with Google',
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                if (Platform.isIOS) ...[
+                  const SizedBox(height: 12),
+                  Consumer<SignupViewModel>(
+                    builder: (context, vm, _) => SizedBox(
+                      height: 52,
+                      child: OutlinedButton.icon(
+                        onPressed: vm.isAnyLoading ? null : vm.signUpWithApple,
+                        icon: const Icon(Icons.apple),
+                        label: Text(
+                          vm.isAppleLoading
+                              ? 'Connecting to Apple…'
+                              : 'Continue with Apple',
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 8),
                 TextButton(
                   onPressed: () => AppNavigator.goNamed(RouteNames.signin),
                   child: const Text('Already have an account? Sign in'),
@@ -194,7 +262,7 @@ class _SignupBackdrop extends StatelessWidget {
   const _SignupBackdrop();
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.primary;
+    const color = Color(0xFF08254F);
     return IgnorePointer(
       child: Stack(
         children: [

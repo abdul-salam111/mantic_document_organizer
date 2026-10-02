@@ -147,7 +147,7 @@ Future<void> authDependencies() async {
     () => SigninViewModel(signinUsecase: sl(), socialSigninUsecase: sl()),
   );
   sl.registerFactory<SignupViewModel>(
-    () => SignupViewModel(signupUsecase: sl()),
+    () => SignupViewModel(signupUsecase: sl(), socialSigninUsecase: sl()),
   );
   sl.registerFactory<EmailVerificationViewModel>(
     () => EmailVerificationViewModel(
