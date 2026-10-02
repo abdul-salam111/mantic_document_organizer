@@ -17,7 +17,6 @@ class SplashView extends StatefulWidget {
 
 class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
   late final AnimationController _entranceController;
-  late final AnimationController _exitController;
 
   @override
   void initState() {
@@ -26,33 +25,19 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 900),
     )..forward();
-    _exitController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 360),
-    );
   }
 
   @override
   void dispose() {
     _entranceController.dispose();
-    _exitController.dispose();
     super.dispose();
-  }
-
-  Future<void> _playExit() async {
-    if (!mounted || _exitController.isCompleted) return;
-    _exitController.forward(from: 0);
-    // Start replacing Splash as the logo reaches the screen edges rather
-    // than holding on its final, fully-expanded frame.
-    await Future<void>.delayed(const Duration(milliseconds: 260));
   }
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       lazy: false,
-      create: (_) =>
-          sl<SplashViewModel>()..resolveNextRoute(beforeNavigate: _playExit),
+      create: (_) => sl<SplashViewModel>()..resolveNextRoute(),
       child: Scaffold(
         body: Container(
           width: double.infinity,
@@ -62,24 +47,17 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
             child: Center(
               child: Consumer<SplashViewModel>(
                 builder: (context, vm, _) => AnimatedBuilder(
-                  animation: Listenable.merge([
-                    _entranceController,
-                    _exitController,
-                  ]),
+                  animation: _entranceController,
                   builder: (context, _) {
                     final entrance = Curves.easeOutCubic.transform(
                       _entranceController.value,
                     );
-                    final exit = Curves.easeIn.transform(
-                      _exitController.value,
-                    );
-                    final logoScale = 1 + (1 - entrance) * 5.2 + exit * 8;
+                    final logoScale = 1 + (1 - entrance) * 5.2;
                     final copyProgress = ((entrance - 0.62) / 0.38).clamp(
                       0.0,
                       1.0,
                     );
-                    final copyOpacity =
-                        Curves.easeOut.transform(copyProgress) * (1 - exit);
+                    final copyOpacity = Curves.easeOut.transform(copyProgress);
 
                     return Column(
                       mainAxisSize: .min,
@@ -98,10 +76,7 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
                         Opacity(
                           opacity: copyOpacity,
                           child: Transform.translate(
-                            offset: Offset(
-                              0,
-                              12 * (1 - copyProgress) - 8 * exit,
-                            ),
+                            offset: Offset(0, 12 * (1 - copyProgress)),
                             child: Column(
                               children: [
                                 Text(
