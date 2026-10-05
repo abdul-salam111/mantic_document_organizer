@@ -10,7 +10,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-enum TagError { limitReached, tooLong, invalidCharacters, duplicate }
+enum TagError { limitReached, tooLong, duplicate }
 
 class AddDocumentViewModel extends ChangeNotifier {
   final CategoryUseCases _categoryUseCases;
@@ -99,7 +99,6 @@ class AddDocumentViewModel extends ChangeNotifier {
 
   static const maxTagCount = 10;
   static const maxTagLength = 20;
-  static final _tagPattern = RegExp(r'^[a-z0-9_-]+$');
 
   final List<String> _tags = [];
   List<String> get tags => List.unmodifiable(_tags);
@@ -113,19 +112,19 @@ class AddDocumentViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Tags are normalized to lowercase slugs (letters/numbers/-/_ only, no
-  /// spaces) so they stay consistent for future filtering/search, capped
-  /// at [maxTagLength] chars and [maxTagCount] tags per document.
+  /// Tags are entered freely — whatever the user types is kept as-is (no
+  /// forced casing/character set), just trimmed, capped at [maxTagLength]
+  /// chars and [maxTagCount] tags per document, and deduplicated
+  /// case-insensitively so "Insurance" and "insurance" don't both end up
+  /// in the list.
   void addTag() {
-    final tag = tagController.text.trim().toLowerCase();
+    final tag = tagController.text.trim();
     if (tag.isEmpty) return;
     if (_tags.length >= maxTagCount) {
       _tagError = TagError.limitReached;
     } else if (tag.length > maxTagLength) {
       _tagError = TagError.tooLong;
-    } else if (!_tagPattern.hasMatch(tag)) {
-      _tagError = TagError.invalidCharacters;
-    } else if (_tags.contains(tag)) {
+    } else if (_tags.any((t) => t.toLowerCase() == tag.toLowerCase())) {
       _tagError = TagError.duplicate;
     } else {
       _tags.add(tag);
@@ -285,16 +284,18 @@ class AddDocumentViewModel extends ChangeNotifier {
     }
   }
 
-  /// Adds up to [maxTagCount] AI-suggested tags, running each through the
-  /// same normalization/validation manual entry uses (lowercase, allowed
-  /// characters, length, no duplicates) — a tag that fails is just skipped,
-  /// there's no input field here to surface an error against.
+  /// Adds up to [maxTagCount] AI-suggested tags — normalized to lowercase
+  /// slugs (unlike manual entry, which is kept free-form) since these come
+  /// from the AI prompt that's specifically told to produce that shape, so
+  /// they stay consistent with each other. A tag that's empty, too long, or
+  /// a duplicate is just skipped — there's no input field here to surface
+  /// an error against.
   void _applySuggestedTags(List<String> suggested) {
     for (final raw in suggested) {
       if (_tags.length >= maxTagCount) break;
       final tag = raw.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '-');
       if (tag.isEmpty || tag.length > maxTagLength) continue;
-      if (!_tagPattern.hasMatch(tag) || _tags.contains(tag)) continue;
+      if (_tags.contains(tag)) continue;
       _tags.add(tag);
     }
   }

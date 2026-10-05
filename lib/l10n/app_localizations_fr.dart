@@ -359,12 +359,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tags => 'Étiquettes';
 
   @override
-  String get tagsHint => 'p. ex. facture-2026';
-
-  @override
-  String tagsHelper(int maxLength) {
-    return 'Lettres, chiffres, - et _ uniquement, $maxLength caractères maximum';
-  }
+  String get tagsHint => 'p. ex. Assurance auto';
 
   @override
   String tagErrorLimitReached(int maxCount) {
@@ -375,10 +370,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String tagErrorTooLong(int maxLength) {
     return 'Les étiquettes doivent comporter $maxLength caractères maximum';
   }
-
-  @override
-  String get tagErrorInvalidCharacters =>
-      'Utilisez uniquement des lettres, chiffres, - et _ (pas d\'espaces)';
 
   @override
   String get tagErrorDuplicate => 'Cette étiquette a déjà été ajoutée';

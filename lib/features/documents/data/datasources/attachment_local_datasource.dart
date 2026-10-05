@@ -55,6 +55,17 @@ class DeviceAttachmentDataSource implements AttachmentLocalDataSource {
     try {
       final result = await FlutterDocScanner().getScannedDocumentAsImages(
         page: 10,
+        // Package default is 0.9 (iOS only — Android's ML Kit ignores this
+        // and always returns its own fixed-quality JPEG). Documents need
+        // their text to stay sharp/legible, so don't give up any quality
+        // here either.
+        quality: 1,
+        // iOS only: swaps VisionKit's auto-detecting capture UI for the
+        // plugin's own shutter-button-only screen (true manual capture).
+        // Android's ML Kit scanner has no public API to force manual
+        // capture, so this flag is a no-op there beyond limiting the scan
+        // to a single page and disabling in-scanner gallery import.
+        useAutomaticSinglePictureProcessing: true,
       );
       if (result == null || result.images.isEmpty) {
         return const AttachmentSelection();
@@ -110,7 +121,11 @@ class DeviceAttachmentDataSource implements AttachmentLocalDataSource {
   /// lets several photos be attached in one go.
   @override
   Future<AttachmentSelection> pickFromGallery() async {
-    final picked = await ImagePicker().pickMultiImage(imageQuality: 85);
+    // No imageQuality cap — documents (receipts, IDs, bills) need their
+    // text to stay sharp/legible, which a lossy JPEG re-encode pass
+    // directly works against. Leaving it unset keeps the picked image at
+    // its original quality, same as the camera scan path below.
+    final picked = await ImagePicker().pickMultiImage();
     if (picked.isEmpty) return const AttachmentSelection();
     final dir = await _attachmentsDirectory();
     final newAttachments = <AttachmentItem>[];

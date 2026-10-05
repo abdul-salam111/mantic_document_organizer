@@ -681,14 +681,8 @@ abstract class AppLocalizations {
   /// Add Document screen text field placeholder
   ///
   /// In en, this message translates to:
-  /// **'e.g. invoice-2026'**
+  /// **'e.g. Car Insurance'**
   String get tagsHint;
-
-  /// Add Document screen tags field helper text explaining the input rules
-  ///
-  /// In en, this message translates to:
-  /// **'Letters, numbers, - and _ only, up to {maxLength} characters each'**
-  String tagsHelper(int maxLength);
 
   /// Add Document screen tag validation error
   ///
@@ -701,12 +695,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tags must be {maxLength} characters or fewer'**
   String tagErrorTooLong(int maxLength);
-
-  /// Add Document screen tag validation error
-  ///
-  /// In en, this message translates to:
-  /// **'Use letters, numbers, - and _ only (no spaces)'**
-  String get tagErrorInvalidCharacters;
 
   /// Add Document screen tag validation error
   ///

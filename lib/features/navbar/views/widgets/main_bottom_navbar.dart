@@ -154,28 +154,40 @@ class _AddButton extends StatelessWidget {
       height: size + 8,
       alignment: .center,
       decoration: BoxDecoration(shape: .circle, color: context.surfaceElevated),
-      child: Material(
-        shape: const CircleBorder(),
-        color: context.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          customBorder: const CircleBorder(),
-          child: Container(
-            width: size,
-            height: size,
-            alignment: .center,
-            decoration: BoxDecoration(
-              shape: .circle,
-              color: context.primary,
-              boxShadow: [
-                BoxShadow(
-                  color: context.primary.withValues(alpha: 0.45),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
+      // The visual purple disc is 60px, but the entire 68px circular
+      // surround is the button's hit target. Previously InkWell wrapped
+      // only the inner disc, leaving the visible outer ring untappable.
+      child: SizedBox.expand(
+        child: Material(
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          color: context.transparent,
+          child: InkWell(
+            onTap: onPressed,
+            customBorder: const CircleBorder(),
+            child: Center(
+              child: Container(
+                width: size,
+                height: size,
+                alignment: .center,
+                decoration: BoxDecoration(
+                  shape: .circle,
+                  color: context.primary,
+                  boxShadow: [
+                    BoxShadow(
+                      color: context.primary.withValues(alpha: 0.45),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
                 ),
-              ],
+                child: Icon(
+                  Iconsax.add,
+                  color: context.white,
+                  size: size * 0.45,
+                ),
+              ),
             ),
-            child: Icon(Iconsax.add, color: context.white, size: size * 0.45),
           ),
         ),
       ),

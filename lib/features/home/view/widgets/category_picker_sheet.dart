@@ -1,5 +1,5 @@
-import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
 import 'package:flutter/material.dart';
+import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
 
 import '../../../../core/constants/constants_exports.dart';
 import '../../../../core/localization/localization_exports.dart';
@@ -8,11 +8,9 @@ import '../../../../core/utils/utils_exports.dart';
 import '../../../../core/widgets/widgets_exports.dart';
 import '../home_view.dart' show categoryIconColor;
 
-/// Draggable bottom sheet listing every [CategoryItem], highlighting
-/// [selected] — pops the tapped [CategoryItem]. Shared by add_document's
-/// category field and document_viewer's "Move" action so both pick from
-/// categories the same way instead of each screen carrying its own copy.
-class CategoryPickerSheet extends StatelessWidget {
+/// A searchable, draggable category picker shared by document creation and
+/// the document viewer's move action.
+class CategoryPickerSheet extends StatefulWidget {
   final List<CategoryItem> categories;
   final CategoryItem? selected;
 
@@ -23,114 +21,258 @@ class CategoryPickerSheet extends StatelessWidget {
   });
 
   @override
+  State<CategoryPickerSheet> createState() => _CategoryPickerSheetState();
+}
+
+class _CategoryPickerSheetState extends State<CategoryPickerSheet> {
+  final _searchController = TextEditingController();
+
+  String get _query => _searchController.text.trim().toLowerCase();
+
+  List<CategoryItem> get _visibleCategories {
+    if (_query.isEmpty) return widget.categories;
+    return widget.categories
+        .where((category) => category.name.toLowerCase().contains(_query))
+        .toList(growable: false);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    final categories = _visibleCategories;
+
     return DraggableScrollableSheet(
-      initialChildSize: 0.6,
-      minChildSize: 0.35,
-      maxChildSize: 0.9,
+      initialChildSize: 0.72,
+      minChildSize: 0.42,
+      maxChildSize: 0.92,
       expand: false,
-      builder: (context, scrollController) {
-        return Padding(
-          padding: const .fromLTRB(20, 16, 20, 16),
+      builder: (context, scrollController) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
           child: Column(
             children: [
               Container(
-                width: 40,
+                width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: context.border,
-                  borderRadius: .circular(2),
+                  color: context.border.withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(99),
                 ),
               ),
-              heightBox(16),
-              Text(
-                AppLocalizations.of(context).selectCategory,
-                style: context.titleMedium.copyWith(fontWeight: .bold),
+              heightBox(14),
+              Row(
+                children: [
+                  const SizedBox(width: 40),
+                  Expanded(
+                    child: Text(
+                      localizations.selectCategory,
+                      textAlign: TextAlign.center,
+                      style: context.titleMedium.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close_rounded),
+                    color: context.textSecondary,
+                    tooltip: MaterialLocalizations.of(
+                      context,
+                    ).closeButtonTooltip,
+                  ),
+                ],
               ),
-              heightBox(12),
-              Expanded(
-                child: StaggeredReveal(
-                  itemCount: categories.length,
-                  builder: (context, reveal) => ListView.separated(
-                    controller: scrollController,
-                    itemCount: categories.length,
-                    separatorBuilder: (context, index) => heightBox(8),
-                    itemBuilder: (context, index) {
-                      final category = categories[index];
-                      final isSelected = category.id == selected?.id;
-                      final color =
-                          (category.colorValue == null
-                              ? null
-                              : Color(category.colorValue!)) ??
-                          categoryIconColor(context, category.name);
-                      return StaggeredRevealItem(
-                        reveal: reveal,
-                        itemCount: categories.length,
-                        index: index,
-                        child: InkWell(
-                          onTap: () => Navigator.of(context).pop(category),
-                          borderRadius: .circular(12),
-                          child: Container(
-                            padding: const .symmetric(
-                              horizontal: 14,
-                              vertical: 10,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? context.primary.withValues(alpha: 0.1)
-                                  : context.surface,
-                              borderRadius: .circular(12),
-                              border: isSelected
-                                  ? Border.all(
-                                      color: context.primary,
-                                      width: 1.5,
-                                    )
-                                  : null,
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 36,
-                                  height: 36,
-                                  alignment: .center,
-                                  decoration: BoxDecoration(
-                                    color: color,
-                                    shape: .circle,
-                                  ),
-                                  child: FaIcon(
-                                    iconForKey(category.iconKey),
-                                    size: 14,
-                                    color: context.white,
-                                  ),
-                                ),
-                                widthBox(12),
-                                Expanded(
-                                  child: Text(
-                                    category.name,
-                                    style: context.bodyMedium.copyWith(
-                                      fontWeight: .w600,
-                                    ),
-                                  ),
-                                ),
-                                if (isSelected)
-                                  Icon(
-                                    Icons.check_circle,
-                                    color: context.primary,
-                                    size: 20,
-                                  ),
-                              ],
-                            ),
+              heightBox(16),
+              SizedBox(
+                height: 52,
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (_) => setState(() {}),
+                  textInputAction: TextInputAction.search,
+                  style: context.bodyMedium,
+                  decoration: InputDecoration(
+                    hintText: localizations.searchCategories,
+                    hintStyle: context.bodyMedium.copyWith(
+                      color: context.textSecondary,
+                    ),
+                    prefixIcon: Icon(
+                      Iconsax.search_normal,
+                      size: 20,
+                      color: context.textSecondary,
+                    ),
+                    suffixIcon: _query.isEmpty
+                        ? null
+                        : IconButton(
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() {});
+                            },
+                            icon: const Icon(Icons.close_rounded, size: 18),
+                            color: context.textSecondary,
+                            tooltip: MaterialLocalizations.of(
+                              context,
+                            ).deleteButtonTooltip,
                           ),
-                        ),
-                      );
-                    },
+                    filled: true,
+                    fillColor: context.surface,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                    border: _searchBorder(context),
+                    enabledBorder: _searchBorder(context),
+                    focusedBorder: _searchBorder(
+                      context,
+                      color: context.primary,
+                      width: 1.5,
+                    ),
                   ),
                 ),
               ),
+              heightBox(16),
+              Expanded(
+                child: categories.isEmpty
+                    ? _EmptySearchState(
+                        message: localizations.noCategoriesFound,
+                      )
+                    : ListView.separated(
+                        controller: scrollController,
+                        padding: const EdgeInsets.only(bottom: 8),
+                        itemCount: categories.length,
+                        separatorBuilder: (_, _) => heightBox(8),
+                        itemBuilder: (context, index) => _CategoryTile(
+                          category: categories[index],
+                          selected: categories[index].id == widget.selected?.id,
+                          onTap: () =>
+                              Navigator.of(context).pop(categories[index]),
+                        ),
+                      ),
+              ),
             ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
+
+  OutlineInputBorder _searchBorder(
+    BuildContext context, {
+    Color? color,
+    double width = 1,
+  }) => OutlineInputBorder(
+    borderRadius: BorderRadius.circular(14),
+    borderSide: BorderSide(color: color ?? context.border, width: width),
+  );
+}
+
+class _CategoryTile extends StatelessWidget {
+  final CategoryItem category;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _CategoryTile({
+    required this.category,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color =
+        (category.colorValue == null ? null : Color(category.colorValue!)) ??
+        categoryIconColor(context, category.name);
+
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: category.name,
+      child: Material(
+        color: selected
+            ? context.primary.withValues(alpha: 0.09)
+            : context.surfaceElevated,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            height: 64,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: selected ? context.primary : context.border,
+                width: selected ? 1.5 : 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                  ),
+                  child: FaIcon(
+                    iconForKey(category.iconKey),
+                    size: 16,
+                    color: context.white,
+                  ),
+                ),
+                widthBox(14),
+                Expanded(
+                  child: Text(
+                    category.name,
+                    style: context.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                if (selected)
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: context.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.check_rounded,
+                      size: 16,
+                      color: context.white,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptySearchState extends StatelessWidget {
+  final String message;
+
+  const _EmptySearchState({required this.message});
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.search_off_rounded, size: 36, color: context.textSecondary),
+        heightBox(10),
+        Text(
+          message,
+          style: context.bodyMedium.copyWith(color: context.textSecondary),
+        ),
+      ],
+    ),
+  );
 }

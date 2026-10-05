@@ -17,6 +17,8 @@ import '../../../../../routes/routes_exports.dart';
 import '../../../../home/home_exports.dart';
 import '../viewmodels/add_document_viewmodel.dart';
 
+const _formControlHeight = 55.0;
+
 class AddDocumentView extends StatelessWidget {
   /// Preselects the category picker — set when opened via a category's
   /// document list "+" button, so the user doesn't have to reselect the
@@ -58,72 +60,81 @@ class AddDocumentView extends StatelessWidget {
         }
         return vm;
       },
-      child: Scaffold(
-        appBar: CustomAppBar(
-          title: editingDocument != null
-              ? AppLocalizations.of(context).editDocumentTitle
-              : AppLocalizations.of(context).addDocumentTitle,
-        ),
-        body: SafeArea(
-          child: Consumer<AddDocumentViewModel>(
-            builder: (context, vm, _) {
-              return Form(
-                key: vm.formKey,
-                child: ListView(
-                  padding: const .symmetric(horizontal: 14, vertical: 20),
-                  children: [
-                    _AttachmentSection(vm: vm),
-                    heightBox(24),
-                    CustomTextFormField(
-                      label: AppLocalizations.of(context).documentTitleLabel,
-                      hintText: AppLocalizations.of(context).documentTitleHint,
-                      isRequired: true,
-                      controller: vm.titleController,
-                      textCapitalization: .sentences,
-                      validator: (value) =>
-                          (value == null || value.trim().isEmpty)
-                          ? AppLocalizations.of(context).documentTitleRequired
-                          : null,
-                    ),
-                    heightBox(20),
-                    _CategoryPickerTrigger(vm: vm),
-                    heightBox(20),
-                    _TagsField(vm: vm),
-                    heightBox(20),
-                    _ExpirableToggle(vm: vm),
-                    heightBox(32),
-                    CustomButton(
-                      isLoading: vm.isSaving,
-                      text: AppLocalizations.of(context).save,
+      child: UnfocusWrapper(
+        child: Scaffold(
+          appBar: CustomAppBar(
+            title: editingDocument != null
+                ? AppLocalizations.of(context).editDocumentTitle
+                : AppLocalizations.of(context).addDocumentTitle,
+          ),
+          body: SafeArea(
+            child: Consumer<AddDocumentViewModel>(
+              builder: (context, vm, _) {
+                return Form(
+                  key: vm.formKey,
+                  child: ListView(
+                    padding: const .symmetric(horizontal: 14, vertical: 20),
+                    children: [
+                      _AttachmentSection(vm: vm),
+                      heightBox(24),
+                      CustomTextFormField(
+                        label: AppLocalizations.of(context).documentTitleLabel,
+                        hintText: AppLocalizations.of(
+                          context,
+                        ).documentTitleHint,
+                        controller: vm.titleController,
+                        // Match the elevated white form controls in light
+                        // mode while retaining the dark theme's surface.
+                        fillColor: context.surfaceElevated,
+                        contentPadding: const .symmetric(
+                          horizontal: 16,
+                          vertical: 19.5,
+                        ),
+                        textCapitalization: .sentences,
+                      ),
+                      heightBox(20),
+                      _CategoryPickerTrigger(vm: vm),
+                      heightBox(20),
+                      _TagsField(vm: vm),
+                      heightBox(20),
+                      _ExpirableToggle(vm: vm),
+                      heightBox(32),
+                      CustomButton(
+                        isLoading: vm.isSaving,
+                        text: AppLocalizations.of(context).save,
 
-                      onPressed: () async {
-                        if (!vm.formKey.currentState!.validate()) return;
-                        if (!await persistAction(context, () => vm.submit())) {
-                          return;
-                        }
-                        if (!context.mounted) return;
-                        // Compute the message and pop *before* showing the
-                        // toast — another_flushbar pushes its toast as its
-                        // own Navigator route, so popping this screen right
-                        // on top of that in-flight push corrupts the
-                        // navigator's route lifecycle.
-                        final title = vm.titleController.text.trim();
-                        final message = editingDocument != null
-                            ? AppLocalizations.of(
-                                context,
-                              ).documentUpdatedToast(title)
-                            : AppLocalizations.of(
-                                context,
-                              ).documentCreatedToast(title);
-                        AppNavigator.pop();
-                        AppToastsUtils.success(message);
-                      },
-                    ),
-                    heightBox(20),
-                  ],
-                ),
-              );
-            },
+                        onPressed: () async {
+                          if (!vm.formKey.currentState!.validate()) return;
+                          if (!await persistAction(
+                            context,
+                            () => vm.submit(),
+                          )) {
+                            return;
+                          }
+                          if (!context.mounted) return;
+                          // Compute the message and pop *before* showing the
+                          // toast — another_flushbar pushes its toast as its
+                          // own Navigator route, so popping this screen right
+                          // on top of that in-flight push corrupts the
+                          // navigator's route lifecycle.
+                          final title = vm.titleController.text.trim();
+                          final message = editingDocument != null
+                              ? AppLocalizations.of(
+                                  context,
+                                ).documentUpdatedToast(title)
+                              : AppLocalizations.of(
+                                  context,
+                                ).documentCreatedToast(title);
+                          AppNavigator.pop();
+                          AppToastsUtils.success(message);
+                        },
+                      ),
+                      heightBox(20),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -383,49 +394,52 @@ class _CategoryPickerTrigger extends StatelessWidget {
         : ((category.colorValue == null ? null : Color(category.colorValue!)) ??
               categoryIconColor(context, category.name));
 
-    return InkWell(
-      onTap: () => _openPicker(context),
-      borderRadius: .circular(12),
-      child: Container(
-        padding: const .symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: context.surfaceElevated,
-          borderRadius: .circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: context.shadow,
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            ),
-          ],
+    return Column(
+      crossAxisAlignment: .start,
+      children: [
+        Text(
+          AppLocalizations.of(context).categoryLabel,
+          style: context.bodySmall.copyWith(
+            color: context.textSecondary,
+            fontSize: 16,
+          ),
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              alignment: .center,
-              decoration: BoxDecoration(color: color, shape: .circle),
-              child: category == null
-                  ? Icon(Iconsax.category, size: 16, color: context.white)
-                  : FaIcon(
-                      iconForKey(category.iconKey),
-                      size: 16,
-                      color: context.white,
-                    ),
+        heightBox(5),
+        InkWell(
+          onTap: () => _openPicker(context),
+          borderRadius: .circular(12),
+          child: Container(
+            height: _formControlHeight,
+            padding: const .symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: context.surfaceElevated,
+              borderRadius: .circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: context.shadow,
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            widthBox(12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: .start,
-                children: [
-                  Text(
-                    AppLocalizations.of(context).categoryLabel,
-                    style: context.labelSmall.copyWith(
-                      color: context.textSecondary,
-                    ),
-                  ),
-                  Text(
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  alignment: .center,
+                  decoration: BoxDecoration(color: color, shape: .circle),
+                  child: category == null
+                      ? Icon(Iconsax.category, size: 16, color: context.white)
+                      : FaIcon(
+                          iconForKey(category.iconKey),
+                          size: 16,
+                          color: context.white,
+                        ),
+                ),
+                widthBox(12),
+                Expanded(
+                  child: Text(
                     category?.name ??
                         AppLocalizations.of(context).uncategorized,
                     style: context.bodyMedium.copyWith(
@@ -433,76 +447,319 @@ class _CategoryPickerTrigger extends StatelessWidget {
                       color: context.textPrimary,
                     ),
                   ),
-                ],
-              ),
+                ),
+                Icon(
+                  Iconsax.arrow_right_3,
+                  size: 16,
+                  color: context.textSecondary,
+                ),
+              ],
             ),
-            Icon(Iconsax.arrow_right_3, size: 16, color: context.textSecondary),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }
 
-class _TagsField extends StatelessWidget {
+/// Strips a trailing comma as it's typed and commits whatever came before
+/// it as a tag — intercepting via [TextInputFormatter] (part of the actual
+/// text-input pipeline) rather than reacting to it after the fact in
+/// `onChanged`, which avoids mutating the same controller from inside its
+/// own change notification (a known source of flaky behavior — the
+/// framework can still be in the middle of applying the very update that
+/// triggered it). [onCommit] is deferred to a microtask so it only runs
+/// once the comma-stripped value has actually been applied to the
+/// controller; reading it synchronously here would still see the old text.
+class _CommaTagFormatter extends TextInputFormatter {
+  final ValueChanged<TextEditingValue> onCommit;
+
+  _CommaTagFormatter({required this.onCommit});
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (!newValue.composing.isCollapsed || !newValue.text.endsWith(',')) {
+      return newValue;
+    }
+    final text = newValue.text.substring(0, newValue.text.length - 1);
+    final strippedValue = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+    scheduleMicrotask(() => onCommit(strippedValue));
+    return strippedValue;
+  }
+}
+
+/// Renders entered tags as pill chips *inside* the field's own bordered
+/// box — chips and the still-typing [TextField] share one [Wrap] inside an
+/// [InputDecorator], which draws the same label/border/fill every other
+/// field on this screen gets from the theme without needing its own text
+/// field. A [StatefulWidget] only so the inline field's [FocusNode] can
+/// drive [InputDecorator.isFocused] (otherwise the box never shows the
+/// focused-border highlight).
+class _TagsField extends StatefulWidget {
   final AddDocumentViewModel vm;
 
   const _TagsField({required this.vm});
 
   @override
+  State<_TagsField> createState() => _TagsFieldState();
+}
+
+class _TagsFieldState extends State<_TagsField> {
+  // Android's software Backspace edits TextEditingValue but does not always
+  // emit a KeyEvent. This invisible marker gives it one character to delete
+  // when a chip is selected, so the formatter below can remove that chip.
+  static const _selectedTagMarker = '\u200B';
+
+  final FocusNode _focusNode = FocusNode();
+  String? _selectedTag;
+
+  @override
+  void initState() {
+    super.initState();
+    // The tag input owns this focus node, so handle Backspace here rather
+    // than on an ancestor Focus widget. This receives the key before the
+    // TextField's default editing action consumes it.
+    _focusNode.onKeyEvent = _handleKeyEvent;
+    _focusNode.addListener(_refreshField);
+    widget.vm.tagController.addListener(_refreshField);
+  }
+
+  @override
+  void didUpdateWidget(covariant _TagsField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.vm.tagController != widget.vm.tagController) {
+      oldWidget.vm.tagController.removeListener(_refreshField);
+      widget.vm.tagController.addListener(_refreshField);
+    }
+  }
+
+  void _refreshField() => setState(() {});
+
+  void _selectTag(String tag) {
+    setState(() => _selectedTag = tag);
+    widget.vm.tagController.value = const TextEditingValue(
+      text: _selectedTagMarker,
+      selection: TextSelection.collapsed(offset: _selectedTagMarker.length),
+    );
+    _focusNode.requestFocus();
+  }
+
+  void _clearSelectedTag() {
+    if (_selectedTag == null) return;
+    setState(() => _selectedTag = null);
+    final controller = widget.vm.tagController;
+    if (controller.text.contains(_selectedTagMarker)) controller.clear();
+  }
+
+  bool get _hasOnlySelectedTagMarker =>
+      widget.vm.tagController.text == _selectedTagMarker;
+
+  TextEditingValue _handleSelectedTagEdit(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (!oldValue.text.contains(_selectedTagMarker)) return newValue;
+
+    final newText = newValue.text.replaceAll(_selectedTagMarker, '');
+    if (newText.isEmpty && _selectedTag != null) {
+      scheduleMicrotask(_removeSelectedTag);
+      // Keep the marker until the microtask removes the selected chip. This
+      // prevents Android from restoring an empty composing value first.
+      return oldValue;
+    }
+
+    // The user typed after selecting a chip. The marker must never become
+    // part of a tag, and typing switches back to normal text entry.
+    if (newText != newValue.text) scheduleMicrotask(_clearSelectedTag);
+    return TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newText.length),
+      composing: TextRange.empty,
+    );
+  }
+
+  void _removeSelectedTag() {
+    if (!mounted) return;
+    final tag = _selectedTag;
+    if (tag == null || !widget.vm.tags.contains(tag)) return;
+    widget.vm.removeTag(tag);
+    _clearSelectedTag();
+    _focusNode.requestFocus();
+  }
+
+  KeyEventResult _handleKeyEvent(FocusNode _, KeyEvent event) {
+    if (event is! KeyDownEvent ||
+        event.logicalKey != LogicalKeyboardKey.backspace ||
+        !_hasOnlySelectedTagMarker) {
+      return .ignored;
+    }
+    if (_selectedTag == null) return .ignored;
+    _removeSelectedTag();
+    return .handled;
+  }
+
+  void _commitTag() {
+    final vm = widget.vm;
+    if (vm.tagController.text.contains(_selectedTagMarker)) {
+      vm.tagController.text = vm.tagController.text.replaceAll(
+        _selectedTagMarker,
+        '',
+      );
+    }
+    _clearSelectedTag();
+    if (vm.tagController.text.trim().isEmpty) {
+      vm.tagController.clear();
+    } else {
+      vm.addTag();
+    }
+    _focusNode.requestFocus();
+  }
+
+  void _commitFormattedTag(TextEditingValue value) {
+    // A later edit or a removed field must not be consumed by a stale
+    // microtask. Validation failures leave the entered text available to edit.
+    // Android may normalize selection affinity/composition after applying a
+    // formatter. The text is the value we need to protect; comparing the
+    // entire TextEditingValue caused valid comma commits to be discarded.
+    if (!mounted || widget.vm.tagController.text != value.text) return;
+    _commitTag();
+  }
+
+  @override
+  void dispose() {
+    widget.vm.tagController.removeListener(_refreshField);
+    _focusNode.removeListener(_refreshField);
+    _focusNode.onKeyEvent = null;
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final vm = widget.vm;
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: .start,
       children: [
-        CustomTextFormField(
-          label: AppLocalizations.of(context).tags,
-          hintText: AppLocalizations.of(context).tagsHint,
-          controller: vm.tagController,
-          onChanged: (_) => vm.clearTagError(),
-          textInputAction: .done,
-          onFieldSubmitted: (_) => vm.addTag(),
-          inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
-        ),
-        heightBox(4),
         Text(
-          switch (vm.tagError) {
-            TagError.limitReached => AppLocalizations.of(
-              context,
-            ).tagErrorLimitReached(AddDocumentViewModel.maxTagCount),
-            TagError.tooLong => AppLocalizations.of(
-              context,
-            ).tagErrorTooLong(AddDocumentViewModel.maxTagLength),
-            TagError.invalidCharacters => AppLocalizations.of(
-              context,
-            ).tagErrorInvalidCharacters,
-            TagError.duplicate => AppLocalizations.of(
-              context,
-            ).tagErrorDuplicate,
-            null => AppLocalizations.of(
-              context,
-            ).tagsHelper(AddDocumentViewModel.maxTagLength),
-          },
-          style: context.labelSmall.copyWith(
-            color: vm.tagError != null ? context.error : context.textSecondary,
+          l10n.tags,
+          style: context.bodySmall.copyWith(
+            color: context.textSecondary,
+            fontSize: 16,
           ),
         ),
-        if (vm.tags.isNotEmpty) ...[
-          heightBox(10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final tag in vm.tags)
-                Chip(
-                  label: Text(tag),
-                  onDeleted: () => vm.removeTag(tag),
-                  backgroundColor: context.surface,
-                  deleteIconColor: context.textSecondary,
-                  side: BorderSide(color: context.border),
+        heightBox(5),
+        GestureDetector(
+          behavior: .translucent,
+          onTap: () => _focusNode.requestFocus(),
+          child: InputDecorator(
+            isFocused: _focusNode.hasFocus,
+            isEmpty:
+                vm.tags.isEmpty &&
+                vm.tagController.text
+                    .replaceAll(_selectedTagMarker, '')
+                    .isEmpty,
+            decoration: InputDecoration(
+              constraints: const BoxConstraints(minHeight: _formControlHeight),
+              filled: true,
+              // InputDecorator inherits the global grey field fill unless
+              // this inline tag field explicitly uses the elevated surface.
+              fillColor: context.surfaceElevated,
+              hintText: l10n.tagsHint,
+              hintStyle: context.bodySmall.copyWith(
+                color: context.textSecondary,
+              ),
+              errorText: switch (vm.tagError) {
+                TagError.limitReached => l10n.tagErrorLimitReached(
+                  AddDocumentViewModel.maxTagCount,
                 ),
-            ],
+                TagError.tooLong => l10n.tagErrorTooLong(
+                  AddDocumentViewModel.maxTagLength,
+                ),
+                TagError.duplicate => l10n.tagErrorDuplicate,
+                null => null,
+              },
+              errorMaxLines: 2,
+            ),
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              crossAxisAlignment: .center,
+              children: [
+                for (final tag in vm.tags)
+                  GestureDetector(
+                    onTap: () => _selectTag(tag),
+                    child: Chip(
+                      label: Text(tag, maxLines: 1, overflow: .ellipsis),
+                      labelPadding: const .symmetric(horizontal: 4),
+                      padding: .zero,
+                      materialTapTargetSize: .shrinkWrap,
+                      deleteIconBoxConstraints: const BoxConstraints.tightFor(
+                        width: 18,
+                        height: 18,
+                      ),
+                      deleteIcon: const Icon(Icons.close, size: 14),
+                      onDeleted: () {
+                        vm.removeTag(tag);
+                        if (_selectedTag == tag) _clearSelectedTag();
+                        _focusNode.requestFocus();
+                      },
+                      backgroundColor: context.surfaceElevated,
+                      deleteIconColor: context.textSecondary,
+                      visualDensity: const VisualDensity(
+                        horizontal: -4,
+                        vertical: -4,
+                      ),
+                      shape: StadiumBorder(
+                        side: BorderSide(
+                          color: _selectedTag == tag
+                              ? context.primary
+                              : context.border,
+                          width: _selectedTag == tag ? 2 : 1,
+                        ),
+                      ),
+                    ),
+                  ),
+                // A fixed width rather than IntrinsicWidth — EditableText
+                // under IntrinsicWidth's two-pass layout is a known source
+                // of flaky/incorrect rendering. A plain TextField already
+                // scrolls its content horizontally past this width, same
+                // as any other single-line field, so nothing is lost.
+                SizedBox(
+                  width: 140,
+                  child: TextField(
+                    controller: vm.tagController,
+                    focusNode: _focusNode,
+                    onChanged: (_) {
+                      _clearSelectedTag();
+                      vm.clearTagError();
+                    },
+                    inputFormatters: [
+                      TextInputFormatter.withFunction(_handleSelectedTagEdit),
+                      _CommaTagFormatter(onCommit: _commitFormattedTag),
+                    ],
+                    textInputAction: .done,
+                    // Keep the keyboard and caret active after Done/Enter.
+                    onEditingComplete: () {},
+                    onSubmitted: (_) => _commitTag(),
+                    style: context.bodySmall.copyWith(
+                      color: context.textPrimary,
+                    ),
+                    // Only the outer InputDecorator paints the field. Even
+                    // border: none would inherit themed focus borders/fill.
+                    decoration: null,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
       ],
     );
   }
@@ -542,7 +799,8 @@ class _ExpirableToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const .symmetric(horizontal: 16, vertical: 10),
+      constraints: const BoxConstraints(minHeight: _formControlHeight),
+      padding: const .symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: context.surfaceElevated,
         borderRadius: .circular(12),

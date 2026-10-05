@@ -356,12 +356,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tags => 'الوسوم';
 
   @override
-  String get tagsHint => 'مثال: فاتورة-2026';
-
-  @override
-  String tagsHelper(int maxLength) {
-    return 'أحرف وأرقام و- و_ فقط، بحد أقصى $maxLength حرفًا لكل وسم';
-  }
+  String get tagsHint => 'مثال: تأمين السيارة';
 
   @override
   String tagErrorLimitReached(int maxCount) {
@@ -372,10 +367,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String tagErrorTooLong(int maxLength) {
     return 'يجب ألا يتجاوز الوسم $maxLength حرفًا';
   }
-
-  @override
-  String get tagErrorInvalidCharacters =>
-      'استخدم الأحرف والأرقام و- و_ فقط (بدون مسافات)';
 
   @override
   String get tagErrorDuplicate => 'تمت إضافة هذا الوسم بالفعل';

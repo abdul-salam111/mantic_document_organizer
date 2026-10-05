@@ -64,7 +64,7 @@ class _SigninPageState extends State<SigninPage> {
                   ),
                 ),
                 Align(
-                  alignment: Alignment.bottomCenter,
+                  alignment: .bottomCenter,
                   child: AnimatedPadding(
                     duration: const Duration(milliseconds: 260),
                     curve: Curves.easeOutCubic,

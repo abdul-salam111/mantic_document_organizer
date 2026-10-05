@@ -240,13 +240,8 @@
   "@selectCategory": {"description": "Add Document screen category picker sheet heading"},
   "tags": "Tags",
   "@tags": {"description": "Add Document screen text field label"},
-  "tagsHint": "e.g. invoice-2026",
+  "tagsHint": "e.g. Car Insurance",
   "@tagsHint": {"description": "Add Document screen text field placeholder"},
-  "tagsHelper": "Letters, numbers, - and _ only, up to {maxLength} characters each",
-  "@tagsHelper": {
-    "description": "Add Document screen tags field helper text explaining the input rules",
-    "placeholders": {"maxLength": {"type": "int"}}
-  },
   "tagErrorLimitReached": "You can add up to {maxCount} tags",
   "@tagErrorLimitReached": {
     "description": "Add Document screen tag validation error",
@@ -257,8 +252,6 @@
     "description": "Add Document screen tag validation error",
     "placeholders": {"maxLength": {"type": "int"}}
   },
-  "tagErrorInvalidCharacters": "Use letters, numbers, - and _ only (no spaces)",
-  "@tagErrorInvalidCharacters": {"description": "Add Document screen tag validation error"},
   "tagErrorDuplicate": "That tag is already added",
   "@tagErrorDuplicate": {"description": "Add Document screen tag validation error"},
   "documentExpirable": "This Document Expires",

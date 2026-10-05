@@ -358,12 +358,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tags => 'Tags';
 
   @override
-  String get tagsHint => 'e.g. invoice-2026';
-
-  @override
-  String tagsHelper(int maxLength) {
-    return 'Letters, numbers, - and _ only, up to $maxLength characters each';
-  }
+  String get tagsHint => 'e.g. Car Insurance';
 
   @override
   String tagErrorLimitReached(int maxCount) {
@@ -374,10 +369,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String tagErrorTooLong(int maxLength) {
     return 'Tags must be $maxLength characters or fewer';
   }
-
-  @override
-  String get tagErrorInvalidCharacters =>
-      'Use letters, numbers, - and _ only (no spaces)';
 
   @override
   String get tagErrorDuplicate => 'That tag is already added';
