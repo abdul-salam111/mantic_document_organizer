@@ -139,11 +139,17 @@ class _CategoryPickerSheetState extends State<CategoryPickerSheet> {
                     ? _EmptySearchState(
                         message: localizations.noCategoriesFound,
                       )
-                    : ListView.separated(
+                    : GridView.builder(
                         controller: scrollController,
                         padding: const EdgeInsets.only(bottom: 8),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              mainAxisSpacing: 12,
+                              crossAxisSpacing: 10,
+                              childAspectRatio: 1.1,
+                            ),
                         itemCount: categories.length,
-                        separatorBuilder: (_, _) => heightBox(8),
                         itemBuilder: (context, index) => _CategoryTile(
                           category: categories[index],
                           selected: categories[index].id == widget.selected?.id,
@@ -190,66 +196,61 @@ class _CategoryTile extends StatelessWidget {
       button: true,
       selected: selected,
       label: category.name,
-      child: Material(
-        color: selected
-            ? context.primary.withValues(alpha: 0.09)
-            : context.surfaceElevated,
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(14),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(14),
-          child: Container(
-            height: 64,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: selected ? context.primary : context.border,
-                width: selected ? 1.5 : 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: color,
-                    shape: BoxShape.circle,
-                  ),
-                  child: FaIcon(
-                    iconForKey(category.iconKey),
-                    size: 16,
-                    color: context.white,
-                  ),
+        child: Stack(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: selected
+                    ? context.primary.withValues(alpha: 0.09)
+                    : context.surfaceElevated,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: selected ? context.primary : context.border,
+                  width: selected ? 1.5 : 1,
                 ),
-                widthBox(14),
-                Expanded(
-                  child: Text(
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  FaIcon(iconForKey(category.iconKey), size: 22, color: color),
+                  heightBox(6),
+                  Text(
                     category.name,
-                    style: context.bodyMedium.copyWith(
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: context.bodySmall.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                ),
-                if (selected)
-                  Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: context.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.check_rounded,
-                      size: 16,
-                      color: context.white,
-                    ),
-                  ),
-              ],
+                ],
+              ),
             ),
-          ),
+            if (selected)
+              Positioned(
+                top: 6,
+                right: 6,
+                child: Container(
+                  width: 20,
+                  height: 20,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: context.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.check_rounded,
+                    size: 13,
+                    color: context.white,
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
