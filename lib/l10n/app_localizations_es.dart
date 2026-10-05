@@ -390,6 +390,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get attachments => 'Adjuntos';
 
   @override
+  String get attachmentRequired => 'Agrega al menos un documento para guardar';
+
+  @override
   String get extractingTextStatus => 'Extrayendo texto…';
 
   @override

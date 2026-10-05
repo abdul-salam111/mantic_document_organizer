@@ -113,6 +113,7 @@
   "expiresOn": "تنتهي الصلاحية في {date}",
   "tapToSetExpiryDate": "اضغط لتحديد تاريخ ووقت انتهاء الصلاحية",
   "attachments": "المرفقات",
+  "attachmentRequired": "أضف مستندًا واحدًا على الأقل للحفظ",
   "extractingTextStatus": "استخراج النص…",
   "organizingWithAiStatus": "التنظيم باستخدام الذكاء الاصطناعي…",
   "camera": "الكاميرا",

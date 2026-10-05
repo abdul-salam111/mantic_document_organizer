@@ -386,6 +386,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attachments => 'المرفقات';
 
   @override
+  String get attachmentRequired => 'أضف مستندًا واحدًا على الأقل للحفظ';
+
+  @override
   String get extractingTextStatus => 'استخراج النص…';
 
   @override

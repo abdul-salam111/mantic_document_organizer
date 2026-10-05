@@ -726,6 +726,12 @@ abstract class AppLocalizations {
   /// **'Attachments'**
   String get attachments;
 
+  /// Add Document screen validation message when no attachment has been added
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least one document to save'**
+  String get attachmentRequired;
+
   /// Add Document screen inline status while on-device OCR is running
   ///
   /// In en, this message translates to:

@@ -104,6 +104,7 @@ class AddDocumentView extends StatelessWidget {
                         text: AppLocalizations.of(context).save,
 
                         onPressed: () async {
+                          if (!vm.validateAttachments()) return;
                           if (!vm.formKey.currentState!.validate()) return;
                           if (!await persistAction(
                             context,
@@ -214,6 +215,13 @@ class _AttachmentSection extends StatelessWidget {
                   onRemove: () => vm.removeAttachment(attachment),
                 ),
             ],
+          ),
+        ],
+        if (vm.showAttachmentError) ...[
+          heightBox(10),
+          Text(
+            AppLocalizations.of(context).attachmentRequired,
+            style: context.bodySmall.copyWith(color: context.error),
           ),
         ],
         if (vm.isProcessingOcr || vm.isAnalyzing) ...[

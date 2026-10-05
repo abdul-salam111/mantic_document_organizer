@@ -390,6 +390,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attachments => 'Pièces jointes';
 
   @override
+  String get attachmentRequired =>
+      'Ajoutez au moins un document pour enregistrer';
+
+  @override
   String get extractingTextStatus => 'Extraction du texte…';
 
   @override

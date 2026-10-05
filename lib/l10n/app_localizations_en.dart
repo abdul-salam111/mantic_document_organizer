@@ -388,6 +388,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attachments => 'Attachments';
 
   @override
+  String get attachmentRequired => 'Add at least one document to save';
+
+  @override
   String get extractingTextStatus => 'Extracting text…';
 
   @override

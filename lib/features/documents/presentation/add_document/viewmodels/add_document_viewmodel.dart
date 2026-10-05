@@ -164,6 +164,19 @@ class AddDocumentViewModel extends ChangeNotifier {
   final List<AttachmentItem> _attachments = [];
   List<AttachmentItem> get attachments => List.unmodifiable(_attachments);
 
+  bool _showAttachmentError = false;
+  bool get showAttachmentError => _showAttachmentError;
+
+  /// Saving requires a document to be attached. Keeping this state in the
+  /// view model lets the error disappear immediately after a successful pick.
+  bool validateAttachments() {
+    final isValid = _attachments.isNotEmpty;
+    if (_showAttachmentError == !isValid) return isValid;
+    _showAttachmentError = !isValid;
+    notifyListeners();
+    return isValid;
+  }
+
   /// OCR text per attachment path, so removing an attachment correctly
   /// drops its contribution to [ocrText] instead of leaving stale text
   /// behind. Carried over from an existing document when editing via
@@ -303,6 +316,7 @@ class AddDocumentViewModel extends ChangeNotifier {
   void _acceptAttachments(AttachmentSelection selection) {
     if (_disposed || selection.items.isEmpty) return;
     _attachments.addAll(selection.items);
+    _showAttachmentError = false;
     notifyListeners();
     unawaited(_runOcrAndAi(selection.items));
   }

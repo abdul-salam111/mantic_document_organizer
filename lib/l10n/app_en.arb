@@ -265,6 +265,8 @@
   "@tapToSetExpiryDate": {"description": "Add Document screen expiry toggle subtitle hint before a date is picked"},
   "attachments": "Attachments",
   "@attachments": {"description": "Add Document screen section heading"},
+  "attachmentRequired": "Add at least one document to save",
+  "@attachmentRequired": {"description": "Add Document screen validation message when no attachment has been added"},
   "extractingTextStatus": "Extracting text…",
   "@extractingTextStatus": {"description": "Add Document screen inline status while on-device OCR is running"},
   "organizingWithAiStatus": "Organizing with AI…",

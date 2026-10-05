@@ -319,6 +319,16 @@ void main() {
     },
   );
 
+  testWidgets('save requires at least one attached document', (tester) async {
+    await showForm(tester);
+
+    expect(vm.validateAttachments(), isFalse);
+    await tester.pump();
+
+    expect(vm.showAttachmentError, isTrue);
+    expect(find.text('Add at least one document to save'), findsOneWidget);
+  });
+
   for (final brightness in Brightness.values) {
     testWidgets(
       'chips wrap inside one ${brightness.name} field on a narrow screen',
