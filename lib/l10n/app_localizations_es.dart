@@ -313,6 +313,20 @@ class AppLocalizationsEs extends AppLocalizations {
   String get biometricPromptReason => 'Autentícate para continuar';
 
   @override
+  String get dataUsage => 'Uso de datos';
+
+  @override
+  String get useMobileData => 'Usar datos móviles';
+
+  @override
+  String get useMobileDataSubtitle =>
+      'Permitir sincronizar, subir y descargar con datos móviles. Si está desactivado, solo ocurre con Wi-Fi';
+
+  @override
+  String get wifiOnlySyncToast =>
+      'Esperando Wi-Fi para sincronizar. Activa los datos móviles en Ajustes para sincronizar en cualquier momento';
+
+  @override
   String get support => 'Soporte';
 
   @override

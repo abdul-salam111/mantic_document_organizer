@@ -97,6 +97,7 @@ Future<void> coreDependencies() async {
   sl.registerLazySingleton(() => ThemeController());
   sl.registerLazySingleton(() => LocaleController());
   sl.registerLazySingleton(() => SecurityController());
+  sl.registerLazySingleton(() => NetworkPreferenceController());
   sl.registerLazySingleton(
     () => OcrService(),
     dispose: (service) => service.dispose(),

@@ -310,6 +310,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get biometricPromptReason => 'صادِق للمتابعة';
 
   @override
+  String get dataUsage => 'استخدام البيانات';
+
+  @override
+  String get useMobileData => 'استخدام بيانات الجوال';
+
+  @override
+  String get useMobileDataSubtitle =>
+      'السماح بالمزامنة والتحميل والتنزيل عبر بيانات الجوال. عند الإيقاف، يحدث ذلك فقط عبر Wi-Fi';
+
+  @override
+  String get wifiOnlySyncToast =>
+      'في انتظار Wi-Fi للمزامنة. فعّل بيانات الجوال من الإعدادات للمزامنة في أي وقت';
+
+  @override
   String get support => 'الدعم';
 
   @override

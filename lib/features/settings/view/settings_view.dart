@@ -3,6 +3,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../core/di/di_exports.dart';
 import '../../../core/localization/localization_exports.dart';
+import '../../../core/networks/networks_exports.dart';
 import '../../../core/security/security_exports.dart';
 import '../../../core/theme/theme_exports.dart';
 import '../../../core/utils/utils_exports.dart';
@@ -161,6 +162,11 @@ class SettingsView extends StatelessWidget {
             _SectionHeader(AppLocalizations.of(context).security),
             heightBox(10),
             const _SettingsCard(children: [_SecurityToggleRow()]),
+
+            heightBox(28),
+            _SectionHeader(AppLocalizations.of(context).dataUsage),
+            heightBox(10),
+            const _SettingsCard(children: [_MobileDataToggleRow()]),
 
             heightBox(28),
             _SectionHeader(AppLocalizations.of(context).support),
@@ -417,6 +423,30 @@ class _SecurityToggleRowState extends State<_SecurityToggleRow> {
                   value: security.isBiometricLockEnabled,
                   onChanged: (value) => _handleChanged(value, security),
                 ),
+        );
+      },
+    );
+  }
+}
+
+/// The mobile-data sync toggle. When off (the default), syncing/
+/// uploading/downloading documents only runs on Wi-Fi/Ethernet.
+class _MobileDataToggleRow extends StatelessWidget {
+  const _MobileDataToggleRow();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Consumer<NetworkPreferenceController>(
+      builder: (context, networkPreference, _) {
+        return _SettingsRow(
+          icon: Icons.wifi,
+          label: l10n.useMobileData,
+          subtitle: l10n.useMobileDataSubtitle,
+          trailing: Switch(
+            value: networkPreference.isMobileDataSyncEnabled,
+            onChanged: networkPreference.setMobileDataSyncEnabled,
+          ),
         );
       },
     );

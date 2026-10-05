@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'core/database/database_exports.dart';
 import 'core/di/di_exports.dart';
 import 'core/localization/localization_exports.dart';
+import 'core/networks/networks_exports.dart';
 import 'core/notifications/notifications_exports.dart';
 import 'core/security/security_exports.dart';
 import 'core/sharing/sharing_exports.dart';
@@ -52,6 +53,7 @@ void main() {
       await sl<ThemeController>().loadTheme();
       await sl<LocaleController>().loadLocale();
       await sl<SecurityController>().loadSecurity();
+      await sl<NetworkPreferenceController>().loadNetworkPreference();
       runApp(const MyApp());
     },
     // Errors from uncaught async code (e.g. a Future that's never
@@ -80,6 +82,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<SecurityController>.value(
           value: sl<SecurityController>(),
+        ),
+        ChangeNotifierProvider<NetworkPreferenceController>.value(
+          value: sl<NetworkPreferenceController>(),
         ),
       ],
       child: Consumer2<ThemeController, LocaleController>(

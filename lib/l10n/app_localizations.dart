@@ -591,6 +591,30 @@ abstract class AppLocalizations {
   /// Settings section heading
   ///
   /// In en, this message translates to:
+  /// **'Data Usage'**
+  String get dataUsage;
+
+  /// Settings toggle label for allowing sync over cellular data
+  ///
+  /// In en, this message translates to:
+  /// **'Use Mobile Data'**
+  String get useMobileData;
+
+  /// Settings toggle subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Allow syncing, uploading, and downloading over mobile data. When off, this only happens on Wi-Fi'**
+  String get useMobileDataSubtitle;
+
+  /// Toast shown when a sync/backup is blocked because mobile data sync is disabled and the device isn't on Wi-Fi
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for Wi-Fi to sync. Enable mobile data in Settings to sync anytime'**
+  String get wifiOnlySyncToast;
+
+  /// Settings section heading
+  ///
+  /// In en, this message translates to:
   /// **'Support'**
   String get support;
 

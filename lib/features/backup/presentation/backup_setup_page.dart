@@ -3,6 +3,8 @@ import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import '../../../core/database/database_exports.dart';
 import '../../../core/di/di_exports.dart';
 import '../../../core/local_storage/local_storage_exports.dart';
+import '../../../core/localization/localization_exports.dart';
+import '../../../core/networks/networks_exports.dart';
 import '../../../core/services/services_exports.dart';
 import '../../../routes/routes_exports.dart';
 import '../../../core/shared/shared_exports.dart';
@@ -65,6 +67,7 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
     if (token == null || space == null || !space.isDriveConnected || _syncing) {
       return;
     }
+    if (!await _canSyncOnCurrentConnection()) return;
 
     setState(() => _syncing = true);
     try {
@@ -76,6 +79,18 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
     } finally {
       if (mounted) setState(() => _syncing = false);
     }
+  }
+
+  /// Checks the "Use Mobile Data" setting against the current connection
+  /// type before syncing — when the setting is off, syncing/uploading/
+  /// downloading documents is restricted to Wi-Fi/Ethernet.
+  Future<bool> _canSyncOnCurrentConnection() async {
+    final allowed = await sl<NetworkPreferenceController>()
+        .canSyncOnCurrentConnection();
+    if (!allowed && mounted) {
+      AppToastsUtils.info(AppLocalizations.of(context).wifiOnlySyncToast);
+    }
+    return allowed;
   }
 
   Future<void> _runSync({
@@ -172,10 +187,11 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
                 if (_space!.isDriveConnected) ...[
                   heightBox(16),
                   _SyncStatusCard(
-                    onRetry: () {
+                    onRetry: () async {
                       final token = SessionController.instance.userToken;
                       if (token == null) return;
-                      _runSync(token: token, spaceId: _space!.id);
+                      if (!await _canSyncOnCurrentConnection()) return;
+                      await _runSync(token: token, spaceId: _space!.id);
                     },
                   ),
                 ],
