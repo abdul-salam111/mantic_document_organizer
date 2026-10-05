@@ -351,7 +351,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addDocumentTitle => 'Add Document';
 
   @override
+  String get add => 'Add';
+
+  @override
+  String get addFiles => 'Add files';
+
+  @override
   String get editDocumentTitle => 'Edit file';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get update => 'Update';
 
   @override
   String get documentTitleLabel => 'Title';

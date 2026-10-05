@@ -104,6 +104,12 @@ class AppRoutes {
         name: RouteNames.addDocument,
         builder: (context, state) {
           final extra = state.extra;
+          if (extra case (DocumentItem document, bool openCameraOnLoad)) {
+            return AddDocumentView(
+              editingDocument: document,
+              openCameraOnLoad: openCameraOnLoad,
+            );
+          }
           return AddDocumentView(
             initialCategory: extra is CategoryItem ? extra : null,
             editingDocument: extra is DocumentItem ? extra : null,

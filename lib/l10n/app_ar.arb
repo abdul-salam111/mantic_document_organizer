@@ -102,7 +102,11 @@
   "unlock": "فتح القفل",
 
   "addDocumentTitle": "إضافة مستند",
+  "add": "إضافة",
+  "addFiles": "إضافة ملفات",
   "editDocumentTitle": "تعديل الملف",
+  "edit": "تعديل",
+  "update": "تحديث",
   "documentTitleLabel": "العنوان",
   "documentTitleHint": "مثال: مسح جواز السفر",
   "documentTitleRequired": "العنوان مطلوب",

@@ -660,11 +660,35 @@ abstract class AppLocalizations {
   /// **'Add Document'**
   String get addDocumentTitle;
 
+  /// Generic add action label
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get add;
+
+  /// Document Viewer button to add more attachments
+  ///
+  /// In en, this message translates to:
+  /// **'Add files'**
+  String get addFiles;
+
   /// Edit Document screen title / document viewer edit button tooltip
   ///
   /// In en, this message translates to:
   /// **'Edit file'**
   String get editDocumentTitle;
+
+  /// Generic edit action label
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit;
+
+  /// Submit action for updating an existing document
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get update;
 
   /// Add Document screen text field label
   ///

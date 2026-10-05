@@ -102,7 +102,11 @@
   "unlock": "Desbloquear",
 
   "addDocumentTitle": "Agregar documento",
+  "add": "Agregar",
+  "addFiles": "Agregar archivos",
   "editDocumentTitle": "Editar archivo",
+  "edit": "Editar",
+  "update": "Actualizar",
   "documentTitleLabel": "Título",
   "documentTitleHint": "p. ej. Escaneo de pasaporte",
   "documentTitleRequired": "El título es obligatorio",

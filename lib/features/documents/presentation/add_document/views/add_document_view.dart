@@ -35,21 +35,35 @@ class AddDocumentView extends StatelessWidget {
   /// immediately, same as a fresh camera/gallery/file pick.
   final List<String>? initialSharedFilePaths;
 
+  /// Opens the native scanner after an existing document has been loaded.
+  final bool openCameraOnLoad;
+
   const AddDocumentView({
     super.key,
     this.initialCategory,
     this.editingDocument,
     this.initialSharedFilePaths,
+    this.openCameraOnLoad = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) {
+      create: (providerContext) {
         final vm = sl<AddDocumentViewModel>();
         final editing = editingDocument;
         if (editing != null) {
           vm.startEditing(editing);
+          if (openCameraOnLoad) {
+            WidgetsBinding.instance.addPostFrameCallback((_) async {
+              final failed = await vm.pickFromCamera();
+              if (failed && providerContext.mounted) {
+                AppToastsUtils.error(
+                  AppLocalizations.of(providerContext).scanFailedToast,
+                );
+              }
+            });
+          }
         } else {
           final category = initialCategory;
           if (category != null) vm.preselectCategory(category);
@@ -101,7 +115,9 @@ class AddDocumentView extends StatelessWidget {
                       heightBox(32),
                       CustomButton(
                         isLoading: vm.isSaving,
-                        text: AppLocalizations.of(context).save,
+                        text: vm.isEditing
+                            ? AppLocalizations.of(context).update
+                            : AppLocalizations.of(context).save,
 
                         onPressed: () async {
                           if (!vm.validateAttachments()) return;
@@ -480,7 +496,7 @@ class _CategoryPickerTrigger extends StatelessWidget {
 /// once the comma-stripped value has actually been applied to the
 /// controller; reading it synchronously here would still see the old text.
 class _CommaTagFormatter extends TextInputFormatter {
-  final ValueChanged<TextEditingValue> onCommit;
+  final ValueChanged<String> onCommit;
 
   _CommaTagFormatter({required this.onCommit});
 
@@ -489,15 +505,17 @@ class _CommaTagFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    if (!newValue.composing.isCollapsed || !newValue.text.endsWith(',')) {
-      return newValue;
-    }
+    // Android keyboards may keep an ordinary Latin word in a composing
+    // region until the user edits it again. A comma is an explicit tag
+    // delimiter, so it must take priority over that transient composing
+    // state; otherwise the comma remains in the field until Backspace.
+    if (!newValue.text.endsWith(',')) return newValue;
     final text = newValue.text.substring(0, newValue.text.length - 1);
     final strippedValue = TextEditingValue(
       text: text,
       selection: TextSelection.collapsed(offset: text.length),
     );
-    scheduleMicrotask(() => onCommit(strippedValue));
+    scheduleMicrotask(() => onCommit(text));
     return strippedValue;
   }
 }
@@ -526,6 +544,7 @@ class _TagsFieldState extends State<_TagsField> {
 
   final FocusNode _focusNode = FocusNode();
   String? _selectedTag;
+  String? _queuedCommaCommit;
 
   @override
   void initState() {
@@ -535,19 +554,36 @@ class _TagsFieldState extends State<_TagsField> {
     // TextField's default editing action consumes it.
     _focusNode.onKeyEvent = _handleKeyEvent;
     _focusNode.addListener(_refreshField);
-    widget.vm.tagController.addListener(_refreshField);
+    widget.vm.tagController.addListener(_handleTagTextChanged);
   }
 
   @override
   void didUpdateWidget(covariant _TagsField oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.vm.tagController != widget.vm.tagController) {
-      oldWidget.vm.tagController.removeListener(_refreshField);
-      widget.vm.tagController.addListener(_refreshField);
+      oldWidget.vm.tagController.removeListener(_handleTagTextChanged);
+      widget.vm.tagController.addListener(_handleTagTextChanged);
     }
   }
 
   void _refreshField() => setState(() {});
+
+  void _handleTagTextChanged() {
+    _refreshField();
+
+    // The formatter is the normal path. A few Android IMEs apply their own
+    // composing update after it, though, leaving `tag,` in the controller
+    // without another formatter pass. Observe that final value and defer the
+    // mutation until this controller notification has fully completed.
+    final text = widget.vm.tagController.text;
+    if (!text.endsWith(',') || text == _queuedCommaCommit) return;
+    _queuedCommaCommit = text;
+    scheduleMicrotask(() {
+      if (!mounted || _queuedCommaCommit != text) return;
+      _queuedCommaCommit = null;
+      _commitFormattedTag(text.substring(0, text.length - 1));
+    });
+  }
 
   void _selectTag(String tag) {
     setState(() => _selectedTag = tag);
@@ -629,19 +665,28 @@ class _TagsFieldState extends State<_TagsField> {
     _focusNode.requestFocus();
   }
 
-  void _commitFormattedTag(TextEditingValue value) {
+  void _commitFormattedTag(String text) {
     // A later edit or a removed field must not be consumed by a stale
-    // microtask. Validation failures leave the entered text available to edit.
-    // Android may normalize selection affinity/composition after applying a
-    // formatter. The text is the value we need to protect; comparing the
-    // entire TextEditingValue caused valid comma commits to be discarded.
-    if (!mounted || widget.vm.tagController.text != value.text) return;
+    // microtask. Some Android IMEs restore the comma after the formatter has
+    // returned its stripped value, so accept either representation and put
+    // the stripped text back before committing. Comparing only the stripped
+    // controller value made those valid Android commits disappear.
+    if (!mounted) return;
+    final controller = widget.vm.tagController;
+    final currentText = controller.text;
+    if (currentText != text && currentText != '$text,') return;
+    if (currentText != text) {
+      controller.value = TextEditingValue(
+        text: text,
+        selection: TextSelection.collapsed(offset: text.length),
+      );
+    }
     _commitTag();
   }
 
   @override
   void dispose() {
-    widget.vm.tagController.removeListener(_refreshField);
+    widget.vm.tagController.removeListener(_handleTagTextChanged);
     _focusNode.removeListener(_refreshField);
     _focusNode.onKeyEvent = null;
     _focusNode.dispose();
@@ -752,6 +797,13 @@ class _TagsFieldState extends State<_TagsField> {
                       TextInputFormatter.withFunction(_handleSelectedTagEdit),
                       _CommaTagFormatter(onCommit: _commitFormattedTag),
                     ],
+                    // Tags are delimiter-based values. Android IMEs can keep
+                    // autocorrect/suggestion text in an active composing
+                    // range, and Flutter intentionally does not run input
+                    // formatters until that range commits. Turning these off
+                    // makes a typed comma reach the formatter immediately.
+                    autocorrect: false,
+                    enableSuggestions: false,
                     textInputAction: .done,
                     // Keep the keyboard and caret active after Done/Enter.
                     onEditingComplete: () {},

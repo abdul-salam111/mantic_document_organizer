@@ -177,6 +177,16 @@ void main() {
     expect(tester.getSize(find.byType(Chip)).height, lessThanOrEqualTo(28));
   });
 
+  testWidgets('tag input disables IME suggestions for comma delimiters', (
+    tester,
+  ) async {
+    await showForm(tester);
+
+    final field = tester.widget<TextField>(input());
+    expect(field.autocorrect, isFalse);
+    expect(field.enableSuggestions, isFalse);
+  });
+
   testWidgets('the one-line form controls use the same height', (tester) async {
     await showForm(tester);
 
@@ -266,7 +276,7 @@ void main() {
     expect(vm.tags, ['Insurance']);
   });
 
-  testWidgets('comma waits for IME composition to finish', (tester) async {
+  testWidgets('comma commits an IME-composed tag immediately', (tester) async {
     await showForm(tester);
     await tester.showKeyboard(input());
     tester.testTextInput.updateEditingValue(
@@ -274,16 +284,6 @@ void main() {
         text: '保険,',
         selection: TextSelection.collapsed(offset: 3),
         composing: TextRange(start: 0, end: 3),
-      ),
-    );
-    await tester.pump();
-    expect(vm.tags, isEmpty);
-    expect(vm.tagController.text, '保険,');
-
-    tester.testTextInput.updateEditingValue(
-      const TextEditingValue(
-        text: '保険,',
-        selection: TextSelection.collapsed(offset: 3),
       ),
     );
     await tester.pump();
@@ -316,6 +316,43 @@ void main() {
       );
       await tester.pump();
       expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'comma commits when Android restores the comma after formatting',
+    (tester) async {
+      await showForm(tester);
+      final formatter = tester.widget<TextField>(input()).inputFormatters!.last;
+
+      formatter.formatEditUpdate(
+        TextEditingValue.empty,
+        const TextEditingValue(text: 'Insurance,'),
+      );
+      // Some Android IMEs send this value after the formatter has already
+      // returned the comma-stripped value to the framework.
+      vm.tagController.text = 'Insurance,';
+      await tester.pump();
+
+      expect(vm.tags, ['Insurance']);
+      expect(vm.tagController.text, isEmpty);
+      expect(focusNode(tester).hasFocus, isTrue);
+    },
+  );
+
+  testWidgets(
+    'controller fallback commits a comma Android leaves in the field',
+    (tester) async {
+      await showForm(tester);
+
+      // Some Android IMEs bypass the formatter for a composing update and
+      // leave this final value directly in the controller.
+      vm.tagController.text = 'Insurance,';
+      await tester.pump();
+
+      expect(vm.tags, ['Insurance']);
+      expect(vm.tagController.text, isEmpty);
+      expect(focusNode(tester).hasFocus, isTrue);
     },
   );
 

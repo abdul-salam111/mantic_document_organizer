@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:pdfx/pdfx.dart';
 
-import '../../../../../core/constants/constants_exports.dart';
 import '../../../../../core/di/di_exports.dart';
 import '../../../../../core/localization/localization_exports.dart';
 import '../../../../../core/theme/theme_exports.dart';
@@ -17,7 +16,7 @@ import '../../../../../routes/routes_exports.dart';
 import '../../../../home/home_exports.dart';
 import '../viewmodels/document_viewer_viewmodel.dart';
 
-enum _DocumentAction { edit, share, exportPdf, rename, move, delete }
+enum _DocumentAction { exportPdf, delete }
 
 class DocumentViewerView extends StatelessWidget {
   final DocumentItem document;
@@ -39,7 +38,6 @@ class DocumentViewerView extends StatelessWidget {
           // sensible to show; the delete action itself already pops.
           if (current == null) return const SizedBox.shrink();
 
-          final color = categoryIconColor(context, current.category);
           return Scaffold(
             appBar: CustomAppBar(
               title: current.title,
@@ -61,21 +59,6 @@ class DocumentViewerView extends StatelessWidget {
                   onSelected: (action) =>
                       _handleAction(context, vm, current, action),
                   itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: _DocumentAction.edit,
-                      child: _MenuRow(
-                        icon: Iconsax.edit,
-                        label: AppLocalizations.of(context).editDocumentTitle,
-                      ),
-                    ),
-                    if (current.filePaths.isNotEmpty)
-                      PopupMenuItem(
-                        value: _DocumentAction.share,
-                        child: _MenuRow(
-                          icon: Iconsax.share,
-                          label: AppLocalizations.of(context).share,
-                        ),
-                      ),
                     if (current.filePaths.any(isImagePath))
                       PopupMenuItem(
                         value: _DocumentAction.exportPdf,
@@ -84,20 +67,6 @@ class DocumentViewerView extends StatelessWidget {
                           label: AppLocalizations.of(context).exportAsPdf,
                         ),
                       ),
-                    PopupMenuItem(
-                      value: _DocumentAction.rename,
-                      child: _MenuRow(
-                        icon: Iconsax.edit_2,
-                        label: AppLocalizations.of(context).rename,
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: _DocumentAction.move,
-                      child: _MenuRow(
-                        icon: Iconsax.category,
-                        label: AppLocalizations.of(context).move,
-                      ),
-                    ),
                     const PopupMenuDivider(),
                     PopupMenuItem(
                       value: _DocumentAction.delete,
@@ -112,14 +81,23 @@ class DocumentViewerView extends StatelessWidget {
               ],
             ),
             body: SafeArea(
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: _PageArea(vm: vm, document: current),
-                  ),
-                  _DraggableInfoSheet(document: current, color: color),
-                ],
+              child: _PageArea(
+                document: current,
+                onAddFiles: () => _openScannerForDocument(current),
               ),
+            ),
+            bottomNavigationBar: _DocumentActionBar(
+              onAdd: () => _openScannerForDocument(current),
+              onEdit: () => _openEditor(current),
+              onShare: () {
+                persistAction(context, () => vm.share(current));
+              },
+              onMove: () {
+                _showMovePicker(context, vm, current);
+              },
+              onRename: () {
+                _showRenameSheet(context, vm, current);
+              },
             ),
           );
         },
@@ -134,20 +112,19 @@ class DocumentViewerView extends StatelessWidget {
     _DocumentAction action,
   ) {
     switch (action) {
-      case _DocumentAction.edit:
-        AppNavigator.pushNamed(RouteNames.addDocument, extra: current);
-        return Future.value();
-      case _DocumentAction.share:
-        return persistAction(context, () => vm.share(current)).then((_) {});
       case _DocumentAction.exportPdf:
         return persistAction(context, () => vm.exportPdf(current)).then((_) {});
-      case _DocumentAction.rename:
-        return _showRenameSheet(context, vm, current);
-      case _DocumentAction.move:
-        return _showMovePicker(context, vm, current);
       case _DocumentAction.delete:
         return _confirmDelete(context, vm, current);
     }
+  }
+
+  void _openEditor(DocumentItem document) {
+    AppNavigator.pushNamed(RouteNames.addDocument, extra: document);
+  }
+
+  void _openScannerForDocument(DocumentItem document) {
+    AppNavigator.pushNamed(RouteNames.addDocument, extra: (document, true));
   }
 
   Future<void> _showRenameSheet(
@@ -373,36 +350,183 @@ class _MenuRow extends StatelessWidget {
   }
 }
 
-/// Owns the [PageController] so the page view and thumbnail strip below it
-/// share one source of truth for the current page — a thumbnail tap
-/// animates the same controller the swipe gesture drives.
-class _PageArea extends StatefulWidget {
-  final DocumentViewerViewModel vm;
-  final DocumentItem document;
+/// Scanner-style actions remain available while the user reads attachments.
+class _DocumentActionBar extends StatelessWidget {
+  final VoidCallback onAdd;
+  final VoidCallback onEdit;
+  final VoidCallback onShare;
+  final VoidCallback onMove;
+  final VoidCallback onRename;
 
-  const _PageArea({required this.vm, required this.document});
+  const _DocumentActionBar({
+    required this.onAdd,
+    required this.onEdit,
+    required this.onShare,
+    required this.onMove,
+    required this.onRename,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return SafeArea(
+      top: false,
+      child: Container(
+        decoration: BoxDecoration(
+          color: context.surfaceElevated,
+          border: Border(top: BorderSide(color: context.border)),
+        ),
+        child: Row(
+          children: [
+            _DocumentActionItem(
+              icon: Icons.add_a_photo_outlined,
+              label: l10n.add,
+              onTap: onAdd,
+            ),
+            _DocumentActionItem(
+              icon: Iconsax.edit_2,
+              label: l10n.edit,
+              onTap: onEdit,
+            ),
+            _DocumentActionItem(
+              icon: Iconsax.share,
+              label: l10n.share,
+              onTap: onShare,
+            ),
+            _DocumentActionItem(
+              icon: Iconsax.category,
+              label: l10n.move,
+              onTap: onMove,
+            ),
+            _DocumentActionItem(
+              icon: Iconsax.edit,
+              label: l10n.rename,
+              onTap: onRename,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DocumentActionItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _DocumentActionItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) => Expanded(
+    child: InkWell(
+      onTap: onTap,
+      child: SizedBox(
+        height: 68,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 23, color: context.textPrimary),
+            heightBox(5),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: context.labelSmall.copyWith(fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+/// Shows each attachment directly in one vertical list with a sticky counter
+/// for the file currently at the top of the viewport.
+class _PageArea extends StatefulWidget {
+  final DocumentItem document;
+  final VoidCallback onAddFiles;
+
+  const _PageArea({required this.document, required this.onAddFiles});
 
   @override
   State<_PageArea> createState() => _PageAreaState();
 }
 
 class _PageAreaState extends State<_PageArea> {
-  late final PageController _controller = PageController(
-    initialPage: widget.vm.pageIndex,
-  );
+  final _scrollController = ScrollController();
+  final _zoomController = TransformationController();
+  final _listKey = GlobalKey();
+  late List<GlobalKey> _fileKeys = _keysFor(widget.document.filePaths.length);
+  int _currentFile = 0;
+  bool _isZoomed = false;
+  final Set<int> _selectedFiles = {};
+
+  static List<GlobalKey> _keysFor(int count) =>
+      List.generate(count, (_) => GlobalKey(), growable: false);
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_updateCurrentFile);
+    _zoomController.addListener(_updateZoomState);
+  }
+
+  @override
+  void didUpdateWidget(covariant _PageArea oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.document.filePaths != widget.document.filePaths) {
+      _fileKeys = _keysFor(widget.document.filePaths.length);
+      _currentFile = 0;
+      _selectedFiles.clear();
+      WidgetsBinding.instance.addPostFrameCallback((_) => _updateCurrentFile());
+    }
+  }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _scrollController
+      ..removeListener(_updateCurrentFile)
+      ..dispose();
+    _zoomController
+      ..removeListener(_updateZoomState)
+      ..dispose();
     super.dispose();
   }
 
-  void _jumpTo(int index) {
-    _controller.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeOut,
-    );
+  void _updateZoomState() {
+    final isZoomed = _zoomController.value.getMaxScaleOnAxis() > 1.01;
+    if (isZoomed != _isZoomed && mounted) setState(() => _isZoomed = isZoomed);
+  }
+
+  void _resetZoom() {
+    _zoomController.value = _zoomController.value.clone()..setIdentity();
+  }
+
+  void _toggleFileSelection(int index) {
+    setState(() {
+      if (!_selectedFiles.add(index)) _selectedFiles.remove(index);
+    });
+  }
+
+  void _updateCurrentFile() {
+    final listBox = _listKey.currentContext?.findRenderObject() as RenderBox?;
+    if (!mounted || listBox == null) return;
+
+    for (var index = 0; index < _fileKeys.length; index++) {
+      final fileBox =
+          _fileKeys[index].currentContext?.findRenderObject() as RenderBox?;
+      if (fileBox == null) continue;
+      final top = fileBox.localToGlobal(Offset.zero, ancestor: listBox).dy;
+      if (top + fileBox.size.height > 0) {
+        if (_currentFile != index) setState(() => _currentFile = index);
+        return;
+      }
+    }
   }
 
   @override
@@ -416,49 +540,215 @@ class _PageAreaState extends State<_PageArea> {
       );
     }
 
-    return Column(
-      children: [
-        Expanded(
-          child: Stack(
-            children: [
-              PageView.builder(
-                controller: _controller,
-                itemCount: paths.length,
-                onPageChanged: widget.vm.setPageIndex,
-                itemBuilder: (context, index) =>
-                    _PagePreview(path: paths[index]),
-              ),
-              if (paths.length > 1)
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: _PageCounterBadge(
-                    current: widget.vm.pageIndex + 1,
-                    total: paths.length,
-                  ),
+    return GestureDetector(
+      behavior: .translucent,
+      onDoubleTap: _resetZoom,
+      child: InteractiveViewer(
+        // Zoom the viewer as a whole, including every visible file and its
+        // counter. Normal-size documents scroll; zoomed documents pan.
+        transformationController: _zoomController,
+        panEnabled: _isZoomed,
+        boundaryMargin: const EdgeInsets.all(80),
+        minScale: 1,
+        maxScale: 4,
+        child: Stack(
+          children: [
+            ListView.separated(
+              key: _listKey,
+              controller: _scrollController,
+              padding: const .fromLTRB(14, 14, 14, 24),
+              itemCount: paths.length + 1,
+              separatorBuilder: (_, _) => heightBox(14),
+              itemBuilder: (context, index) => index == paths.length
+                  ? _AddFilesButton(onTap: widget.onAddFiles)
+                  : KeyedSubtree(
+                      key: _fileKeys[index],
+                      child: _SelectableFilePreview(
+                        path: paths[index],
+                        isSelected: _selectedFiles.contains(index),
+                        selectionActive: _selectedFiles.isNotEmpty,
+                        onToggle: () => _toggleFileSelection(index),
+                      ),
+                    ),
+            ),
+            Positioned(
+              top: 12,
+              left: 12,
+              child: IgnorePointer(
+                child: _FileCounter(
+                  current: _currentFile + 1,
+                  total: paths.length,
                 ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FileCounter extends StatelessWidget {
+  final int current;
+  final int total;
+
+  const _FileCounter({required this.current, required this.total});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const .symmetric(horizontal: 10, vertical: 5),
+    decoration: BoxDecoration(
+      color: context.black.withValues(alpha: 0.65),
+      borderRadius: .circular(20),
+    ),
+    child: Text(
+      '$current / $total',
+      style: context.labelSmall.copyWith(
+        color: context.white,
+        fontWeight: .w600,
+      ),
+    ),
+  );
+}
+
+class _AddFilesButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _AddFilesButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => Material(
+    color: context.surface,
+    child: InkWell(
+      onTap: onTap,
+      child: CustomPaint(
+        foregroundPainter: _DottedRoundedBorderPainter(color: context.border),
+        child: SizedBox(
+          height: 44,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.add_a_photo_outlined,
+                size: 20,
+                color: context.textSecondary,
+              ),
+              widthBox(8),
+              Text(
+                AppLocalizations.of(context).addFiles,
+                style: context.bodySmall.copyWith(
+                  color: context.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
         ),
-        if (paths.length > 1) ...[
-          heightBox(10),
-          SizedBox(
-            height: 56,
-            child: ListView.separated(
-              scrollDirection: .horizontal,
-              padding: const .symmetric(horizontal: 14),
-              itemCount: paths.length,
-              separatorBuilder: (context, index) => widthBox(8),
-              itemBuilder: (context, index) => _Thumbnail(
-                path: paths[index],
-                isSelected: index == widget.vm.pageIndex,
-                onTap: () => _jumpTo(index),
+      ),
+    ),
+  );
+}
+
+class _DottedRoundedBorderPainter extends CustomPainter {
+  final Color color;
+
+  const _DottedRoundedBorderPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..addRRect(RRect.fromRectAndRadius(Offset.zero & size, Radius.zero));
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 1.2;
+    for (final metric in path.computeMetrics()) {
+      for (var offset = 0.0; offset < metric.length; offset += 9) {
+        canvas.drawPath(
+          metric.extractPath(offset, (offset + 5).clamp(0, metric.length)),
+          paint,
+        );
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DottedRoundedBorderPainter oldDelegate) =>
+      oldDelegate.color != color;
+}
+
+class _SelectableFilePreview extends StatelessWidget {
+  final String path;
+  final bool isSelected;
+  final bool selectionActive;
+  final VoidCallback onToggle;
+
+  const _SelectableFilePreview({
+    required this.path,
+    required this.isSelected,
+    required this.selectionActive,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onLongPress: onToggle,
+    onTap: selectionActive ? onToggle : null,
+    child: Stack(
+      children: [
+        _FilePreview(path: path),
+        if (isSelected)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: ColoredBox(color: context.primary.withValues(alpha: 0.16)),
+            ),
+          ),
+        if (isSelected)
+          Positioned(
+            top: 10,
+            right: 10,
+            child: IgnorePointer(
+              child: Container(
+                width: 28,
+                height: 28,
+                alignment: .center,
+                decoration: BoxDecoration(
+                  color: context.primary,
+                  shape: .circle,
+                ),
+                child: Icon(
+                  Icons.check_rounded,
+                  size: 18,
+                  color: context.white,
+                ),
               ),
             ),
           ),
-          heightBox(10),
-        ],
       ],
+    ),
+  );
+}
+
+class _FilePreview extends StatelessWidget {
+  final String path;
+
+  const _FilePreview({required this.path});
+
+  @override
+  Widget build(BuildContext context) {
+    if (isImagePath(path)) {
+      return Image.file(
+        File(path),
+        width: double.infinity,
+        fit: .fitWidth,
+        errorBuilder: (context, error, stackTrace) =>
+            _UnsupportedPreview(path: path),
+      );
+    }
+    return SizedBox(
+      height: MediaQuery.sizeOf(context).height * 0.75,
+      child: _PagePreview(path: path),
     );
   }
 }
@@ -473,6 +763,7 @@ class _PagePreview extends StatelessWidget {
     if (isPdfPath(path)) return _PdfPreview(path: path);
     if (!isImagePath(path)) return _UnsupportedPreview(path: path);
     return InteractiveViewer(
+      panEnabled: false,
       minScale: 1,
       maxScale: 4,
       child: Center(
@@ -568,213 +859,6 @@ class _UnsupportedPreview extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _Thumbnail extends StatelessWidget {
-  final String path;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _Thumbnail({
-    required this.path,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  Widget _fallback(BuildContext context) => Container(
-    color: context.background,
-    alignment: .center,
-    child: Icon(Iconsax.document, size: 20, color: context.textSecondary),
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: .circular(10),
-      child: Container(
-        width: 52,
-        height: 52,
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          borderRadius: .circular(10),
-          border: Border.all(
-            color: isSelected ? context.primary : context.border,
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: isImagePath(path)
-            ? Image.file(
-                File(path),
-                fit: .cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    _fallback(context),
-              )
-            : _fallback(context),
-      ),
-    );
-  }
-}
-
-class _PageCounterBadge extends StatelessWidget {
-  final int current;
-  final int total;
-
-  const _PageCounterBadge({required this.current, required this.total});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const .symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: context.black.withValues(alpha: 0.6),
-        borderRadius: .circular(20),
-      ),
-      child: Text(
-        '$current / $total',
-        style: context.labelSmall.copyWith(
-          color: context.white,
-          fontWeight: .w600,
-        ),
-      ),
-    );
-  }
-}
-
-/// The details panel that used to sit statically below the page preview is
-/// now a [DraggableScrollableSheet] floating on top of it — rounded top
-/// corners like a real bottom sheet, and draggable so the user can pull it
-/// up to read the full details (tags, expiry, ...) without leaving the
-/// preview. [DraggableScrollableSheet] anchors itself to the bottom of
-/// whatever [Stack] it's placed in, so no [Positioned] wrapper is needed.
-class _DraggableInfoSheet extends StatelessWidget {
-  final DocumentItem document;
-  final Color color;
-
-  const _DraggableInfoSheet({required this.document, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.24,
-      minChildSize: 0.16,
-      maxChildSize: 0.65,
-      builder: (context, scrollController) {
-        return Container(
-          decoration: BoxDecoration(
-            color: context.surfaceElevated,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            boxShadow: [
-              BoxShadow(
-                color: context.shadow,
-                blurRadius: 12,
-                offset: const Offset(0, -2),
-              ),
-            ],
-          ),
-          child: ListView(
-            controller: scrollController,
-            padding: EdgeInsets.zero,
-            children: [
-              Center(
-                child: Container(
-                  margin: const .symmetric(vertical: 10),
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: context.border,
-                    borderRadius: .circular(2),
-                  ),
-                ),
-              ),
-              _DocumentInfoPanel(document: document, color: color),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _DocumentInfoPanel extends StatelessWidget {
-  final DocumentItem document;
-  final Color color;
-
-  const _DocumentInfoPanel({required this.document, required this.color});
-
-  bool get _showExpiryChip =>
-      document.isExpirable && document.expiryDate != null;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const .fromLTRB(16, 0, 16, 20),
-      child: Column(
-        crossAxisAlignment: .start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                alignment: .center,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
-                  borderRadius: .circular(8),
-                ),
-                child: FaIcon(
-                  iconForKey(document.iconKey),
-                  size: 14,
-                  color: color,
-                ),
-              ),
-              widthBox(8),
-              Expanded(
-                child: Text(
-                  document.category,
-                  maxLines: 1,
-                  overflow: .ellipsis,
-                  style: context.bodyMedium.copyWith(fontWeight: .w600),
-                ),
-              ),
-              Text(
-                AppLocalizations.of(
-                  context,
-                ).fileCount(document.filePaths.length),
-                style: context.labelSmall.copyWith(
-                  color: context.textSecondary,
-                ),
-              ),
-            ],
-          ),
-          heightBox(4),
-          Text(
-            AppLocalizations.of(context).addedOn(document.createdAt.formatted),
-            style: context.labelSmall.copyWith(color: context.textSecondary),
-          ),
-          if (document.description.trim().isNotEmpty) ...[
-            heightBox(12),
-            SelectableText(
-              document.description.trim(),
-              style: context.bodyMedium,
-            ),
-          ],
-          if (document.tags.isNotEmpty || _showExpiryChip) ...[
-            heightBox(10),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                if (_showExpiryChip)
-                  ExpiryChip(expiryDate: document.expiryDate!),
-                for (final tag in document.tags) TagChip(tag: tag),
-              ],
-            ),
-          ],
-        ],
       ),
     );
   }

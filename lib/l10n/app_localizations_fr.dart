@@ -352,7 +352,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get addDocumentTitle => 'Ajouter un document';
 
   @override
+  String get add => 'Ajouter';
+
+  @override
+  String get addFiles => 'Ajouter des fichiers';
+
+  @override
   String get editDocumentTitle => 'Modifier le fichier';
+
+  @override
+  String get edit => 'Modifier';
+
+  @override
+  String get update => 'Mettre à jour';
 
   @override
   String get documentTitleLabel => 'Titre';

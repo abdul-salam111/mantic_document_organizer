@@ -349,7 +349,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get addDocumentTitle => 'إضافة مستند';
 
   @override
+  String get add => 'إضافة';
+
+  @override
+  String get addFiles => 'إضافة ملفات';
+
+  @override
   String get editDocumentTitle => 'تعديل الملف';
+
+  @override
+  String get edit => 'تعديل';
+
+  @override
+  String get update => 'تحديث';
 
   @override
   String get documentTitleLabel => 'العنوان';

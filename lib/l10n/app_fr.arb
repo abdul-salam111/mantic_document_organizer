@@ -102,7 +102,11 @@
   "unlock": "Déverrouiller",
 
   "addDocumentTitle": "Ajouter un document",
+  "add": "Ajouter",
+  "addFiles": "Ajouter des fichiers",
   "editDocumentTitle": "Modifier le fichier",
+  "edit": "Modifier",
+  "update": "Mettre à jour",
   "documentTitleLabel": "Titre",
   "documentTitleHint": "p. ex. Numérisation de passeport",
   "documentTitleRequired": "Le titre est requis",
