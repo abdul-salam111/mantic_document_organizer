@@ -16,7 +16,6 @@ import '../features/documents/presentation/add_document/add_document_exports.dar
 import '../features/categories/presentation/manage_categories/manage_categories_exports.dart';
 import '../features/navbar/navbar_exports.dart';
 import '../features/onboarding/onboarding_exports.dart';
-import '../features/profile/profile_exports.dart';
 import '../features/settings/settings_exports.dart';
 import '../features/splash/splash_exports.dart';
 import '../features/documents/presentation/category_documents/category_documents_exports.dart';
@@ -96,7 +95,9 @@ class AppRoutes {
       GoRoute(
         path: RoutePaths.home,
         name: RouteNames.home,
-        builder: (context, state) => const NavbarView(),
+        builder: (context, state) => NavbarView(
+          initialIndex: state.extra is int ? state.extra! as int : 0,
+        ),
       ),
       GoRoute(
         path: RoutePaths.addDocument,
@@ -124,11 +125,6 @@ class AppRoutes {
         path: RoutePaths.settings,
         name: RouteNames.settings,
         builder: (context, state) => const SettingsView(),
-      ),
-      GoRoute(
-        path: RoutePaths.profile,
-        name: RouteNames.profile,
-        builder: (context, state) => const ProfileView(),
       ),
       GoRoute(
         path: RoutePaths.addCategory,

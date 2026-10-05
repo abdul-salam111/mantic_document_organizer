@@ -139,7 +139,8 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
     );
   }
 
-  void _goToProfile() => AppNavigator.goNamed(RouteNames.profile);
+  // Index 3 = Profile, per NavbarView's _tabs order.
+  void _goToProfile() => AppNavigator.goNamed(RouteNames.home, extra: 3);
 
   @override
   Widget build(BuildContext context) => PopScope<Object?>(

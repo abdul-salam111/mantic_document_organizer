@@ -8,96 +8,89 @@ import '../../../core/utils/utils_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
 import '../../../routes/routes_exports.dart';
 import '../../bulk_import/bulk_import_exports.dart';
+import '../../navbar/viewmodel/navbar_viewmodel.dart';
 import '../viewmodel/profile_viewmodel.dart';
 
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
 
-  void _goHome() => AppNavigator.goNamed(RouteNames.home);
-
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => sl<ProfileViewModel>(),
-      child: PopScope<Object?>(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, result) {
-          if (!didPop) _goHome();
-        },
-        child: Scaffold(
-          appBar: CustomAppBar(
-            title: AppLocalizations.of(context).profileTitle,
-            onBackPressed: _goHome,
-          ),
-          body: SafeArea(
-            child: Consumer<ProfileViewModel>(
-              builder: (context, vm, _) {
-                return ListView(
-                  padding: const .all(16),
-                  children: [
-                    _ProfileHeaderCard(vm: vm),
-                    heightBox(16),
-                    _StatsRow(vm: vm),
-                    heightBox(24),
-                    if (AppConstants.bulkImportEnabled) ...[
-                      _ProfileMenuTile(
-                        icon: Iconsax.document_upload,
-                        iconColor: context.primary,
-                        label: 'Find more documents',
-                        subtitle: 'Scan your photo library for new documents',
-                        onTap: () => BulkImportPopup.show(context),
-                      ),
-                      heightBox(10),
-                    ],
+      child: Scaffold(
+        appBar: CustomAppBar(
+          title: AppLocalizations.of(context).profileTitle,
+          onBackPressed: () => context.read<NavbarViewModel>().selectTab(0),
+        ),
+        body: SafeArea(
+          child: Consumer<ProfileViewModel>(
+            builder: (context, vm, _) {
+              return ListView(
+                padding: const .all(16),
+                children: [
+                  _ProfileHeaderCard(vm: vm),
+                  heightBox(16),
+                  _StatsRow(vm: vm),
+                  heightBox(24),
+                  if (AppConstants.bulkImportEnabled) ...[
                     _ProfileMenuTile(
-                      icon: Iconsax.setting_2,
+                      icon: Iconsax.document_upload,
                       iconColor: context.primary,
-                      label: AppLocalizations.of(context).settings,
-                      subtitle: AppLocalizations.of(context).settingsSubtitle,
-                      onTap: () => AppNavigator.pushNamed(RouteNames.settings),
+                      label: 'Find more documents',
+                      subtitle: 'Scan your photo library for new documents',
+                      onTap: () => BulkImportPopup.show(context),
                     ),
                     heightBox(10),
+                  ],
+                  _ProfileMenuTile(
+                    icon: Iconsax.setting_2,
+                    iconColor: context.primary,
+                    label: AppLocalizations.of(context).settings,
+                    subtitle: AppLocalizations.of(context).settingsSubtitle,
+                    onTap: () => AppNavigator.pushNamed(RouteNames.settings),
+                  ),
+                  heightBox(10),
+                  _ProfileMenuTile(
+                    icon: Iconsax.trash,
+                    iconColor: context.warning,
+                    label: AppLocalizations.of(context).trash,
+                    subtitle: AppLocalizations.of(context).trashSubtitle,
+                    onTap: () => AppNavigator.pushNamed(RouteNames.trash),
+                  ),
+                  heightBox(10),
+                  _ProfileMenuTile(
+                    icon: Iconsax.cloud_add,
+                    iconColor: context.primary,
+                    label: 'Sync & backup',
+                    subtitle: 'Keep your documents securely backed up',
+                    onTap: vm.setUpBackup,
+                  ),
+                  if (vm.isSignedIn) ...[
+                    heightBox(20),
+                    Divider(color: context.divider, height: 1),
+                    heightBox(20),
                     _ProfileMenuTile(
-                      icon: Iconsax.trash,
-                      iconColor: context.warning,
-                      label: AppLocalizations.of(context).trash,
-                      subtitle: AppLocalizations.of(context).trashSubtitle,
-                      onTap: () => AppNavigator.pushNamed(RouteNames.trash),
+                      icon: Iconsax.logout,
+                      iconColor: context.errorAccent,
+                      label: AppLocalizations.of(context).signOut,
+                      isDestructive: true,
+                      onTap: () => _confirmSignOut(context, vm),
                     ),
-                    heightBox(10),
-                    _ProfileMenuTile(
-                      icon: Iconsax.cloud_add,
-                      iconColor: context.primary,
-                      label: 'Sync & backup',
-                      subtitle: 'Keep your documents securely backed up',
-                      onTap: vm.setUpBackup,
-                    ),
-                    if (vm.isSignedIn) ...[
-                      heightBox(20),
-                      Divider(color: context.divider, height: 1),
-                      heightBox(20),
-                      _ProfileMenuTile(
-                        icon: Iconsax.logout,
-                        iconColor: context.errorAccent,
-                        label: AppLocalizations.of(context).signOut,
-                        isDestructive: true,
-                        onTap: () => _confirmSignOut(context, vm),
-                      ),
-                    ],
-                    heightBox(24),
-                    if (vm.appVersion != null)
-                      Center(
-                        child: Text(
-                          vm.appVersion!,
-                          style: context.labelSmall.copyWith(
-                            color: context.textSecondary,
-                          ),
+                  ],
+                  heightBox(24),
+                  if (vm.appVersion != null)
+                    Center(
+                      child: Text(
+                        vm.appVersion!,
+                        style: context.labelSmall.copyWith(
+                          color: context.textSecondary,
                         ),
                       ),
-                  ],
-                );
-              },
-            ),
+                    ),
+                ],
+              );
+            },
           ),
         ),
       ),

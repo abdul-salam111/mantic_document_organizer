@@ -12,7 +12,6 @@ class RoutePaths {
   static const String addDocument = "/add-document";
   static const String onboarding = "/onboarding";
   static const String settings = "/settings";
-  static const String profile = "/profile";
   static const String addCategory = "/add-category";
   static const String manageCategories = "/manage-categories";
   static const String categoryDocuments = "/category-documents";

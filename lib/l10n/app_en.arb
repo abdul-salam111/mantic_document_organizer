@@ -19,6 +19,8 @@
   "@navAllDocs": {"description": "Bottom nav tab label"},
   "navFavorites": "Favorites",
   "@navFavorites": {"description": "Bottom nav tab label"},
+  "navProfile": "Profile",
+  "@navProfile": {"description": "Bottom nav tab label"},
 
   "homeSearchHint": "Ask AI about your documents...",
   "@homeSearchHint": {"description": "Home screen search field placeholder — taps through to the AI Assistant chat, not a keyword filter"},
@@ -42,8 +44,6 @@
     "description": "Search result count shown next to sort/view controls once a query is typed",
     "placeholders": {"count": {"type": "int"}}
   },
-  "profileTooltip": "Profile",
-  "@profileTooltip": {"description": "Tooltip on Home's header profile icon button"},
 
   "allDocsTitle": "All Docs",
   "@allDocsTitle": {"description": "All Docs screen title"},

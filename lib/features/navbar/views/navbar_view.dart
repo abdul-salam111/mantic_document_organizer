@@ -10,13 +10,15 @@ import '../../../routes/routes_exports.dart';
 import '../../bulk_import/bulk_import_exports.dart';
 import '../../favorites/favorites_exports.dart';
 import '../../home/home_exports.dart';
+import '../../profile/profile_exports.dart';
 import '../../search/search_exports.dart';
-import '../../settings/settings_exports.dart';
 import '../viewmodel/navbar_viewmodel.dart';
 import 'widgets/main_bottom_navbar.dart';
 
 class NavbarView extends StatefulWidget {
-  const NavbarView({super.key});
+  final int initialIndex;
+
+  const NavbarView({super.key, this.initialIndex = 0});
 
   @override
   State<NavbarView> createState() => _NavbarViewState();
@@ -27,7 +29,7 @@ class _NavbarViewState extends State<NavbarView> {
     HomeView(),
     SearchView(),
     FavoritesView(),
-    SettingsView(),
+    ProfileView(),
   ];
 
   @override
@@ -53,7 +55,7 @@ class _NavbarViewState extends State<NavbarView> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => sl<NavbarViewModel>(),
+      create: (_) => sl<NavbarViewModel>()..selectTab(widget.initialIndex),
       child: Consumer<NavbarViewModel>(
         builder: (context, vm, _) {
           return PopScope(

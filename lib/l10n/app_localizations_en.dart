@@ -35,6 +35,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navFavorites => 'Favorites';
 
   @override
+  String get navProfile => 'Profile';
+
+  @override
   String get homeSearchHint => 'Ask AI about your documents...';
 
   @override
@@ -73,9 +76,6 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get profileTooltip => 'Profile';
 
   @override
   String get allDocsTitle => 'All Docs';

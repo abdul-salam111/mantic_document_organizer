@@ -11,6 +11,7 @@
   "navHome": "الرئيسية",
   "navAllDocs": "المستندات",
   "navFavorites": "المفضلة",
+  "navProfile": "الملف الشخصي",
 
   "homeSearchHint": "اسأل الذكاء الاصطناعي عن مستنداتك...",
   "recentFiles": "الملفات الأخيرة",
@@ -20,7 +21,6 @@
   "newCategory": "فئة جديدة",
   "fileCount": "{count, plural, one{{count} ملف} other{{count} ملفات}}",
   "resultsCount": "{count, plural, one{{count} نتيجة} other{{count} نتائج}}",
-  "profileTooltip": "الملف الشخصي",
 
   "allDocsTitle": "المستندات",
   "allDocsSearchHint": "ابحث عن مستندات أو فئات",

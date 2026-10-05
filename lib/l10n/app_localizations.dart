@@ -150,6 +150,12 @@ abstract class AppLocalizations {
   /// **'Favorites'**
   String get navFavorites;
 
+  /// Bottom nav tab label
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get navProfile;
+
   /// Home screen search field placeholder — taps through to the AI Assistant chat, not a keyword filter
   ///
   /// In en, this message translates to:
@@ -197,12 +203,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{{count} result} other{{count} results}}'**
   String resultsCount(int count);
-
-  /// Tooltip on Home's header profile icon button
-  ///
-  /// In en, this message translates to:
-  /// **'Profile'**
-  String get profileTooltip;
 
   /// All Docs screen title
   ///

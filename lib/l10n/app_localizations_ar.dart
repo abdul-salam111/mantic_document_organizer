@@ -35,6 +35,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navFavorites => 'المفضلة';
 
   @override
+  String get navProfile => 'الملف الشخصي';
+
+  @override
   String get homeSearchHint => 'اسأل الذكاء الاصطناعي عن مستنداتك...';
 
   @override
@@ -73,9 +76,6 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get profileTooltip => 'الملف الشخصي';
 
   @override
   String get allDocsTitle => 'المستندات';

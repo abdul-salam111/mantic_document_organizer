@@ -11,6 +11,7 @@
   "navHome": "Accueil",
   "navAllDocs": "Documents",
   "navFavorites": "Favoris",
+  "navProfile": "Profil",
 
   "homeSearchHint": "Demandez à l'IA à propos de vos documents...",
   "recentFiles": "Fichiers récents",
@@ -20,7 +21,6 @@
   "newCategory": "Nouvelle catégorie",
   "fileCount": "{count, plural, one{{count} fichier} other{{count} fichiers}}",
   "resultsCount": "{count, plural, one{{count} résultat} other{{count} résultats}}",
-  "profileTooltip": "Profil",
 
   "allDocsTitle": "Documents",
   "allDocsSearchHint": "Rechercher des documents ou des catégories",

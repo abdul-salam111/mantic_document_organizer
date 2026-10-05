@@ -8,7 +8,6 @@ class RouteNames {
   static const String onboarding = "onboarding";
   static const String splash = "splash";
   static const String settings = "settings";
-  static const String profile = "profile";
   static const String addCategory = "addCategory";
   static const String manageCategories = "manageCategories";
   static const String categoryDocuments = "categoryDocuments";

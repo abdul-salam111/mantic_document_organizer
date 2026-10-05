@@ -48,26 +48,6 @@ class HomeView extends StatelessWidget {
                                   fontWeight: .bold,
                                 ),
                               ),
-                              const Spacer(),
-                              IconButton(
-                                tooltip: AppLocalizations.of(
-                                  context,
-                                ).profileTooltip,
-                                style: IconButton.styleFrom(
-                                  backgroundColor: context.surface,
-                                  fixedSize: const Size(36, 36),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: .circular(10),
-                                  ),
-                                ),
-                                icon: Icon(
-                                  Iconsax.profile_circle,
-                                  color: context.textPrimary,
-                                  size: 20,
-                                ),
-                                onPressed: () =>
-                                    AppNavigator.pushNamed(RouteNames.profile),
-                              ),
                             ],
                           ),
                           heightBox(20),
