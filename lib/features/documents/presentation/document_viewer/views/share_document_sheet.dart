@@ -176,7 +176,7 @@ class _ShareDocumentSheetState extends State<ShareDocumentSheet> {
       );
     }
 
-    final stripHeight = (screenSize.height * 0.2).clamp(160.0, 210.0);
+    final stripHeight = (screenSize.height * 0.4).clamp(160.0, 210.0);
     final maxTileWidth = contentWidth * 0.78;
     final minTileWidth = stripHeight * 0.45;
 
@@ -268,11 +268,11 @@ class _ShareDocumentSheetState extends State<ShareDocumentSheet> {
                   ),
                   heightBox(4),
                   _buildThumbnails(context, l10n, paths),
-                  heightBox(16),
+                  heightBox(12),
                   Divider(height: 1, color: context.divider),
-                  heightBox(16),
+                  heightBox(12),
                   Padding(
-                    padding: const .symmetric(horizontal: 20),
+                    padding: const .symmetric(horizontal: 14),
                     child: Text(
                       l10n.share,
                       style: context.titleSmall.copyWith(fontWeight: .bold),
@@ -280,7 +280,7 @@ class _ShareDocumentSheetState extends State<ShareDocumentSheet> {
                   ),
                   heightBox(12),
                   SizedBox(
-                    height: 92,
+                    height: 60,
                     child: ListView(
                       scrollDirection: .horizontal,
                       padding: const .symmetric(horizontal: 6),
@@ -330,12 +330,16 @@ class _ShareDocumentSheetState extends State<ShareDocumentSheet> {
                   Divider(height: 1, color: context.divider),
                   heightBox(8),
                   _ShareOptionTile(
-                    icon: Iconsax.document_download,
+                    // document + forward-arrow reads as "share this
+                    // document" more clearly than the old document_download.
+                    icon: Iconsax.document_forward,
                     label: l10n.shareAsPdfOption,
                     onTap: () => _finish(.shareAsPdf),
                   ),
                   _ShareOptionTile(
-                    icon: Iconsax.image,
+                    // gallery + export-arrow reads as "send images out of
+                    // the gallery" more clearly than the old plain image.
+                    icon: Iconsax.gallery_export,
                     label: l10n.shareAsImagesOption,
                     onTap: () => _finish(.shareAsImages),
                   ),
@@ -546,8 +550,8 @@ class _ShareAppIcon extends StatelessWidget {
         mainAxisSize: .min,
         children: [
           SizedBox(
-            width: 40,
-            height: 40,
+            width: 35,
+            height: 35,
             child: iconAsset != null
                 ? Image.asset(iconAsset!, fit: .contain)
                 : Container(
@@ -588,7 +592,7 @@ class _ShareOptionTile extends StatelessWidget {
   Widget build(BuildContext context) => InkWell(
     onTap: onTap,
     child: Padding(
-      padding: const .symmetric(horizontal: 20, vertical: 14),
+      padding: const .symmetric(horizontal: 20, vertical: 12),
       child: Row(
         children: [
           Icon(icon, size: 20, color: context.textPrimary),

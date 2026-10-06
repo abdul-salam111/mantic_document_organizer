@@ -23,6 +23,9 @@ class AppIcons {
 
   static const String drivingLicense = 'assets/icons/driving_license.webp';
 
+  static const String exportPagesAsPdf =
+      'assets/icons/export_pages_as_pdf.png';
+
   static const String gmail = 'assets/icons/gmail.png';
 
   static const String google = 'assets/icons/google.webp';
@@ -42,6 +45,12 @@ class AppIcons {
   static const String power = 'assets/icons/power.png';
 
   static const String products = 'assets/icons/products.png';
+
+  static const String saveToGallery = 'assets/icons/save_to_gallery.png';
+
+  static const String shareAsImages = 'assets/icons/share_as_images.png';
+
+  static const String shareAsPdf = 'assets/icons/share_as_pdf.png';
 
   static const String tickets = 'assets/icons/tickets.png';
 

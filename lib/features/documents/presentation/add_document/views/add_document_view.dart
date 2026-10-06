@@ -225,10 +225,14 @@ class _AttachmentSection extends StatelessWidget {
             spacing: 10,
             runSpacing: 10,
             children: [
-              for (final attachment in vm.attachments)
+              for (final (index, attachment) in vm.attachments.indexed)
                 _AttachmentThumbnail(
                   attachment: attachment,
                   onRemove: () => vm.removeAttachment(attachment),
+                  onTap: () => AppNavigator.pushNamed(
+                    RouteNames.filePreview,
+                    extra: (vm.attachments.map((a) => a.path).toList(), index),
+                  ),
                 ),
             ],
           ),
@@ -322,70 +326,86 @@ class _SourceButton extends StatelessWidget {
 class _AttachmentThumbnail extends StatelessWidget {
   final AttachmentItem attachment;
   final VoidCallback onRemove;
+  final VoidCallback onTap;
 
   const _AttachmentThumbnail({
     required this.attachment,
     required this.onRemove,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 90,
-      height: 90,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: context.surface,
-        borderRadius: .circular(12),
-        border: Border.all(color: context.border),
-      ),
-      child: Stack(
-        fit: .expand,
-        children: [
-          attachment.type == AttachmentType.image
-              ? Image.file(File(attachment.path), fit: .cover)
-              : Padding(
-                  padding: const .all(6),
-                  child: Column(
-                    mainAxisSize: .min,
-                    mainAxisAlignment: .center,
-                    children: [
-                      Icon(
-                        Iconsax.document_text,
-                        size: 26,
-                        color: context.primary,
-                      ),
-                      heightBox(4),
-                      Text(
-                        attachment.path.split(Platform.pathSeparator).last,
-                        maxLines: 1,
-                        overflow: .ellipsis,
-                        textAlign: .center,
-                        style: context.labelSmall.copyWith(fontSize: 9),
-                      ),
-                    ],
+    return InkWell(
+      onTap: onTap,
+      borderRadius: .circular(12),
+      child: Container(
+        width: 90,
+        height: 90,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: context.surface,
+          borderRadius: .circular(12),
+          border: Border.all(color: context.border),
+        ),
+        child: Stack(
+          fit: .expand,
+          children: [
+            attachment.type == AttachmentType.image
+                ? Image.file(File(attachment.path), fit: .cover)
+                : isPdfPath(attachment.path)
+                ? PdfPageThumbnail(
+                    path: attachment.path,
+                    fallback: _UnsupportedAttachmentIcon(path: attachment.path),
+                  )
+                : _UnsupportedAttachmentIcon(path: attachment.path),
+            Positioned(
+              top: 4,
+              right: 4,
+              child: InkWell(
+                onTap: onRemove,
+                borderRadius: .circular(20),
+                child: Container(
+                  padding: const .all(3),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.6),
+                    shape: .circle,
                   ),
+                  child: const Icon(Icons.close, color: Colors.white, size: 14),
                 ),
-          Positioned(
-            top: 4,
-            right: 4,
-            child: InkWell(
-              onTap: onRemove,
-              borderRadius: .circular(20),
-              child: Container(
-                padding: const .all(3),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.6),
-                  shape: .circle,
-                ),
-                child: const Icon(Icons.close, color: Colors.white, size: 14),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
+}
+
+class _UnsupportedAttachmentIcon extends StatelessWidget {
+  final String path;
+
+  const _UnsupportedAttachmentIcon({required this.path});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const .all(6),
+    child: Column(
+      mainAxisSize: .min,
+      mainAxisAlignment: .center,
+      children: [
+        Icon(Iconsax.document_text, size: 26, color: context.primary),
+        heightBox(4),
+        Text(
+          path.split(Platform.pathSeparator).last,
+          maxLines: 1,
+          overflow: .ellipsis,
+          textAlign: .center,
+          style: context.labelSmall.copyWith(fontSize: 9),
+        ),
+      ],
+    ),
+  );
 }
 
 /// Compact row shown on the form — tapping it opens [_CategoryPickerSheet].
