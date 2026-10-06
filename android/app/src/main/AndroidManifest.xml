@@ -138,9 +138,12 @@
         </intent>
         <!-- Package visibility (API 30+) for the share sheet's direct-to-app
              buttons — without these, an explicit-package share Intent to an
-             installed WhatsApp/Gmail can fail to resolve even though the
-             app is present. See MainActivity's shareToApp handler. -->
+             installed app can fail to resolve even though the app is
+             present. See MainActivity's shareToApp handler. -->
         <package android:name="com.whatsapp" />
         <package android:name="com.google.android.gm" />
+        <package android:name="com.google.android.apps.docs" />
+        <package android:name="com.facebook.orca" />
+        <package android:name="com.instagram.android" />
     </queries>
 </manifest>
