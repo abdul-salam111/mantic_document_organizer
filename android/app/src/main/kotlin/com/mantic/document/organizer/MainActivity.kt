@@ -2,6 +2,7 @@ package com.mantic.document.organizer
 
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.core.content.FileProvider
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
@@ -79,7 +80,16 @@ class MainActivity : FlutterFragmentActivity() {
             // check that's actually authoritative.
             startActivity(intent)
             result.success(true)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            // Logged, not surfaced to the user — this always resolves
+            // `false` and the Dart side silently falls back to the OS
+            // share sheet (see DirectShareService), which is the right UX
+            // either way. The log is purely so a *wrong* failure (e.g. a
+            // FileProvider path misconfiguration making every attempt fail
+            // instead of just one genuinely-uninstalled app) shows up in
+            // `adb logcat` instead of being indistinguishable from the
+            // expected "app not installed" case.
+            Log.w("ShareToApp", "shareToApp to $targetPackage failed", e)
             result.success(false)
         }
     }

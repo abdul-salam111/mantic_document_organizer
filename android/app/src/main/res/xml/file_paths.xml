@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Used by the FileProvider declared in AndroidManifest.xml for the share
      sheet's direct-to-app sharing (MainActivity's shareToApp handler).
-     files-path covers context.getFilesDir() — where path_provider's
-     getApplicationDocumentsDirectory() puts document attachments.
-     cache-path covers context.getCacheDir() — where path_provider's
-     getTemporaryDirectory() puts generated PDFs and rasterized pages. -->
+
+     root-path (the whole app-private filesystem), not files-path/cache-path
+     individually: path_provider's getApplicationDocumentsDirectory() —
+     where document attachments actually live — does NOT resolve to
+     Context.getFilesDir() like its name suggests. It calls
+     Context.getDir("flutter", ...), which returns an "app_flutter/"
+     directory that's a *sibling* of files/, not a subdirectory of it (see
+     Flutter engine's PathUtils.getDataDirectory). files-path can only ever
+     cover getFilesDir() itself, so it silently excluded every attachment
+     path, which made FileProvider.getUriForFile() throw for every file —
+     caught and treated as "direct share failed", always falling back to
+     the generic OS share sheet instead of opening the tapped app. -->
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
-    <files-path name="app_files" path="." />
-    <cache-path name="app_cache" path="." />
+    <root-path name="app_root" path="." />
 </paths>
