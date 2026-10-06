@@ -19,7 +19,11 @@ class AppIcons {
 
   static const String contracts = 'assets/icons/contracts.jpg';
 
+  static const String drive = 'assets/icons/drive.png';
+
   static const String drivingLicense = 'assets/icons/driving_license.webp';
+
+  static const String gmail = 'assets/icons/gmail.png';
 
   static const String google = 'assets/icons/google.webp';
 
@@ -27,7 +31,11 @@ class AppIcons {
 
   static const String insurance = 'assets/icons/insurance.webp';
 
+  static const String instagram = 'assets/icons/instagram.png';
+
   static const String medical = 'assets/icons/medical.png';
+
+  static const String messenger = 'assets/icons/messenger.png';
 
   static const String passports = 'assets/icons/passports.webp';
 
@@ -36,4 +44,6 @@ class AppIcons {
   static const String products = 'assets/icons/products.png';
 
   static const String tickets = 'assets/icons/tickets.png';
+
+  static const String whatsapp = 'assets/icons/whatsapp.png';
 }

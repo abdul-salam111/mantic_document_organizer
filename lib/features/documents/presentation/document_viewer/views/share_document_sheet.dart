@@ -4,18 +4,22 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:pdfx/pdfx.dart';
 
+import '../../../../../core/constants/app_icons.dart';
 import '../../../../../core/localization/localization_exports.dart';
 import '../../../../../core/theme/theme_exports.dart';
 import '../../../../../core/utils/utils_exports.dart';
 import '../../../../../core/widgets/widgets_exports.dart';
 import '../../../domain/entities/document_item.dart';
 
-/// Android package names for the two apps shown directly in the share row —
-/// see [DirectShareService] for how these turn into a real direct-to-app
-/// share (with an OS-share-sheet fallback on anything that isn't Android or
+/// Android package names for the apps shown directly in the share row — see
+/// [DirectShareService] for how these turn into a real direct-to-app share
+/// (with an OS-share-sheet fallback on anything that isn't Android or
 /// doesn't have the app installed).
 const String _whatsAppPackage = 'com.whatsapp';
 const String _gmailPackage = 'com.google.android.gm';
+const String _drivePackage = 'com.google.android.apps.docs';
+const String _messengerPackage = 'com.facebook.orca';
+const String _instagramPackage = 'com.instagram.android';
 
 enum ShareSheetAction {
   directApp,
@@ -142,7 +146,7 @@ class _ShareDocumentSheetState extends State<ShareDocumentSheet> {
 
     if (paths.isEmpty) {
       return SizedBox(
-        height: 170,
+        height: 140,
         child: Center(
           child: Text(
             l10n.noPreviewAvailable,
@@ -158,8 +162,8 @@ class _ShareDocumentSheetState extends State<ShareDocumentSheet> {
     if (paths.length == 1) {
       final ratio = _aspectRatios[0] ?? _fallbackAspectRatio;
       final height = (contentWidth / ratio).clamp(
-        180.0,
-        screenSize.height * 0.42,
+        140.0,
+        screenSize.height * 0.28,
       );
       return Padding(
         padding: const .symmetric(horizontal: horizontalPadding),
@@ -173,7 +177,7 @@ class _ShareDocumentSheetState extends State<ShareDocumentSheet> {
       );
     }
 
-    final stripHeight = (screenSize.height * 0.3).clamp(220.0, 300.0);
+    final stripHeight = (screenSize.height * 0.2).clamp(160.0, 210.0);
     final maxTileWidth = contentWidth * 0.78;
     final minTileWidth = stripHeight * 0.45;
 
@@ -276,29 +280,53 @@ class _ShareDocumentSheetState extends State<ShareDocumentSheet> {
                     ),
                   ),
                   heightBox(12),
-                  Padding(
-                    padding: const .symmetric(horizontal: 20),
-                    child: Row(
-                      mainAxisAlignment: .start,
+                  SizedBox(
+                    height: 92,
+                    child: ListView(
+                      scrollDirection: .horizontal,
+                      padding: const .symmetric(horizontal: 6),
                       children: [
                         _ShareAppIcon(
-                          icon: FontAwesomeIcons.whatsapp,
-                          color: const Color(0xFF25D366),
+                          iconAsset: AppIcons.whatsapp,
                           label: 'WhatsApp',
                           onTap: () => _finish(
                             .directApp,
                             packageName: _whatsAppPackage,
                           ),
                         ),
-                        widthBox(20),
+                        widthBox(16),
                         _ShareAppIcon(
-                          icon: FontAwesomeIcons.envelope,
-                          color: const Color(0xFFEA4335),
+                          iconAsset: AppIcons.gmail,
                           label: 'Gmail',
                           onTap: () =>
                               _finish(.directApp, packageName: _gmailPackage),
                         ),
-                        widthBox(20),
+                        widthBox(16),
+                        _ShareAppIcon(
+                          iconAsset: AppIcons.drive,
+                          label: 'Drive',
+                          onTap: () =>
+                              _finish(.directApp, packageName: _drivePackage),
+                        ),
+                        widthBox(16),
+                        _ShareAppIcon(
+                          iconAsset: AppIcons.messenger,
+                          label: 'Messenger',
+                          onTap: () => _finish(
+                            .directApp,
+                            packageName: _messengerPackage,
+                          ),
+                        ),
+                        widthBox(16),
+                        _ShareAppIcon(
+                          iconAsset: AppIcons.instagram,
+                          label: 'Instagram',
+                          onTap: () => _finish(
+                            .directApp,
+                            packageName: _instagramPackage,
+                          ),
+                        ),
+                        widthBox(16),
                         _ShareAppIcon(
                           icon: FontAwesomeIcons.ellipsis,
                           color: context.textSecondary,
@@ -495,18 +523,28 @@ class _ShareFileThumbnail extends StatelessWidget {
   }
 }
 
+/// One tappable app target in the share row. Either an [iconAsset] (a
+/// transparent-background app logo PNG, shown at its own natural shape with
+/// no extra wrapper) or an [icon]+[color] pair (a FontAwesome glyph inside a
+/// tinted circle, used for the "more" overflow entry, which has no brand
+/// logo of its own).
 class _ShareAppIcon extends StatelessWidget {
-  final FaIconData icon;
-  final Color color;
+  final String? iconAsset;
+  final FaIconData? icon;
+  final Color? color;
   final String label;
   final VoidCallback onTap;
 
   const _ShareAppIcon({
-    required this.icon,
-    required this.color,
+    this.iconAsset,
+    this.icon,
+    this.color,
     required this.label,
     required this.onTap,
-  });
+  }) : assert(
+         iconAsset != null || (icon != null && color != null),
+         'Provide either iconAsset or both icon and color',
+       );
 
   @override
   Widget build(BuildContext context) => InkWell(
@@ -517,15 +555,19 @@ class _ShareAppIcon extends StatelessWidget {
       child: Column(
         mainAxisSize: .min,
         children: [
-          Container(
-            width: 52,
-            height: 52,
-            alignment: .center,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              shape: .circle,
-            ),
-            child: FaIcon(icon, color: color, size: 22),
+          SizedBox(
+            width: 40,
+            height: 40,
+            child: iconAsset != null
+                ? Image.asset(iconAsset!, fit: .contain)
+                : Container(
+                    alignment: .center,
+                    decoration: BoxDecoration(
+                      color: color!.withValues(alpha: 0.12),
+                      shape: .circle,
+                    ),
+                    child: FaIcon(icon, color: color, size: 22),
+                  ),
           ),
           heightBox(6),
           Text(
