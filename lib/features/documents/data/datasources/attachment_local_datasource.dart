@@ -60,12 +60,16 @@ class DeviceAttachmentDataSource implements AttachmentLocalDataSource {
         // their text to stay sharp/legible, so don't give up any quality
         // here either.
         quality: 1,
-        // iOS only: swaps VisionKit's auto-detecting capture UI for the
-        // plugin's own shutter-button-only screen (true manual capture).
-        // Android's ML Kit scanner has no public API to force manual
-        // capture, so this flag is a no-op there beyond limiting the scan
-        // to a single page and disabling in-scanner gallery import.
-        useAutomaticSinglePictureProcessing: true,
+        // Left at the package default (false) deliberately: true swaps in a
+        // faster single-shutter-tap flow, but on Android the plugin
+        // implements that by dropping GmsDocumentScannerOptions down to
+        // SCANNER_MODE_BASE, which silently removes ML Kit's post-capture
+        // filter/color-mode step (and its ML cleanup) along with multi-page
+        // capture and in-scanner gallery import — see
+        // FlutterDocScannerPlugin.kt's fastSinglePageMode branch. Leaving
+        // this false keeps SCANNER_MODE_FULL (filters + multi-page) on
+        // Android; on iOS it keeps VisionKit's own auto-detecting capture
+        // UI instead of the plugin's manual-shutter screen.
       );
       if (result == null || result.images.isEmpty) {
         return const AttachmentSelection();
