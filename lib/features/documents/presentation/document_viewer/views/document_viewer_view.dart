@@ -5,6 +5,7 @@ import 'package:mantic_doc_org/features/documents/domain/usecases/document_useca
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:photo_view/photo_view.dart';
 
 import '../../../../../core/di/di_exports.dart';
 import '../../../../../core/localization/localization_exports.dart';
@@ -513,6 +514,7 @@ class _PageArea extends StatefulWidget {
 
 class _PageAreaState extends State<_PageArea> {
   final _scrollController = ScrollController();
+  final _zoomController = PhotoViewController();
   final _listKey = GlobalKey();
   late List<GlobalKey> _fileKeys = _keysFor(widget.document.filePaths.length);
   int _currentFile = 0;
@@ -543,6 +545,7 @@ class _PageAreaState extends State<_PageArea> {
     _scrollController
       ..removeListener(_updateCurrentFile)
       ..dispose();
+    _zoomController.dispose();
     super.dispose();
   }
 
@@ -579,14 +582,7 @@ class _PageAreaState extends State<_PageArea> {
       );
     }
 
-    // Pinch-zoom lives in FilePreviewView (opened via onOpenPreview below),
-    // not here — this list previously also wrapped itself in its own
-    // InteractiveViewer to zoom in place, but that nested a nested-scrollable
-    // (ListView) and nested tap targets (_SelectableFilePreview's
-    // GestureDetector) inside it, so the pinch gesture's arena mostly
-    // resolved to those instead of the zoom: it only actually zoomed when
-    // pinching off a file (empty list space), never on one.
-    return Stack(
+    final content = Stack(
       children: [
         ListView.separated(
           key: _listKey,
@@ -618,6 +614,39 @@ class _PageAreaState extends State<_PageArea> {
           ),
         ),
       ],
+    );
+
+    // Zooms the page as a whole — list, counter, everything — same intent
+    // as the old plain InteractiveViewer wrapper, but that one lost the
+    // pinch gesture to this list's own Scrollable and to each item's
+    // tap/long-press GestureDetector whenever a finger landed on a file, so
+    // it only ever zoomed when pinching empty list space. photo_view's
+    // PhotoViewGestureRecognizer is built to referee exactly that: it only
+    // claims a single-finger drag when the content is actually zoomed in
+    // enough to have somewhere to pan (PhotoViewGestureDetectorScope below
+    // wires that check up against this list's own vertical axis, so an
+    // unzoomed single-finger drag still falls through to the ListView's
+    // scroll untouched), but a real two-finger pinch is always claimed
+    // outright, pre-empting any sibling recognizer — including this list's
+    // per-item tap/long-press — the moment both fingers move. childSize is
+    // pinned to the exact same box PhotoView measures itself (via the outer
+    // LayoutBuilder), so "fits its container" lines up with scale == 1.0,
+    // same as InteractiveViewer's own identity transform used to mean.
+    return LayoutBuilder(
+      builder: (context, constraints) => PhotoViewGestureDetectorScope(
+        axis: Axis.vertical,
+        child: PhotoView.customChild(
+          controller: _zoomController,
+          childSize: constraints.biggest,
+          minScale: 1.0,
+          maxScale: 4.0,
+          initialScale: 1.0,
+          backgroundDecoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+          ),
+          child: content,
+        ),
+      ),
     );
   }
 }
