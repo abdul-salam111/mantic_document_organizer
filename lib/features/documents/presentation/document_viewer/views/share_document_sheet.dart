@@ -53,9 +53,39 @@ class ShareDocumentSheet extends StatefulWidget {
 }
 
 class _ShareDocumentSheetState extends State<ShareDocumentSheet> {
+  // Used for any file until its real ratio resolves (or if it never does)
+  // — close to a portrait scan/photo so a tile doesn't flash an odd shape.
+  static const double _fallbackAspectRatio = 0.75;
+
   late Set<int> _selected = {
     for (var i = 0; i < widget.document.filePaths.length; i++) i,
   };
+
+  // Keyed by index rather than resolved per-tile: centralizing it here
+  // (instead of each tile resolving its own) lets the single-file and
+  // multi-file layouts below both do real arithmetic with the ratio —
+  // sizing a tile to fill the sheet's width, or picking a shared strip
+  // height — rather than only being able to hand it to an AspectRatio
+  // widget.
+  final Map<int, double> _aspectRatios = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _resolveAspectRatios();
+  }
+
+  /// Resolved one file at a time, not concurrently — PDF rendering can't
+  /// run in parallel on Android (same constraint documented on
+  /// DocumentPageRasterizer/OcrService), and this reads page size through
+  /// the same pdfx document-open path.
+  Future<void> _resolveAspectRatios() async {
+    for (var i = 0; i < widget.document.filePaths.length; i++) {
+      final ratio = await _probeAspectRatio(widget.document.filePaths[i]);
+      if (!mounted) return;
+      if (ratio != null) setState(() => _aspectRatios[i] = ratio);
+    }
+  }
 
   List<String> get _selectedPaths => [
     for (var i = 0; i < widget.document.filePaths.length; i++)
@@ -97,6 +127,81 @@ class _ShareDocumentSheetState extends State<ShareDocumentSheet> {
     ).pop(ShareSheetResult(action: action, paths: paths, packageName: packageName));
   }
 
+  /// A single file fills the sheet's width, like one big page preview; more
+  /// than one falls back to a horizontal strip sized so about two tiles are
+  /// visible at once (each still sized to its own file's aspect ratio) —
+  /// either way every tile is sized far larger than a cropped filmstrip
+  /// thumbnail so the page is actually legible, matching the reference.
+  Widget _buildThumbnails(
+    BuildContext context,
+    AppLocalizations l10n,
+    List<String> paths,
+  ) {
+    const horizontalPadding = 20.0;
+    const tileGap = 10.0;
+
+    if (paths.isEmpty) {
+      return SizedBox(
+        height: 170,
+        child: Center(
+          child: Text(
+            l10n.noPreviewAvailable,
+            style: context.bodySmall.copyWith(color: context.textSecondary),
+          ),
+        ),
+      );
+    }
+
+    final screenSize = MediaQuery.sizeOf(context);
+    final contentWidth = screenSize.width - horizontalPadding * 2;
+
+    if (paths.length == 1) {
+      final ratio = _aspectRatios[0] ?? _fallbackAspectRatio;
+      final height = (contentWidth / ratio).clamp(
+        180.0,
+        screenSize.height * 0.42,
+      );
+      return Padding(
+        padding: const .symmetric(horizontal: horizontalPadding),
+        child: _ShareFileTile(
+          path: paths[0],
+          isSelected: _selected.contains(0),
+          onTap: () => _toggle(0),
+          width: contentWidth,
+          height: height,
+        ),
+      );
+    }
+
+    final stripHeight = (screenSize.height * 0.3).clamp(220.0, 300.0);
+    final maxTileWidth = contentWidth * 0.78;
+    final minTileWidth = stripHeight * 0.45;
+
+    return SizedBox(
+      height: stripHeight,
+      child: ListView.separated(
+        scrollDirection: .horizontal,
+        padding: const .symmetric(horizontal: horizontalPadding),
+        itemCount: paths.length,
+        separatorBuilder: (_, _) => widthBox(tileGap),
+        itemBuilder: (context, index) {
+          final ratio = _aspectRatios[index] ?? _fallbackAspectRatio;
+          final width = (stripHeight * ratio).clamp(
+            minTileWidth,
+            maxTileWidth,
+          );
+          return _ShareFileTile(
+            path: paths[index],
+            isSelected: _selected.contains(index),
+            onTap: () => _toggle(index),
+            width: width,
+            height: stripHeight,
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -104,7 +209,6 @@ class _ShareDocumentSheetState extends State<ShareDocumentSheet> {
 
     return SafeArea(
       child: Column(
-        mainAxisSize: .min,
         crossAxisAlignment: .stretch,
         children: [
           Padding(
@@ -126,205 +230,177 @@ class _ShareDocumentSheetState extends State<ShareDocumentSheet> {
               ],
             ),
           ),
-          Padding(
-            padding: const .symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                Text(
-                  l10n.selectedCount(_selected.length),
-                  style: context.bodySmall.copyWith(
-                    color: context.textSecondary,
-                  ),
-                ),
-                const Spacer(),
-                TextButton(
-                  onPressed: paths.isEmpty ? null : _toggleSelectAll,
-                  child: Text(_allSelected ? l10n.deselectAll : l10n.selectAll),
-                ),
-              ],
-            ),
-          ),
-          heightBox(4),
-          SizedBox(
-            height: 170,
-            child: paths.isEmpty
-                ? Center(
-                    child: Text(
-                      l10n.noPreviewAvailable,
-                      style: context.bodySmall.copyWith(
-                        color: context.textSecondary,
-                      ),
-                    ),
-                  )
-                : ListView.separated(
-                    scrollDirection: .horizontal,
+          // A single full-width thumbnail can run up to 42% of the screen
+          // height (see _buildThumbnails) — combined with the share-apps
+          // row and four option tiles below, that can exceed the sheet's
+          // own maxHeight on a short screen. Expanded+SingleChildScrollView
+          // lets everything past the title bar scroll instead of overflow
+          // (also keeps the sheet filling its full-screen allowance, like a
+          // real full-screen sheet, instead of shrinking to fit a single
+          // small file).
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: .stretch,
+                children: [
+                  Padding(
                     padding: const .symmetric(horizontal: 20),
-                    itemCount: paths.length,
-                    separatorBuilder: (_, _) => widthBox(10),
-                    itemBuilder: (context, index) => _ShareFileTile(
-                      path: paths[index],
-                      isSelected: _selected.contains(index),
-                      onTap: () => _toggle(index),
+                    child: Row(
+                      children: [
+                        Text(
+                          l10n.selectedCount(_selected.length),
+                          style: context.bodySmall.copyWith(
+                            color: context.textSecondary,
+                          ),
+                        ),
+                        const Spacer(),
+                        TextButton(
+                          onPressed: paths.isEmpty ? null : _toggleSelectAll,
+                          child: Text(
+                            _allSelected ? l10n.deselectAll : l10n.selectAll,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-          ),
-          heightBox(16),
-          Divider(height: 1, color: context.divider),
-          heightBox(16),
-          Padding(
-            padding: const .symmetric(horizontal: 20),
-            child: Text(
-              l10n.share,
-              style: context.titleSmall.copyWith(fontWeight: .bold),
-            ),
-          ),
-          heightBox(12),
-          Padding(
-            padding: const .symmetric(horizontal: 20),
-            child: Row(
-              mainAxisAlignment: .start,
-              children: [
-                _ShareAppIcon(
-                  icon: FontAwesomeIcons.whatsapp,
-                  color: const Color(0xFF25D366),
-                  label: 'WhatsApp',
-                  onTap: () => _finish(
-                    .directApp,
-                    packageName: _whatsAppPackage,
+                  heightBox(4),
+                  _buildThumbnails(context, l10n, paths),
+                  heightBox(16),
+                  Divider(height: 1, color: context.divider),
+                  heightBox(16),
+                  Padding(
+                    padding: const .symmetric(horizontal: 20),
+                    child: Text(
+                      l10n.share,
+                      style: context.titleSmall.copyWith(fontWeight: .bold),
+                    ),
                   ),
-                ),
-                widthBox(20),
-                _ShareAppIcon(
-                  icon: FontAwesomeIcons.envelope,
-                  color: const Color(0xFFEA4335),
-                  label: 'Gmail',
-                  onTap: () =>
-                      _finish(.directApp, packageName: _gmailPackage),
-                ),
-                widthBox(20),
-                _ShareAppIcon(
-                  icon: FontAwesomeIcons.ellipsis,
-                  color: context.textSecondary,
-                  label: l10n.shareViaMore,
-                  onTap: () => _finish(.osShareSheet),
-                ),
-              ],
+                  heightBox(12),
+                  Padding(
+                    padding: const .symmetric(horizontal: 20),
+                    child: Row(
+                      mainAxisAlignment: .start,
+                      children: [
+                        _ShareAppIcon(
+                          icon: FontAwesomeIcons.whatsapp,
+                          color: const Color(0xFF25D366),
+                          label: 'WhatsApp',
+                          onTap: () => _finish(
+                            .directApp,
+                            packageName: _whatsAppPackage,
+                          ),
+                        ),
+                        widthBox(20),
+                        _ShareAppIcon(
+                          icon: FontAwesomeIcons.envelope,
+                          color: const Color(0xFFEA4335),
+                          label: 'Gmail',
+                          onTap: () =>
+                              _finish(.directApp, packageName: _gmailPackage),
+                        ),
+                        widthBox(20),
+                        _ShareAppIcon(
+                          icon: FontAwesomeIcons.ellipsis,
+                          color: context.textSecondary,
+                          label: l10n.shareViaMore,
+                          onTap: () => _finish(.osShareSheet),
+                        ),
+                      ],
+                    ),
+                  ),
+                  heightBox(16),
+                  Divider(height: 1, color: context.divider),
+                  heightBox(8),
+                  _ShareOptionTile(
+                    icon: Iconsax.document_download,
+                    label: l10n.shareAsPdfOption,
+                    onTap: () => _finish(.shareAsPdf),
+                  ),
+                  _ShareOptionTile(
+                    icon: Iconsax.image,
+                    label: l10n.shareAsImagesOption,
+                    onTap: () => _finish(.shareAsImages),
+                  ),
+                  _ShareOptionTile(
+                    icon: Iconsax.document_copy,
+                    label: l10n.exportEachPageAsPdfOption,
+                    onTap: () => _finish(.exportPagesAsPdf),
+                  ),
+                  _ShareOptionTile(
+                    icon: Iconsax.gallery_add,
+                    label: l10n.saveToGalleryOption,
+                    onTap: () => _finish(.saveToGallery),
+                  ),
+                  heightBox(8),
+                ],
+              ),
             ),
           ),
-          heightBox(16),
-          Divider(height: 1, color: context.divider),
-          heightBox(8),
-          _ShareOptionTile(
-            icon: Iconsax.document_download,
-            label: l10n.shareAsPdfOption,
-            onTap: () => _finish(.shareAsPdf),
-          ),
-          _ShareOptionTile(
-            icon: Iconsax.image,
-            label: l10n.shareAsImagesOption,
-            onTap: () => _finish(.shareAsImages),
-          ),
-          _ShareOptionTile(
-            icon: Iconsax.document_copy,
-            label: l10n.exportEachPageAsPdfOption,
-            onTap: () => _finish(.exportPagesAsPdf),
-          ),
-          _ShareOptionTile(
-            icon: Iconsax.gallery_add,
-            label: l10n.saveToGalleryOption,
-            onTap: () => _finish(.saveToGallery),
-          ),
-          heightBox(8),
         ],
       ),
     );
   }
 }
 
-/// A fixed 120x170 box cropped every file's thumbnail to that shape —
-/// landscape pages (an ID card, a receipt photographed sideways) lost
-/// content off the edges. Probes the file's real width/height once and
-/// sizes the tile to that aspect ratio instead (at a fixed height), so
-/// [_ShareFileThumbnail] can show the whole page with nothing cut off; see
-/// [_resolveAspectRatio].
-class _ShareFileTile extends StatefulWidget {
+/// The file's real width/height, as a ratio — an image is probed via its
+/// own [FileImage] provider (Flutter's image cache keys on that provider,
+/// so this doesn't cost a second decode on top of whatever later displays
+/// the same file); a PDF has no such built-in widget, so that case just
+/// asks pdfx for the page's own size. Returns null (caller falls back to a
+/// default ratio) for anything unreadable rather than throwing.
+Future<double?> _probeAspectRatio(String path) async {
+  try {
+    if (isImagePath(path)) {
+      final stream = FileImage(File(path)).resolve(const ImageConfiguration());
+      final completer = Completer<ImageInfo>();
+      late final ImageStreamListener listener;
+      listener = ImageStreamListener(
+        (info, _) {
+          completer.complete(info);
+          stream.removeListener(listener);
+        },
+        onError: (error, stackTrace) {
+          completer.completeError(error, stackTrace);
+          stream.removeListener(listener);
+        },
+      );
+      stream.addListener(listener);
+      final info = await completer.future;
+      final ratio = info.image.width / info.image.height;
+      return (ratio.isFinite && ratio > 0) ? ratio : null;
+    }
+    if (isPdfPath(path)) {
+      final document = await PdfDocument.openFile(path);
+      final page = await document.getPage(1);
+      final ratio = page.width / page.height;
+      await page.close();
+      await document.close();
+      return (ratio.isFinite && ratio > 0) ? ratio : null;
+    }
+  } catch (_) {
+    // Falls through to null — _ShareFileThumbnail's own fallback icon is
+    // what actually shows for this file anyway.
+  }
+  return null;
+}
+
+/// One selectable file preview, sized to its caller's exact [width]/
+/// [height] — see _ShareDocumentSheetState._buildThumbnails for how those
+/// are computed from the file's own aspect ratio.
+class _ShareFileTile extends StatelessWidget {
   final String path;
   final bool isSelected;
   final VoidCallback onTap;
+  final double width;
+  final double height;
 
   const _ShareFileTile({
     required this.path,
     required this.isSelected,
     required this.onTap,
+    required this.width,
+    required this.height,
   });
-
-  @override
-  State<_ShareFileTile> createState() => _ShareFileTileState();
-}
-
-class _ShareFileTileState extends State<_ShareFileTile> {
-  // Used only until the real ratio resolves (or if it never does) — close
-  // to a portrait scan/photo so the tile doesn't flash an odd shape.
-  static const double _fallbackAspectRatio = 0.75;
-
-  double? _aspectRatio;
-
-  @override
-  void initState() {
-    super.initState();
-    _resolveAspectRatio();
-  }
-
-  @override
-  void didUpdateWidget(covariant _ShareFileTile oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.path != widget.path) {
-      _aspectRatio = null;
-      _resolveAspectRatio();
-    }
-  }
-
-  /// Resolves via the same [FileImage] provider [_ShareFileThumbnail] uses
-  /// to display an image (Flutter's image cache keys on the provider, so
-  /// this doesn't decode the file twice) — a PDF page has no such built-in
-  /// widget, so that case just asks pdfx for the page's own size.
-  Future<void> _resolveAspectRatio() async {
-    double? ratio;
-    try {
-      if (isImagePath(widget.path)) {
-        final stream = FileImage(
-          File(widget.path),
-        ).resolve(const ImageConfiguration());
-        final completer = Completer<ImageInfo>();
-        late final ImageStreamListener listener;
-        listener = ImageStreamListener(
-          (info, _) {
-            completer.complete(info);
-            stream.removeListener(listener);
-          },
-          onError: (error, stackTrace) {
-            completer.completeError(error, stackTrace);
-            stream.removeListener(listener);
-          },
-        );
-        stream.addListener(listener);
-        final info = await completer.future;
-        ratio = info.image.width / info.image.height;
-      } else if (isPdfPath(widget.path)) {
-        final document = await PdfDocument.openFile(widget.path);
-        final page = await document.getPage(1);
-        ratio = page.width / page.height;
-        await page.close();
-        await document.close();
-      }
-    } catch (_) {
-      // Keep the fallback ratio — _ShareFileThumbnail's own fallback icon
-      // is what actually shows in this case anyway.
-    }
-    if (mounted && ratio != null && ratio.isFinite && ratio > 0) {
-      setState(() => _aspectRatio = ratio);
-    }
-  }
 
   // The border lives on the outer Container's decoration, which paints
   // *behind* its child by default — an edge-to-edge thumbnail would just
@@ -335,18 +411,19 @@ class _ShareFileTileState extends State<_ShareFileTile> {
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-    onTap: widget.onTap,
+    onTap: onTap,
     child: AnimatedOpacity(
       duration: const Duration(milliseconds: 150),
-      opacity: widget.isSelected ? 1 : 0.4,
-      child: AspectRatio(
-        aspectRatio: _aspectRatio ?? _fallbackAspectRatio,
+      opacity: isSelected ? 1 : 0.4,
+      child: SizedBox(
+        width: width,
+        height: height,
         child: Container(
           padding: const .all(_borderWidth),
           decoration: BoxDecoration(
             borderRadius: .circular(12),
             border: Border.all(
-              color: widget.isSelected ? context.primary : context.border,
+              color: isSelected ? context.primary : context.border,
               width: _borderWidth,
             ),
           ),
@@ -355,14 +432,14 @@ class _ShareFileTileState extends State<_ShareFileTile> {
             child: Stack(
               fit: .expand,
               children: [
-                _ShareFileThumbnail(path: widget.path),
-                if (widget.isSelected)
+                _ShareFileThumbnail(path: path),
+                if (isSelected)
                   Positioned(
                     top: 6,
                     right: 6,
                     child: Container(
-                      width: 22,
-                      height: 22,
+                      width: 24,
+                      height: 24,
                       alignment: .center,
                       decoration: BoxDecoration(
                         color: context.primary,
@@ -370,7 +447,7 @@ class _ShareFileTileState extends State<_ShareFileTile> {
                       ),
                       child: Icon(
                         Icons.check_rounded,
-                        size: 14,
+                        size: 16,
                         color: context.white,
                       ),
                     ),
