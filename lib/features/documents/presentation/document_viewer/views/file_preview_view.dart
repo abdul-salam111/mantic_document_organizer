@@ -4,9 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
+import '../../../../../core/di/di_exports.dart';
+import '../../../../../core/localization/localization_exports.dart';
+import '../../../../../core/utils/persist_action.dart';
 import '../../../../../core/utils/utils_exports.dart';
 import '../../../../../core/widgets/widgets_exports.dart';
 import '../../../domain/entities/document_item.dart';
+import '../../../domain/usecases/document_processing_usecases.dart';
 
 /// Full-screen, swipeable, pinch-zoomable view of a document's attached
 /// files at their original size. Opened by tapping a page in the document
@@ -32,6 +36,7 @@ class _FilePreviewViewState extends State<FilePreviewView> {
     initialPage: widget.initialIndex,
   );
   late int _currentIndex = widget.initialIndex;
+  final _processing = sl<DocumentProcessingUseCases>();
 
   @override
   void dispose() {
@@ -68,7 +73,26 @@ class _FilePreviewViewState extends State<FilePreviewView> {
         backgroundDecoration: const BoxDecoration(color: Colors.black),
         builder: (context, index) => _buildPageOptions(widget.filePaths[index]),
       ),
+      bottomNavigationBar: _FilePreviewActionBar(
+        onShare: () => _share(context),
+        onSaveToGallery: () => _saveToGallery(context),
+      ),
     );
+  }
+
+  String get _currentPath => widget.filePaths[_currentIndex];
+
+  Future<void> _share(BuildContext context) =>
+      persistAction(context, () => _processing.shareFile(_currentPath));
+
+  Future<void> _saveToGallery(BuildContext context) async {
+    final saved = await persistAction(
+      context,
+      () => _processing.saveToGallery([_currentPath]),
+    );
+    if (saved && context.mounted) {
+      AppToastsUtils.success(AppLocalizations.of(context).savedToGalleryToast);
+    }
   }
 
   PhotoViewGalleryPageOptions _buildPageOptions(String path) {
@@ -125,6 +149,80 @@ class _UnsupportedFile extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    ),
+  );
+}
+
+/// Share/save actions for the file currently on screen — this view only
+/// ever has these two (unlike the document viewer's own bottom bar, which
+/// also edits/renames/moves the whole document), so it's a small bespoke
+/// bar rather than reusing _DocumentActionBar, and matches this screen's
+/// own black/white full-screen styling instead of the themed surface colors
+/// that bar uses.
+class _FilePreviewActionBar extends StatelessWidget {
+  final VoidCallback onShare;
+  final VoidCallback onSaveToGallery;
+
+  const _FilePreviewActionBar({
+    required this.onShare,
+    required this.onSaveToGallery,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return SafeArea(
+      top: false,
+      child: ColoredBox(
+        color: Colors.black,
+        child: Row(
+          children: [
+            _FilePreviewActionItem(
+              icon: Iconsax.share,
+              label: l10n.share,
+              onTap: onShare,
+            ),
+            _FilePreviewActionItem(
+              icon: Iconsax.gallery_add,
+              label: l10n.saveToGalleryOption,
+              onTap: onSaveToGallery,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FilePreviewActionItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _FilePreviewActionItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) => Expanded(
+    child: InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const .symmetric(vertical: 12),
+        child: Column(
+          mainAxisSize: .min,
+          children: [
+            Icon(icon, color: Colors.white, size: 22),
+            heightBox(4),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.white, fontSize: 12),
+            ),
+          ],
+        ),
       ),
     ),
   );
