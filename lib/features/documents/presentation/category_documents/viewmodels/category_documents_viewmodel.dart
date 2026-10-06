@@ -65,6 +65,32 @@ class CategoryDocumentsViewModel extends ChangeNotifier {
   Future<void> toggleFavorite(DocumentItem document) =>
       _documentUseCases.toggleFavorite(document);
 
+  // Long-press-to-select, keyed by id — same shape as
+  // ManageCategoriesViewModel's own selection state.
+  final Set<String> _selectedIds = {};
+  bool get isSelecting => _selectedIds.isNotEmpty;
+  int get selectedCount => _selectedIds.length;
+  bool isSelected(String id) => _selectedIds.contains(id);
+
+  void toggleSelection(String id) {
+    if (!_selectedIds.add(id)) _selectedIds.remove(id);
+    notifyListeners();
+  }
+
+  void clearSelection() {
+    if (_selectedIds.isEmpty) return;
+    _selectedIds.clear();
+    notifyListeners();
+  }
+
+  Future<void> trashSelected() async {
+    final ids = Set<String>.of(_selectedIds);
+    if (ids.isEmpty) return;
+    await _documentUseCases.trashDocuments(ids);
+    _selectedIds.clear();
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _documentUseCases.removeListener(notifyListeners);

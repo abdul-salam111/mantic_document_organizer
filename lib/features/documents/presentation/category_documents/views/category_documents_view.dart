@@ -1,5 +1,6 @@
 import 'package:mantic_doc_org/core/utils/persist_action.dart';
 import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
+import 'package:mantic_doc_org/features/documents/domain/usecases/document_usecases.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../../core/di/di_exports.dart';
@@ -32,7 +33,13 @@ class CategoryDocumentsView extends StatelessWidget {
                   : Color(category.colorValue!)) ??
               categoryIconColor(context, category.name);
           return Scaffold(
-            appBar: CustomAppBar(title: category.name),
+            appBar: vm.isSelecting
+                ? SelectionAppBar(
+                    count: vm.selectedCount,
+                    onClose: vm.clearSelection,
+                    onDelete: () => _confirmTrashSelected(context, vm),
+                  )
+                : CustomAppBar(title: category.name),
             body: SafeArea(
               child: Column(
                 children: [
@@ -85,19 +92,60 @@ class CategoryDocumentsView extends StatelessWidget {
                 ],
               ),
             ),
-            floatingActionButton: FloatingActionButton(
-              tooltip: AppLocalizations.of(context).addDocumentTitle,
-              backgroundColor: color,
-              foregroundColor: context.white,
-              onPressed: () => AppNavigator.pushNamed(
-                RouteNames.addDocument,
-                extra: category,
-              ),
-              child: const Icon(Iconsax.add),
-            ),
+            floatingActionButton: vm.isSelecting
+                ? null
+                : FloatingActionButton(
+                    tooltip: AppLocalizations.of(context).addDocumentTitle,
+                    backgroundColor: color,
+                    foregroundColor: context.white,
+                    onPressed: () => AppNavigator.pushNamed(
+                      RouteNames.addDocument,
+                      extra: category,
+                    ),
+                    child: const Icon(Iconsax.add),
+                  ),
           );
         },
       ),
+    );
+  }
+
+  Future<void> _confirmTrashSelected(
+    BuildContext context,
+    CategoryDocumentsViewModel vm,
+  ) async {
+    final count = vm.selectedCount;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: context.surfaceElevated,
+        title: Text(AppLocalizations.of(context).deleteDocument),
+        content: Text(
+          AppLocalizations.of(context).trashDocumentsConfirm(
+            count,
+            DocumentUseCases.trashRetentionPeriod.inDays,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(
+              AppLocalizations.of(context).delete,
+              style: TextStyle(color: context.error),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    if (!await persistAction(context, vm.trashSelected)) return;
+    if (!context.mounted) return;
+    AppToastsUtils.success(
+      AppLocalizations.of(context).documentsTrashedToast(count),
     );
   }
 }
@@ -150,12 +198,17 @@ class _DocumentList extends StatelessWidget {
               child: DocumentGridTile(
                 document: document,
                 accentColor: color,
-                onTap: () => AppNavigator.pushNamed(
-                  RouteNames.documentViewer,
-                  extra: document,
-                ),
+                onTap: () => vm.isSelecting
+                    ? vm.toggleSelection(document.id)
+                    : AppNavigator.pushNamed(
+                        RouteNames.documentViewer,
+                        extra: document,
+                      ),
                 onToggleFavorite: () =>
                     persistAction(context, () => vm.toggleFavorite(document)),
+                onLongPress: () => vm.toggleSelection(document.id),
+                isSelecting: vm.isSelecting,
+                isSelected: vm.isSelected(document.id),
               ),
             );
           },
@@ -178,12 +231,17 @@ class _DocumentList extends StatelessWidget {
             child: DocumentListTile(
               document: document,
               accentColor: color,
-              onTap: () => AppNavigator.pushNamed(
-                RouteNames.documentViewer,
-                extra: document,
-              ),
+              onTap: () => vm.isSelecting
+                  ? vm.toggleSelection(document.id)
+                  : AppNavigator.pushNamed(
+                      RouteNames.documentViewer,
+                      extra: document,
+                    ),
               onToggleFavorite: () =>
                   persistAction(context, () => vm.toggleFavorite(document)),
+              onLongPress: () => vm.toggleSelection(document.id),
+              isSelecting: vm.isSelecting,
+              isSelected: vm.isSelected(document.id),
             ),
           );
         },
