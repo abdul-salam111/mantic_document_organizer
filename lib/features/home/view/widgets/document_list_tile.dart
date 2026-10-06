@@ -7,6 +7,7 @@ import '../../../../core/utils/utils_exports.dart';
 import '../../../../core/widgets/widgets_exports.dart';
 import 'document_chips.dart';
 import 'document_cover_thumbnail.dart';
+import 'document_selection_badge.dart';
 
 /// Row rendering for a single [DocumentItem] — cover thumbnail, a
 /// category-colored accent bar, title, file count + relative time, an
@@ -19,12 +20,23 @@ class DocumentListTile extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onToggleFavorite;
 
+  /// Long-press-to-select — all three default to "not selectable" so every
+  /// existing screen using this tile (home, favorites, ...) keeps working
+  /// unchanged; only a screen that wires these up (category_documents) gets
+  /// the selection UI.
+  final VoidCallback? onLongPress;
+  final bool isSelecting;
+  final bool isSelected;
+
   const DocumentListTile({
     super.key,
     required this.document,
     required this.accentColor,
     required this.onTap,
     required this.onToggleFavorite,
+    this.onLongPress,
+    this.isSelecting = false,
+    this.isSelected = false,
   });
 
   bool get _showExpiryChip =>
@@ -35,12 +47,16 @@ class DocumentListTile extends StatelessWidget {
     return InkWell(
       borderRadius: .circular(16),
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           color: context.surfaceElevated,
           borderRadius: .circular(16),
-          border: Border.all(color: context.border),
+          border: Border.all(
+            color: isSelected ? context.primary : context.border,
+            width: isSelected ? 2 : 1,
+          ),
           boxShadow: [
             BoxShadow(
               color: context.shadow,
@@ -84,6 +100,14 @@ class DocumentListTile extends StatelessWidget {
                                 size: 21,
                               ),
                             ),
+                            if (isSelecting)
+                              Positioned.fill(
+                                child: IgnorePointer(
+                                  child: DocumentSelectionBadge(
+                                    isSelected: isSelected,
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                       ),
@@ -113,10 +137,15 @@ class DocumentListTile extends StatelessWidget {
                         ),
                       ),
                       widthBox(4),
-                      _FavoriteButton(
-                        isFavorite: document.isFavorite,
-                        onTap: onToggleFavorite,
-                      ),
+                      // Hidden rather than disabled while selecting — tapping
+                      // a star mid-selection reads as "favorite this one"
+                      // more than "select it", so it's removed as a tap
+                      // target entirely instead of just no-op'd.
+                      if (!isSelecting)
+                        _FavoriteButton(
+                          isFavorite: document.isFavorite,
+                          onTap: onToggleFavorite,
+                        ),
                     ],
                   ),
                 ),

@@ -5,6 +5,7 @@ export 'view/widgets/document_chips.dart';
 export 'view/widgets/document_cover_thumbnail.dart';
 export 'view/widgets/document_grid_tile.dart';
 export 'view/widgets/document_list_tile.dart';
+export 'view/widgets/document_selection_badge.dart';
 export 'view/widgets/document_sort_menu_button.dart';
 export 'view/widgets/view_mode_toggle.dart';
 export 'viewmodel/home_viewmodel.dart';

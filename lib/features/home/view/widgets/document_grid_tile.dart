@@ -7,6 +7,7 @@ import '../../../../core/theme/theme_exports.dart';
 import '../../../../core/utils/utils_exports.dart';
 import '../../../../core/widgets/widgets_exports.dart';
 import 'document_cover_thumbnail.dart';
+import 'document_selection_badge.dart';
 
 /// Image-forward card rendering for a single [DocumentItem] — the
 /// grid-layout counterpart to [DocumentListTile], for screens with a
@@ -26,12 +27,21 @@ class DocumentGridTile extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onToggleFavorite;
 
+  /// Long-press-to-select — see [DocumentListTile]'s matching params for
+  /// why these all default to "not selectable".
+  final VoidCallback? onLongPress;
+  final bool isSelecting;
+  final bool isSelected;
+
   const DocumentGridTile({
     super.key,
     required this.document,
     required this.accentColor,
     required this.onTap,
     required this.onToggleFavorite,
+    this.onLongPress,
+    this.isSelecting = false,
+    this.isSelected = false,
   });
 
   static const double _coverAspectRatio = 1.6;
@@ -41,12 +51,16 @@ class DocumentGridTile extends StatelessWidget {
     return InkWell(
       borderRadius: .circular(16),
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           color: context.surfaceElevated,
           borderRadius: .circular(16),
-          border: Border.all(color: context.border),
+          border: Border.all(
+            color: isSelected ? context.primary : context.border,
+            width: isSelected ? 2 : 1,
+          ),
           boxShadow: [
             BoxShadow(
               color: context.shadow,
@@ -80,14 +94,21 @@ class DocumentGridTile extends StatelessWidget {
                     left: 8,
                     child: PendingSyncBadge(documentId: document.id),
                   ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: _FloatingFavoriteButton(
-                      isFavorite: document.isFavorite,
-                      onTap: onToggleFavorite,
+                  if (isSelecting)
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: DocumentSelectionBadge(isSelected: isSelected),
+                      ),
+                    )
+                  else
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: _FloatingFavoriteButton(
+                        isFavorite: document.isFavorite,
+                        onTap: onToggleFavorite,
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),

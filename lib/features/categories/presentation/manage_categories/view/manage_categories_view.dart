@@ -23,7 +23,7 @@ class ManageCategoriesView extends StatelessWidget {
         builder: (context, vm, _) {
           return Scaffold(
             appBar: vm.isSelecting
-                ? _SelectionAppBar(
+                ? SelectionAppBar(
                     count: vm.selectedCount,
                     onClose: vm.clearSelection,
                     onDelete: () => _confirmBulkDelete(context, vm),
@@ -173,41 +173,6 @@ class ManageCategoriesView extends StatelessWidget {
       AppLocalizations.of(context).categoriesDeletedToast(count),
     );
   }
-}
-
-class _SelectionAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final int count;
-  final VoidCallback onClose;
-  final VoidCallback onDelete;
-
-  const _SelectionAppBar({
-    required this.count,
-    required this.onClose,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      backgroundColor: context.primary,
-      iconTheme: IconThemeData(color: context.white),
-      leading: IconButton(icon: const Icon(Icons.close), onPressed: onClose),
-      centerTitle: true,
-      title: Text(
-        AppLocalizations.of(context).selectedCount(count),
-        style: context.bodyLarge.copyWith(
-          color: context.white,
-          fontWeight: .bold,
-        ),
-      ),
-      actions: [
-        IconButton(icon: const Icon(Icons.delete_outline), onPressed: onDelete),
-      ],
-    );
-  }
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
 class _CategoryRow extends StatelessWidget {

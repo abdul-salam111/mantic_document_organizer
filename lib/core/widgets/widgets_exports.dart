@@ -9,6 +9,7 @@ export 'package:provider/provider.dart';
 
 export 'animations/staggered_reveal.dart';
 export 'appbar/custom_appbar.dart';
+export 'appbar/selection_appbar.dart';
 export 'branding/app_logo.dart';
 export 'branding/curved_text.dart';
 export 'buttons/custom_button.dart';
