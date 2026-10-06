@@ -10,6 +10,7 @@ class ApiEndPoints {
   static const String signInWithGoogle = '${baseUrl}auth/sign-in/google';
   static const String signInWithApple = '${baseUrl}auth/sign-in/apple';
   static const String signOut = '${baseUrl}auth/sign-out';
+  static const String refresh = '${baseUrl}auth/refresh';
   static const String verifyEmail = '${baseUrl}auth/verify-email';
   static const String resendVerificationEmail =
       '${baseUrl}auth/resend-verification-email';

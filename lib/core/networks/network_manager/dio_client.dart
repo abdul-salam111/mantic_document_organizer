@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 import 'retry_interceptor.dart';
+import 'token_refresh_interceptor.dart';
 
 Dio getDio() {
   Dio dio = Dio(
@@ -29,6 +30,10 @@ Dio getDio() {
   // connection errors/timeouts — see retry_interceptor.dart for why this
   // is GET-only.
   dio.interceptors.add(RetryInterceptor(dio));
+
+  // Silently refreshes an expired access token on a 401 and retries the
+  // original request once — see token_refresh_interceptor.dart.
+  dio.interceptors.add(TokenRefreshInterceptor(dio));
 
   // Request/response logging — debug builds only. Headers and bodies can
   // contain auth tokens and PII, so this must never run in release builds.
