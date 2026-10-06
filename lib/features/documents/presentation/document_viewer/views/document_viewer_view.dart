@@ -513,11 +513,9 @@ class _PageArea extends StatefulWidget {
 
 class _PageAreaState extends State<_PageArea> {
   final _scrollController = ScrollController();
-  final _zoomController = TransformationController();
   final _listKey = GlobalKey();
   late List<GlobalKey> _fileKeys = _keysFor(widget.document.filePaths.length);
   int _currentFile = 0;
-  bool _isZoomed = false;
   final Set<int> _selectedFiles = {};
 
   static List<GlobalKey> _keysFor(int count) =>
@@ -545,18 +543,7 @@ class _PageAreaState extends State<_PageArea> {
     _scrollController
       ..removeListener(_updateCurrentFile)
       ..dispose();
-    _zoomController.dispose();
     super.dispose();
-  }
-
-  void _syncZoomState() {
-    final isZoomed = _zoomController.value.getMaxScaleOnAxis() > 1.01;
-    if (isZoomed != _isZoomed && mounted) setState(() => _isZoomed = isZoomed);
-  }
-
-  void _resetZoom() {
-    _zoomController.value = _zoomController.value.clone()..setIdentity();
-    if (_isZoomed) setState(() => _isZoomed = false);
   }
 
   void _toggleFileSelection(int index) {
@@ -592,55 +579,45 @@ class _PageAreaState extends State<_PageArea> {
       );
     }
 
-    return GestureDetector(
-      behavior: .translucent,
-      onDoubleTap: _resetZoom,
-      child: InteractiveViewer(
-        // Zoom the viewer as a whole, including every visible file and its
-        // counter. Normal-size documents scroll; zoomed documents pan.
-        transformationController: _zoomController,
-        panEnabled: _isZoomed,
-        boundaryMargin: const EdgeInsets.all(80),
-        minScale: 1,
-        maxScale: 4,
-        onInteractionEnd: (_) => _syncZoomState(),
-        child: Stack(
-          children: [
-            ListView.separated(
-              key: _listKey,
-              controller: _scrollController,
-              padding: const .fromLTRB(14, 14, 14, 24),
-              itemCount: paths.length + 1,
-              separatorBuilder: (_, _) => heightBox(14),
-              itemBuilder: (context, index) => index == paths.length
-                  ? _AddFilesButton(onTap: widget.onAddFiles)
-                  : KeyedSubtree(
-                      key: _fileKeys[index],
-                      child: _SelectableFilePreview(
-                        path: paths[index],
-                        isSelected: _selectedFiles.contains(index),
-                        selectionActive: _selectedFiles.isNotEmpty,
-                        onToggle: () => _toggleFileSelection(index),
-                        onOpenPreview: () => AppNavigator.pushNamed(
-                          RouteNames.filePreview,
-                          extra: (widget.document.filePaths, index),
-                        ),
-                      ),
+    // Pinch-zoom lives in FilePreviewView (opened via onOpenPreview below),
+    // not here — this list previously also wrapped itself in its own
+    // InteractiveViewer to zoom in place, but that nested a nested-scrollable
+    // (ListView) and nested tap targets (_SelectableFilePreview's
+    // GestureDetector) inside it, so the pinch gesture's arena mostly
+    // resolved to those instead of the zoom: it only actually zoomed when
+    // pinching off a file (empty list space), never on one.
+    return Stack(
+      children: [
+        ListView.separated(
+          key: _listKey,
+          controller: _scrollController,
+          padding: const .fromLTRB(14, 14, 14, 24),
+          itemCount: paths.length + 1,
+          separatorBuilder: (_, _) => heightBox(14),
+          itemBuilder: (context, index) => index == paths.length
+              ? _AddFilesButton(onTap: widget.onAddFiles)
+              : KeyedSubtree(
+                  key: _fileKeys[index],
+                  child: _SelectableFilePreview(
+                    path: paths[index],
+                    isSelected: _selectedFiles.contains(index),
+                    selectionActive: _selectedFiles.isNotEmpty,
+                    onToggle: () => _toggleFileSelection(index),
+                    onOpenPreview: () => AppNavigator.pushNamed(
+                      RouteNames.filePreview,
+                      extra: (widget.document.filePaths, index),
                     ),
-            ),
-            Positioned(
-              top: 12,
-              left: 12,
-              child: IgnorePointer(
-                child: _FileCounter(
-                  current: _currentFile + 1,
-                  total: paths.length,
+                  ),
                 ),
-              ),
-            ),
-          ],
         ),
-      ),
+        Positioned(
+          top: 12,
+          left: 12,
+          child: IgnorePointer(
+            child: _FileCounter(current: _currentFile + 1, total: paths.length),
+          ),
+        ),
+      ],
     );
   }
 }

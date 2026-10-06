@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:photo_view/photo_view.dart';
+import 'package:photo_view/photo_view_gallery.dart';
 
 import '../../../../../core/utils/utils_exports.dart';
 import '../../../../../core/widgets/widgets_exports.dart';
@@ -52,77 +54,46 @@ class _FilePreviewViewState extends State<FilePreviewView> {
               )
             : null,
       ),
-      body: PageView.builder(
-        controller: _pageController,
+      // PhotoViewGallery — not a hand-rolled PageView+InteractiveViewer —
+      // owns both the swipe-between-files paging and each page's
+      // pinch-zoom. Those two gestures fight over the same pointers when
+      // hand-rolled (pinching on the image itself loses the gesture arena
+      // to the ancestor PageView's drag recognizer, so zoom only ever
+      // triggered off the image, never on it); this package exists
+      // specifically to resolve that arena conflict correctly.
+      body: PhotoViewGallery.builder(
+        pageController: _pageController,
         itemCount: widget.filePaths.length,
         onPageChanged: (index) => setState(() => _currentIndex = index),
-        itemBuilder: (context, index) =>
-            _ZoomableFile(path: widget.filePaths[index]),
+        backgroundDecoration: const BoxDecoration(color: Colors.black),
+        builder: (context, index) => _buildPageOptions(widget.filePaths[index]),
       ),
     );
   }
-}
 
-class _ZoomableFile extends StatefulWidget {
-  final String path;
-
-  const _ZoomableFile({required this.path});
-
-  @override
-  State<_ZoomableFile> createState() => _ZoomableFileState();
-}
-
-class _ZoomableFileState extends State<_ZoomableFile> {
-  final _zoomController = TransformationController();
-  bool _isZoomed = false;
-
-  @override
-  void dispose() {
-    _zoomController.dispose();
-    super.dispose();
-  }
-
-  void _syncZoomState() {
-    final isZoomed = _zoomController.value.getMaxScaleOnAxis() > 1.01;
-    if (isZoomed != _isZoomed && mounted) setState(() => _isZoomed = isZoomed);
-  }
-
-  void _resetZoom() {
-    _zoomController.value = _zoomController.value.clone()..setIdentity();
-    if (_isZoomed) setState(() => _isZoomed = false);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // pdfx's PdfViewPinch already owns its own pinch-zoom/pan — wrapping it
-    // in another InteractiveViewer here would just fight it for the same
-    // gestures, so a PDF page skips this file's zoom handling entirely.
-    if (isPdfPath(widget.path)) {
-      return PdfZoomView(
-        path: widget.path,
-        fallback: _UnsupportedFile(path: widget.path),
+  PhotoViewGalleryPageOptions _buildPageOptions(String path) {
+    // pdfx's PdfViewPinch already owns its own pinch-zoom/pan/multi-page
+    // gestures, so this page opts out of PhotoView's own gesture handling
+    // (disableGestures) rather than fight it for the same pointers, and
+    // just rides along in the gallery's page view for swipe-between-files.
+    if (isPdfPath(path)) {
+      return PhotoViewGalleryPageOptions.customChild(
+        disableGestures: true,
+        child: PdfZoomView(path: path, fallback: _UnsupportedFile(path: path)),
       );
     }
-
-    return GestureDetector(
-      onDoubleTap: _resetZoom,
-      child: InteractiveViewer(
-        transformationController: _zoomController,
-        panEnabled: _isZoomed,
-        minScale: 1,
-        maxScale: 5,
-        onInteractionEnd: (_) => _syncZoomState(),
-        child: Center(
-          child: isImagePath(widget.path)
-              ? Image.file(
-                  File(widget.path),
-                  fit: .contain,
-                  errorBuilder: (context, error, stackTrace) =>
-                      _UnsupportedFile(path: widget.path),
-                )
-              : _UnsupportedFile(path: widget.path),
-        ),
-      ),
+    if (isImagePath(path)) {
+      return PhotoViewGalleryPageOptions(
+        imageProvider: FileImage(File(path)),
+        minScale: PhotoViewComputedScale.contained,
+        maxScale: PhotoViewComputedScale.covered * 3,
+        errorBuilder: (context, error, stackTrace) =>
+            _UnsupportedFile(path: path),
+      );
+    }
+    return PhotoViewGalleryPageOptions.customChild(
+      disableGestures: true,
+      child: _UnsupportedFile(path: path),
     );
   }
 }
