@@ -7,6 +7,7 @@ abstract interface class DocumentLocalDataSource {
   Future<void> purgeExpiredTrash(Duration retention);
   Future<void> upsertDocument(DocumentItem item);
   Future<void> softDeleteDocument(String id, DateTime date);
+  Future<void> softDeleteDocuments(Iterable<String> ids, DateTime date);
   Future<void> restoreDocument(String id);
   Future<void> deleteDocument(String id);
   Future<void> deleteDocuments(Iterable<String> ids);
@@ -29,6 +30,9 @@ class SqliteDocumentDataSource implements DocumentLocalDataSource {
   @override
   Future<void> softDeleteDocument(String id, DateTime date) =>
       _database.softDeleteDocument(id, date);
+  @override
+  Future<void> softDeleteDocuments(Iterable<String> ids, DateTime date) =>
+      _database.softDeleteDocuments(ids, date);
   @override
   Future<void> restoreDocument(String id) => _database.restoreDocument(id);
   @override

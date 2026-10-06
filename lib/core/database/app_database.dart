@@ -548,26 +548,46 @@ class AppDatabase {
 
   Future<void> softDeleteDocument(String id, DateTime deletedAt) async {
     await _requireDb.transaction((txn) async {
-      await txn.update(
-        'documents',
-        {'deleted_at': deletedAt.millisecondsSinceEpoch},
-        where: 'id = ?',
-        whereArgs: [id],
-      );
-      final rows = await txn.query(
-        'documents',
-        where: 'id = ?',
-        whereArgs: [id],
-      );
-      if (rows.isNotEmpty) {
-        await _enqueueDocumentMutation(
-          txn,
-          _documentFromRow(rows.first, tags: const [], filePaths: const []),
-          'delete',
-        );
+      await _softDeleteDocumentInTxn(txn, id, deletedAt);
+    });
+    await _refreshPendingDocumentIds();
+  }
+
+  /// Bulk counterpart to [softDeleteDocument] — one transaction for every
+  /// id instead of one per id, mirroring [deleteDocuments]'s own batching.
+  Future<void> softDeleteDocuments(
+    Iterable<String> ids,
+    DateTime deletedAt,
+  ) async {
+    final idList = ids.toList();
+    if (idList.isEmpty) return;
+    await _requireDb.transaction((txn) async {
+      for (final id in idList) {
+        await _softDeleteDocumentInTxn(txn, id, deletedAt);
       }
     });
     await _refreshPendingDocumentIds();
+  }
+
+  Future<void> _softDeleteDocumentInTxn(
+    Transaction txn,
+    String id,
+    DateTime deletedAt,
+  ) async {
+    await txn.update(
+      'documents',
+      {'deleted_at': deletedAt.millisecondsSinceEpoch},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    final rows = await txn.query('documents', where: 'id = ?', whereArgs: [id]);
+    if (rows.isNotEmpty) {
+      await _enqueueDocumentMutation(
+        txn,
+        _documentFromRow(rows.first, tags: const [], filePaths: const []),
+        'delete',
+      );
+    }
   }
 
   Future<void> restoreDocument(String id) async {

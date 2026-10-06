@@ -10,6 +10,7 @@ abstract interface class IDocumentRepository {
   Future<void> toggleFavorite(DocumentItem document);
   Future<void> updateDocument(DocumentItem updated);
   Future<void> trashDocument(String id);
+  Future<void> trashDocuments(Iterable<String> ids);
   Future<void> restoreDocument(String id);
   Future<void> permanentlyDeleteDocument(String id);
   Future<void> emptyTrash();

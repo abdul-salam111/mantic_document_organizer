@@ -21,6 +21,8 @@ class DocumentUseCases {
   Future<void> updateDocument(DocumentItem updated) =>
       _repository.updateDocument(updated);
   Future<void> trashDocument(String id) => _repository.trashDocument(id);
+  Future<void> trashDocuments(Iterable<String> ids) =>
+      _repository.trashDocuments(ids);
   Future<void> restoreDocument(String id) => _repository.restoreDocument(id);
   Future<void> permanentlyDeleteDocument(String id) =>
       _repository.permanentlyDeleteDocument(id);

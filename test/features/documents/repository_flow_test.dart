@@ -54,6 +54,14 @@ class MemoryDocuments implements DocumentLocalDataSource {
   }
 
   @override
+  Future<void> softDeleteDocuments(Iterable<String> ids, DateTime date) async {
+    if (fail) throw StateError('disk full');
+    for (final id in ids) {
+      rows[id] = rows[id]!.markDeleted(date);
+    }
+  }
+
+  @override
   Future<void> restoreDocument(String id) async {
     rows[id] = rows[id]!.restored();
   }
@@ -204,6 +212,35 @@ void main() {
       expect(reminders.scheduled.last, 'old');
     },
   );
+
+  test(
+    'bulk trash moves every selected document and cancels their reminders',
+    () async {
+      await documents.addDocument(document('a'));
+      await documents.addDocument(document('b'));
+      await documents.addDocument(document('c'));
+      await documents.trashDocuments(['a', 'c']);
+      expect(documents.documents.map((d) => d.id), ['b']);
+      expect(
+        documents.trashedDocuments.map((d) => d.id).toSet(),
+        {'a', 'c'},
+      );
+      expect(reminders.cancelled, containsAll(['a', 'c']));
+      expect(reminders.cancelled, isNot(contains('b')));
+    },
+  );
+
+  test('failed bulk trash retains recoverable state', () async {
+    await documents.addDocument(document('a'));
+    await documents.addDocument(document('b'));
+    storage.fail = true;
+    await expectLater(
+      documents.trashDocuments(['a', 'b']),
+      throwsStateError,
+    );
+    expect(documents.documents, hasLength(2));
+    expect(documents.trashedDocuments, isEmpty);
+  });
 
   test('failed trash/empty trash retains recoverable state', () async {
     await documents.addDocument(document('a'));

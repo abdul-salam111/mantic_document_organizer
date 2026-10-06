@@ -117,6 +117,27 @@ class DocumentRepositoryImpl extends ChangeNotifier
     _refreshDigest();
   });
   @override
+  Future<void> trashDocuments(Iterable<String> ids) => _write(() async {
+    final idSet = ids.toSet();
+    if (idSet.isEmpty) return;
+    final now = DateTime.now();
+    final trashed = <DocumentItem>[];
+    for (final id in idSet) {
+      final index = _documents.indexWhere((d) => d.id == id);
+      if (index == -1) continue;
+      trashed.add(_documents[index].markDeleted(now));
+    }
+    if (trashed.isEmpty) return;
+    await _db.softDeleteDocuments(idSet, now);
+    _documents.removeWhere((d) => idSet.contains(d.id));
+    _trashedDocuments.insertAll(0, trashed);
+    notifyListeners();
+    for (final document in trashed) {
+      await _cancel(document.id);
+    }
+    _refreshDigest();
+  });
+  @override
   Future<void> restoreDocument(String id) => _write(() async {
     final index = _trashedDocuments.indexWhere((d) => d.id == id);
     if (index == -1) return;
