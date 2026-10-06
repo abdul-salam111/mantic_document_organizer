@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:pdfx/pdfx.dart';
 
 import '../../../../../core/localization/localization_exports.dart';
 import '../../../../../core/theme/theme_exports.dart';
@@ -239,7 +241,13 @@ class _ShareDocumentSheetState extends State<ShareDocumentSheet> {
   }
 }
 
-class _ShareFileTile extends StatelessWidget {
+/// A fixed 120x170 box cropped every file's thumbnail to that shape —
+/// landscape pages (an ID card, a receipt photographed sideways) lost
+/// content off the edges. Probes the file's real width/height once and
+/// sizes the tile to that aspect ratio instead (at a fixed height), so
+/// [_ShareFileThumbnail] can show the whole page with nothing cut off; see
+/// [_resolveAspectRatio].
+class _ShareFileTile extends StatefulWidget {
   final String path;
   final bool isSelected;
   final VoidCallback onTap;
@@ -251,45 +259,125 @@ class _ShareFileTile extends StatelessWidget {
   });
 
   @override
+  State<_ShareFileTile> createState() => _ShareFileTileState();
+}
+
+class _ShareFileTileState extends State<_ShareFileTile> {
+  // Used only until the real ratio resolves (or if it never does) — close
+  // to a portrait scan/photo so the tile doesn't flash an odd shape.
+  static const double _fallbackAspectRatio = 0.75;
+
+  double? _aspectRatio;
+
+  @override
+  void initState() {
+    super.initState();
+    _resolveAspectRatio();
+  }
+
+  @override
+  void didUpdateWidget(covariant _ShareFileTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.path != widget.path) {
+      _aspectRatio = null;
+      _resolveAspectRatio();
+    }
+  }
+
+  /// Resolves via the same [FileImage] provider [_ShareFileThumbnail] uses
+  /// to display an image (Flutter's image cache keys on the provider, so
+  /// this doesn't decode the file twice) — a PDF page has no such built-in
+  /// widget, so that case just asks pdfx for the page's own size.
+  Future<void> _resolveAspectRatio() async {
+    double? ratio;
+    try {
+      if (isImagePath(widget.path)) {
+        final stream = FileImage(
+          File(widget.path),
+        ).resolve(const ImageConfiguration());
+        final completer = Completer<ImageInfo>();
+        late final ImageStreamListener listener;
+        listener = ImageStreamListener(
+          (info, _) {
+            completer.complete(info);
+            stream.removeListener(listener);
+          },
+          onError: (error, stackTrace) {
+            completer.completeError(error, stackTrace);
+            stream.removeListener(listener);
+          },
+        );
+        stream.addListener(listener);
+        final info = await completer.future;
+        ratio = info.image.width / info.image.height;
+      } else if (isPdfPath(widget.path)) {
+        final document = await PdfDocument.openFile(widget.path);
+        final page = await document.getPage(1);
+        ratio = page.width / page.height;
+        await page.close();
+        await document.close();
+      }
+    } catch (_) {
+      // Keep the fallback ratio — _ShareFileThumbnail's own fallback icon
+      // is what actually shows in this case anyway.
+    }
+    if (mounted && ratio != null && ratio.isFinite && ratio > 0) {
+      setState(() => _aspectRatio = ratio);
+    }
+  }
+
+  // The border lives on the outer Container's decoration, which paints
+  // *behind* its child by default — an edge-to-edge thumbnail would just
+  // paint over it. Padding (equal to the border width) between that
+  // Container and the inner ClipRRect keeps a visible ring around the
+  // thumbnail instead of being covered by it.
+  static const double _borderWidth = 2;
+
+  @override
   Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
+    onTap: widget.onTap,
     child: AnimatedOpacity(
       duration: const Duration(milliseconds: 150),
-      opacity: isSelected ? 1 : 0.4,
-      child: Container(
-        width: 120,
-        clipBehavior: .antiAlias,
-        decoration: BoxDecoration(
-          borderRadius: .circular(12),
-          border: Border.all(
-            color: isSelected ? context.primary : context.border,
-            width: isSelected ? 2 : 1,
+      opacity: widget.isSelected ? 1 : 0.4,
+      child: AspectRatio(
+        aspectRatio: _aspectRatio ?? _fallbackAspectRatio,
+        child: Container(
+          padding: const .all(_borderWidth),
+          decoration: BoxDecoration(
+            borderRadius: .circular(12),
+            border: Border.all(
+              color: widget.isSelected ? context.primary : context.border,
+              width: _borderWidth,
+            ),
           ),
-        ),
-        child: Stack(
-          fit: .expand,
-          children: [
-            _ShareFileThumbnail(path: path),
-            if (isSelected)
-              Positioned(
-                top: 6,
-                right: 6,
-                child: Container(
-                  width: 22,
-                  height: 22,
-                  alignment: .center,
-                  decoration: BoxDecoration(
-                    color: context.primary,
-                    shape: .circle,
+          child: ClipRRect(
+            borderRadius: .circular(12 - _borderWidth),
+            child: Stack(
+              fit: .expand,
+              children: [
+                _ShareFileThumbnail(path: widget.path),
+                if (widget.isSelected)
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: Container(
+                      width: 22,
+                      height: 22,
+                      alignment: .center,
+                      decoration: BoxDecoration(
+                        color: context.primary,
+                        shape: .circle,
+                      ),
+                      child: Icon(
+                        Icons.check_rounded,
+                        size: 14,
+                        color: context.white,
+                      ),
+                    ),
                   ),
-                  child: Icon(
-                    Icons.check_rounded,
-                    size: 14,
-                    color: context.white,
-                  ),
-                ),
-              ),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     ),
@@ -311,12 +399,20 @@ class _ShareFileThumbnail extends StatelessWidget {
     if (isImagePath(path)) {
       return Image.file(
         File(path),
-        fit: .cover,
+        // .contain, not .cover — the tile's own aspect ratio already
+        // matches the file's (see _ShareFileTileState), so this only
+        // matters while that's still resolving, and contain guarantees
+        // nothing is ever cropped off a page in the meantime.
+        fit: .contain,
         errorBuilder: (context, error, stackTrace) => _fallback(context),
       );
     }
     if (isPdfPath(path)) {
-      return PdfPageThumbnail(path: path, fallback: _fallback(context));
+      return PdfPageThumbnail(
+        path: path,
+        fit: .contain,
+        fallback: _fallback(context),
+      );
     }
     return _fallback(context);
   }
