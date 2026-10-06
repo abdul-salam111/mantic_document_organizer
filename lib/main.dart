@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
+import 'core/background/auto_import_service.dart';
 import 'core/database/database_exports.dart';
 import 'core/di/di_exports.dart';
 import 'core/localization/localization_exports.dart';
@@ -42,6 +43,9 @@ void main() {
       }
 
       await setupLocator();
+      // Shared flutter_local_notifications plugin -- must be initialized
+      // before any service that sends notifications through it.
+      await sl<AppNotificationPlugin>().init();
       // Must be ready before DocumentUseCases.init() below, which
       // schedules/reconciles every active document's expiry reminders as
       // soon as it hydrates.
@@ -54,6 +58,12 @@ void main() {
       await sl<LocaleController>().loadLocale();
       await sl<SecurityController>().loadSecurity();
       await sl<NetworkPreferenceController>().loadNetworkPreference();
+      // Fire-and-forget: runs in the background after the app is already
+      // showing, covering only "permission was granted in a previous
+      // session but the scan never finished" -- the real first run is
+      // triggered by AutoImportConsentSheet right after the user grants
+      // permission. Must never block runApp().
+      unawaited(sl<AutoImportService>().maybeRunInitialScan());
       runApp(const MyApp());
     },
     // Errors from uncaught async code (e.g. a Future that's never

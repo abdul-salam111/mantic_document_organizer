@@ -40,6 +40,9 @@ class StorageKeys {
   static const String hasSeenBulkImportPrompt = 'hasSeenBulkImportPrompt';
   static const String bulkImportDiscoveryWatermark =
       'bulkImportDiscoveryWatermark';
+  static const String autoImportFileSystemWatermark =
+      'autoImportFileSystemWatermark';
+  static const String hasRunInitialAutoImport = 'hasRunInitialAutoImport';
   static const String pendingBackupSetup = 'pendingBackupSetup';
   static const String backupSpaceId = 'backupSpaceId';
   static const String backupEnabled = 'backupEnabled';

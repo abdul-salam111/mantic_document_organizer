@@ -46,12 +46,17 @@ import '../../features/documents/presentation/category_documents/category_docume
 import '../../features/documents/presentation/document_viewer/document_viewer_exports.dart';
 import '../../features/documents/presentation/trash/trash_exports.dart';
 import '../../features/documents/presentation/expiring_soon/expiring_soon_exports.dart';
+import 'dart:io';
+
 import '../../features/bulk_import/bulk_import_exports.dart';
 import '../../features/bulk_import/data/bulk_import_local_datasource.dart';
 import '../../features/bulk_import/data/discovery_watermark_store.dart';
+import '../../features/bulk_import/data/file_system_discovery_datasource.dart';
 import '../../features/bulk_import/data/gallery_discovery_datasource.dart';
 import '../../features/bulk_import/domain/usecases/bulk_import_usecases.dart';
 import '../../features/bulk_import/domain/usecases/gallery_discovery_usecases.dart';
+import '../background/auto_import_service.dart';
+import '../local_storage/local_storage_exports.dart';
 
 // GENERATED_IMPORTS_START
 
@@ -106,7 +111,21 @@ Future<void> coreDependencies() async {
   sl.registerLazySingleton(() => AiDocumentService(sl()));
   sl.registerLazySingleton(() => AiChatService(sl()));
   sl.registerLazySingleton(() => AppDatabase());
-  sl.registerLazySingleton(() => ExpiryNotificationService());
+  sl.registerLazySingleton(() => AppNotificationPlugin());
+  sl.registerLazySingleton(
+    () => ExpiryNotificationService(sl()),
+    dispose: (service) => service.dispose(),
+  );
+  sl.registerLazySingleton(
+    () => AutoImportNotifications(sl()),
+    dispose: (service) => service.dispose(),
+  );
+  sl.registerLazySingleton(
+    () => AutoImportService(
+      createViewModel: () => sl<BulkImportViewModel>(),
+      notifications: sl(),
+    ),
+  );
   sl.registerLazySingleton(() => ShareIntentService());
   sl.registerLazySingleton(() => DirectShareService());
   sl.registerLazySingleton(() => GallerySaverService());
@@ -283,6 +302,16 @@ Future<void> bulkImportDependencies() async {
       // Same connectivity check DioHelper already uses -- discovery is now
       // AI-driven and cannot work offline at all.
       checkConnectivity: () => InternetConnectionChecker.instance.hasConnection,
+      // Android-only broader-than-gallery source (Downloads/Documents) --
+      // requires MANAGE_EXTERNAL_STORAGE, which iOS has no equivalent of.
+      fileSystemDiscovery: Platform.isAndroid
+          ? GalleryDiscoveryUseCases(FileSystemDiscoveryDataSource())
+          : null,
+      fileSystemWatermark: Platform.isAndroid
+          ? DiscoveryWatermarkStore(
+              storageKey: StorageKeys.autoImportFileSystemWatermark,
+            )
+          : null,
     ),
   );
 }

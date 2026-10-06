@@ -1,7 +1,6 @@
 import 'package:mantic_doc_org/features/documents/domain/entities/document_policy.dart';
 import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -9,6 +8,7 @@ import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../l10n/app_localizations.dart';
+import 'notification_plugin.dart';
 
 /// Local (on-device, no backend) reminders for a document's expiry date —
 /// schedules up to two notifications per document, [daysBefore] days before
@@ -18,8 +18,11 @@ import '../../l10n/app_localizations.dart';
 /// [scheduleForDocument]/[cancelForDocument] here — nothing else in the app
 /// needs to know this exists.
 class ExpiryNotificationService {
-  final FlutterLocalNotificationsPlugin _plugin =
-      FlutterLocalNotificationsPlugin();
+  ExpiryNotificationService(this._notificationPlugin);
+
+  final AppNotificationPlugin _notificationPlugin;
+  FlutterLocalNotificationsPlugin get _plugin => _notificationPlugin.plugin;
+  StreamSubscription<NotificationResponse>? _tapSubscription;
 
   static const int _reminderHour = 9;
   static const int daysBefore = 7;
@@ -73,9 +76,10 @@ class ExpiryNotificationService {
     _expiringSoonDigestBody = (count) => l10n.expiringSoonDigestBody(count);
   }
 
-  /// Initializes the plugin and the local timezone database, and requests
-  /// notification permission — called once at startup (see main.dart),
-  /// before any [scheduleForDocument] call.
+  /// Initializes the local timezone database and the shared notification
+  /// plugin (idempotent — safe even if another service already called it),
+  /// and subscribes to this service's own notification payloads — called
+  /// once at startup (see main.dart), before any [scheduleForDocument] call.
   Future<void> init() async {
     tz_data.initializeTimeZones();
     try {
@@ -85,28 +89,8 @@ class ExpiryNotificationService {
       // Unrecognized/unavailable timezone name — reminders still fire, just
       // anchored to UTC instead of the device's actual local time.
     }
-
-    await _plugin.initialize(
-      settings: const InitializationSettings(
-        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-        iOS: DarwinInitializationSettings(),
-      ),
-      onDidReceiveNotificationResponse: _handleNotificationTap,
-    );
-
-    if (Platform.isAndroid) {
-      await _plugin
-          .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >()
-          ?.requestNotificationsPermission();
-    } else if (Platform.isIOS) {
-      await _plugin
-          .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin
-          >()
-          ?.requestPermissions(alert: true, badge: true, sound: true);
-    }
+    await _notificationPlugin.init();
+    _tapSubscription = _notificationPlugin.onTap.listen(_handleNotificationTap);
   }
 
   /// Cancels then (re)schedules [document]'s reminders — safe to call on
@@ -225,9 +209,8 @@ class ExpiryNotificationService {
   /// [onDigestTapped] only covers taps while the process is already alive,
   /// since nothing is listening to it yet at cold start.
   Future<bool> consumeInitialDigestTap() async {
-    final details = await _plugin.getNotificationAppLaunchDetails();
-    return details?.didNotificationLaunchApp == true &&
-        details?.notificationResponse?.payload == _digestPayload;
+    final response = await _notificationPlugin.consumeLaunchResponse();
+    return response?.payload == _digestPayload;
   }
 
   Future<void> _schedule({
@@ -267,4 +250,6 @@ class ExpiryNotificationService {
 
   int _expiryNotificationId(String documentId) =>
       (documentId.hashCode & 0x7ffffffe) + 1;
+
+  void dispose() => _tapSubscription?.cancel();
 }

@@ -29,13 +29,17 @@ class BulkImportViewModel extends ChangeNotifier {
     required GalleryDiscoveryUseCases discovery,
     required DiscoveryWatermarkRepository watermark,
     required Future<bool> Function() checkConnectivity,
+    GalleryDiscoveryUseCases? fileSystemDiscovery,
+    DiscoveryWatermarkRepository? fileSystemWatermark,
   }) : _imports = imports,
        _categories = categories,
        _documents = documents,
        _processing = processing,
        _discovery = discovery,
        _watermark = watermark,
-       _checkConnectivity = checkConnectivity {
+       _checkConnectivity = checkConnectivity,
+       _fileSystemDiscovery = fileSystemDiscovery,
+       _fileSystemWatermark = fileSystemWatermark {
     _categories.addListener(_notify);
   }
 
@@ -54,6 +58,10 @@ class BulkImportViewModel extends ChangeNotifier {
   final GalleryDiscoveryUseCases _discovery;
   final DiscoveryWatermarkRepository _watermark;
   final Future<bool> Function() _checkConnectivity;
+  // Android-only filesystem discovery (Downloads/Documents); null on iOS or
+  // whenever that source isn't wired up — see bulkImportDependencies().
+  final GalleryDiscoveryUseCases? _fileSystemDiscovery;
+  final DiscoveryWatermarkRepository? _fileSystemWatermark;
   final List<BulkImportCandidate> _candidates = [];
   final Map<String, int> _revisions = {};
   Future<void> _queue = Future.value();
@@ -122,6 +130,19 @@ class BulkImportViewModel extends ChangeNotifier {
   /// a later scan finds them again, reported via [scanHasMore].
   Future<void> openPermissionSettings() => _discovery.openSettings();
 
+  /// Passive check (never prompts) across every configured source -- true
+  /// if at least one is already granted. AutoImportService's unattended
+  /// startup-recovery path uses this to decide whether there's anything
+  /// worth attempting at all: on a fresh install that hasn't been through
+  /// the consent sheet yet, nothing is granted, and this must return false
+  /// so that path doesn't spend its one-shot attempt before the user ever
+  /// gets a real, permission-prompting chance via [discoverAll].
+  Future<bool> hasAnyDiscoveryPermission() async {
+    if (await _discovery.hasPermission()) return true;
+    final fs = _fileSystemDiscovery;
+    return fs != null && await fs.hasPermission();
+  }
+
   Future<bool> discover() async {
     if (!_editable || _isScanning) return false;
     final done = Completer<void>();
@@ -144,87 +165,17 @@ class BulkImportViewModel extends ChangeNotifier {
         return false;
       }
       if (_closed || _disposed) return false;
-      final permission = await _discovery.requestPermission();
-      if (_closed || _disposed) return false;
-      if (permission == DiscoveryPermission.denied) {
+      final denied = await _scanSource(
+        discovery: _discovery,
+        watermark: _watermark,
+        maxExamined: maxExaminedPerScan,
+        maxCandidatesCeiling: maxCandidates,
+        allowPrompt: true,
+      );
+      if (denied) {
         permissionDenied = true;
         return false;
       }
-      final room = maxCandidates - _candidates.length;
-      if (room <= 0) {
-        notice = 'You can import up to $maxCandidates files at a time.';
-        return false;
-      }
-      final since = await _watermark.read();
-      final found = await _discovery.findCandidates(
-        since: since,
-        maxExamined: maxExaminedPerScan,
-      );
-      if (_closed || _disposed) return false;
-      final availableCategories = [for (final c in categories) c.name];
-      DateTime? processedThrough;
-      for (final asset in found) {
-        if (scanFound >= room) {
-          scanHasMore = true;
-          break;
-        }
-        scanExamined++;
-        processedThrough = asset.takenAt;
-        _notify();
-        final path = await asset.resolvePath();
-        if (_closed || _disposed) return scanFound > 0;
-        if (path == null) continue;
-        final staged = await _imports.stage([
-          (path: path, name: p.basename(path)),
-        ], limit: room);
-        if (_closed || _disposed) return scanFound > 0;
-        if (staged.candidates.isEmpty) continue;
-        final candidate = staged.candidates.first;
-        final text = await _extractTextForScoring(candidate.attachment.path);
-        if (_closed || _disposed) {
-          await _bestEffort(() => _imports.removeStaged(candidate));
-          return scanFound > 0;
-        }
-        if (text == null || text.trim().isEmpty) {
-          // No readable text at all -- free, local, definitely not a
-          // document; skip the network call entirely.
-          await _bestEffort(() => _imports.removeStaged(candidate));
-          continue;
-        }
-        AiDocumentSuggestion? suggestion;
-        try {
-          suggestion = await _processing.analyze(
-            ocrText: text,
-            availableCategories: availableCategories,
-          );
-        } catch (_) {
-          suggestion = null;
-        }
-        if (_closed || _disposed) {
-          await _bestEffort(() => _imports.removeStaged(candidate));
-          return scanFound > 0;
-        }
-        if (suggestion != null && !suggestion.isDocument) {
-          await _bestEffort(() => _imports.removeStaged(candidate));
-          continue;
-        }
-        scanFound++;
-        final withText = candidate.copyWith(ocrText: text);
-        if (suggestion == null) {
-          // A transient AI/network failure must never silently drop a real
-          // document -- include it, retryable, rather than lose it.
-          _candidates.add(
-            withText.copyWith(
-              state: CandidateProcessingState.failed,
-              error: 'Could not analyze this file. Retry, or import it as-is.',
-            ),
-          );
-        } else {
-          _candidates.add(_applySuggestion(withText, suggestion));
-        }
-        _notify();
-      }
-      if (processedThrough != null) await _watermark.write(processedThrough);
       notice = scanFound > 0 && scanHasMore
           ? 'Found $scanFound documents. More were found than fit at once; scan again to find the rest.'
           : scanFound == 0
@@ -242,6 +193,194 @@ class BulkImportViewModel extends ChangeNotifier {
       done.complete();
       _notify();
     }
+  }
+
+  /// Like [discover], but also scans the filesystem discovery source when
+  /// one is configured (Android only -- see `bulkImportDependencies()`),
+  /// and allows a higher combined candidate cap via [maxCandidatesOverride].
+  /// Used only by AutoImportService's one-time automatic scan; the manual
+  /// "Find more documents" entry point keeps calling [discover].
+  ///
+  /// Returns false only if every configured source denied permission --
+  /// one source being unavailable/denied while another succeeds is not
+  /// treated as failure, unlike [discover] (which has exactly one source).
+  ///
+  /// [allowPermissionPrompts] false (AutoImportService's unattended
+  /// startup-recovery path) means each source is only scanned if its
+  /// permission is *already* granted -- a source that would otherwise show
+  /// a system permission dialog or (for `MANAGE_EXTERNAL_STORAGE`) silently
+  /// launch the device Settings app is simply skipped instead, since the
+  /// user hasn't taken any action this session to expect that. true (every
+  /// other caller, always reached via an explicit user action) behaves
+  /// exactly like [discover] always has.
+  Future<bool> discoverAll({
+    int? maxCandidatesOverride,
+    bool allowPermissionPrompts = true,
+  }) async {
+    if (!_editable || _isScanning) return false;
+    final ceiling = maxCandidatesOverride ?? maxCandidates;
+    final done = Completer<void>();
+    _scanningDone = done.future;
+    _isScanning = true;
+    notice = null;
+    permissionDenied = false;
+    offline = false;
+    scanHasMore = false;
+    scanExamined = 0;
+    scanFound = 0;
+    _notify();
+    try {
+      if (!await _checkConnectivity()) {
+        offline = true;
+        notice = 'Connect to the internet to find your documents automatically.';
+        return false;
+      }
+      if (_closed || _disposed) return false;
+      var anyGranted = false;
+      final galleryDenied = await _scanSource(
+        discovery: _discovery,
+        watermark: _watermark,
+        maxExamined: maxExaminedPerScan,
+        maxCandidatesCeiling: ceiling,
+        allowPrompt: allowPermissionPrompts,
+      );
+      if (!galleryDenied) anyGranted = true;
+      final fsDiscovery = _fileSystemDiscovery;
+      final fsWatermark = _fileSystemWatermark;
+      if (fsDiscovery != null && fsWatermark != null && !(_closed || _disposed)) {
+        final fsDenied = await _scanSource(
+          discovery: fsDiscovery,
+          watermark: fsWatermark,
+          maxExamined: maxExaminedPerScan,
+          maxCandidatesCeiling: ceiling,
+          allowPrompt: allowPermissionPrompts,
+        );
+        if (!fsDenied) anyGranted = true;
+      }
+      permissionDenied = !anyGranted;
+      if (permissionDenied) return false;
+      notice = scanFound > 0 && scanHasMore
+          ? 'Found $scanFound documents. More were found than fit at once; scan again to find the rest.'
+          : scanFound == 0
+          ? 'No new documents found.'
+          : null;
+      _event('discovered', scanFound);
+      return scanFound > 0;
+    } catch (_) {
+      notice = 'Could not scan for documents. Check access and try again.';
+      _event('discovery_failed', 1);
+      return false;
+    } finally {
+      _isScanning = false;
+      done.complete();
+      _notify();
+    }
+  }
+
+  /// Scans one discovery source (stage -> OCR -> AI analyze -> candidate) --
+  /// extracted from the single-source loop [discover] used to be, so
+  /// [discoverAll] can run it once per configured source while sharing the
+  /// same [_candidates]/[scanFound]/[scanExamined] accumulation and the
+  /// same [scanHasMore] signal. Returns true if this source's permission
+  /// was denied (nothing was scanned); callers decide what that means for
+  /// the overall result.
+  Future<bool> _scanSource({
+    required GalleryDiscoveryUseCases discovery,
+    required DiscoveryWatermarkRepository watermark,
+    required int maxExamined,
+    required int maxCandidatesCeiling,
+    required bool allowPrompt,
+  }) async {
+    if (_closed || _disposed) return false;
+    // allowPrompt=false (unattended startup-recovery path) never calls
+    // requestPermission() -- for MANAGE_EXTERNAL_STORAGE in particular,
+    // that would silently launch the device Settings app with no user
+    // action this session to justify it. A passive check stands in instead.
+    // `limited` (iOS partial photo access) counts as granted, same as a
+    // lone [discover] call always has.
+    final granted = allowPrompt
+        ? (await discovery.requestPermission()) != DiscoveryPermission.denied
+        : await discovery.hasPermission();
+    if (_closed || _disposed) return false;
+    if (!granted) return true;
+    final room = maxCandidatesCeiling - _candidates.length;
+    if (room <= 0) {
+      notice = 'You can import up to $maxCandidatesCeiling files at a time.';
+      return false;
+    }
+    final since = await watermark.read();
+    final found = await discovery.findCandidates(
+      since: since,
+      maxExamined: maxExamined,
+    );
+    if (_closed || _disposed) return false;
+    final availableCategories = [for (final c in categories) c.name];
+    DateTime? processedThrough;
+    var foundThisSource = 0;
+    for (final asset in found) {
+      if (foundThisSource >= room) {
+        scanHasMore = true;
+        break;
+      }
+      scanExamined++;
+      processedThrough = asset.takenAt;
+      _notify();
+      final path = await asset.resolvePath();
+      if (_closed || _disposed) return false;
+      if (path == null) continue;
+      final staged = await _imports.stage([
+        (path: path, name: p.basename(path)),
+      ], limit: room - foundThisSource);
+      if (_closed || _disposed) return false;
+      if (staged.candidates.isEmpty) continue;
+      final candidate = staged.candidates.first;
+      final text = await _extractTextForScoring(candidate.attachment.path);
+      if (_closed || _disposed) {
+        await _bestEffort(() => _imports.removeStaged(candidate));
+        return false;
+      }
+      if (text == null || text.trim().isEmpty) {
+        // No readable text at all -- free, local, definitely not a
+        // document; skip the network call entirely.
+        await _bestEffort(() => _imports.removeStaged(candidate));
+        continue;
+      }
+      AiDocumentSuggestion? suggestion;
+      try {
+        suggestion = await _processing.analyze(
+          ocrText: text,
+          availableCategories: availableCategories,
+        );
+      } catch (_) {
+        suggestion = null;
+      }
+      if (_closed || _disposed) {
+        await _bestEffort(() => _imports.removeStaged(candidate));
+        return false;
+      }
+      if (suggestion != null && !suggestion.isDocument) {
+        await _bestEffort(() => _imports.removeStaged(candidate));
+        continue;
+      }
+      scanFound++;
+      foundThisSource++;
+      final withText = candidate.copyWith(ocrText: text);
+      if (suggestion == null) {
+        // A transient AI/network failure must never silently drop a real
+        // document -- include it, retryable, rather than lose it.
+        _candidates.add(
+          withText.copyWith(
+            state: CandidateProcessingState.failed,
+            error: 'Could not analyze this file. Retry, or import it as-is.',
+          ),
+        );
+      } else {
+        _candidates.add(_applySuggestion(withText, suggestion));
+      }
+      _notify();
+    }
+    if (processedThrough != null) await watermark.write(processedThrough);
+    return false;
   }
 
   Future<String?> _extractTextForScoring(String path) async {

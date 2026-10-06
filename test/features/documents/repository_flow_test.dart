@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mantic_doc_org/core/notifications/expiry_notification_service.dart';
+import 'package:mantic_doc_org/core/notifications/notification_plugin.dart';
 import 'package:mantic_doc_org/features/categories/data/datasources/category_local_datasource.dart';
 import 'package:mantic_doc_org/features/categories/data/repository_impl/category_repository_impl.dart';
 import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
@@ -87,6 +88,7 @@ class MemoryDocuments implements DocumentLocalDataSource {
 }
 
 class ReminderSpy extends ExpiryNotificationService {
+  ReminderSpy() : super(AppNotificationPlugin());
   final scheduled = <String>[];
   final cancelled = <String>[];
   @override

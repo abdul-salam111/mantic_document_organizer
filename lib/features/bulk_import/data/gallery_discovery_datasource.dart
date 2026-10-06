@@ -37,6 +37,15 @@ class GalleryDiscoveryDataSource implements GalleryDiscoveryRepository {
   }
 
   @override
+  Future<bool> hasPermission() async {
+    final state = await pm.PhotoManager.getPermissionState(
+      requestOption: const pm.PermissionRequestOption(),
+    );
+    return state == pm.PermissionState.authorized ||
+        state == pm.PermissionState.limited;
+  }
+
+  @override
   Future<void> openSettings() => pm.PhotoManager.openSetting();
 
   @override

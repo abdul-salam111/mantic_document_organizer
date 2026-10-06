@@ -5,6 +5,12 @@ enum DiscoveryPermission { granted, limited, denied }
 abstract interface class GalleryDiscoveryRepository {
   Future<DiscoveryPermission> requestPermission();
 
+  /// Passive check -- never shows a system prompt, unlike
+  /// [requestPermission]. Used by AutoImportService to decide whether its
+  /// automatic scan can run without first surprising the user with a
+  /// permission dialog they haven't consented to yet.
+  Future<bool> hasPermission();
+
   /// Opens the OS settings screen for this app's photo library permission.
   Future<void> openSettings();
 

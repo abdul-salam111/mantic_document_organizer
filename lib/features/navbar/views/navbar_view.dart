@@ -49,7 +49,7 @@ class _NavbarViewState extends State<NavbarView> {
       StorageKeys.hasSeenBulkImportPrompt,
     );
     if (hasSeenImport == 'true' || !mounted) return;
-    unawaited(BulkImportPopup.show(context));
+    unawaited(AutoImportConsentSheet.show(context));
   }
 
   @override

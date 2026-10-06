@@ -91,14 +91,30 @@ class FakeImports implements BulkImportRepository {
 
 class FakeDiscovery implements GalleryDiscoveryRepository {
   DiscoveryPermission permission = DiscoveryPermission.granted;
+  // Independent of [permission] -- lets a test simulate "not yet decided,
+  // would show a prompt if asked" (passive check false) vs. "already
+  // granted" (passive check true), the distinction allowPermissionPrompts
+  // exists to respect.
+  bool passivelyGranted = true;
   List<DiscoveredAsset> assets = [];
   int openSettingsCalls = 0;
   int findCandidatesCalls = 0;
+  int requestPermissionCalls = 0;
+  int hasPermissionCalls = 0;
   DateTime? lastSince;
   int? lastMaxExamined;
 
   @override
-  Future<DiscoveryPermission> requestPermission() async => permission;
+  Future<DiscoveryPermission> requestPermission() async {
+    requestPermissionCalls++;
+    return permission;
+  }
+
+  @override
+  Future<bool> hasPermission() async {
+    hasPermissionCalls++;
+    return passivelyGranted;
+  }
 
   @override
   Future<void> openSettings() async {
@@ -244,5 +260,37 @@ class ImportFixture {
   void seedFound(List<BulkImportCandidate> candidates) {
     imports.picked = List.of(candidates);
     discovery.assets = [for (final c in candidates) discoveredAsset(c.id)];
+  }
+
+  // Second discovery source + watermark, wired into [vmWithFileSystem]
+  // only -- [vm] above stays gallery-only, matching production's
+  // `discover()` (manual "Find more documents") vs. `discoverAll()`
+  // (AutoImportService) split.
+  final fileSystemDiscovery = FakeDiscovery();
+  final fileSystemWatermarkStore = FakeWatermarkStore();
+  late final vmWithFileSystem = BulkImportViewModel(
+    imports: BulkImportUseCases(imports),
+    categories: CategoryUseCases(categories),
+    documents: DocumentUseCases(documents),
+    processing: DocumentProcessingUseCases(processing),
+    discovery: GalleryDiscoveryUseCases(discovery),
+    watermark: watermarkStore,
+    checkConnectivity: connectivity.check,
+    fileSystemDiscovery: GalleryDiscoveryUseCases(fileSystemDiscovery),
+    fileSystemWatermark: fileSystemWatermarkStore,
+  );
+
+  /// Like [seedFound], but splits candidates across the gallery and
+  /// filesystem sources (gallery scanned first, matching
+  /// [vmWithFileSystem]'s scan order) -- for discoverAll() tests.
+  void seedFoundAcrossSources({
+    List<BulkImportCandidate> gallery = const [],
+    List<BulkImportCandidate> fileSystem = const [],
+  }) {
+    imports.picked = [...gallery, ...fileSystem];
+    discovery.assets = [for (final c in gallery) discoveredAsset(c.id)];
+    fileSystemDiscovery.assets = [
+      for (final c in fileSystem) discoveredAsset(c.id),
+    ];
   }
 }

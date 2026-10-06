@@ -8,6 +8,8 @@ class GalleryDiscoveryUseCases {
   Future<DiscoveryPermission> requestPermission() =>
       _repository.requestPermission();
 
+  Future<bool> hasPermission() => _repository.hasPermission();
+
   Future<void> openSettings() => _repository.openSettings();
 
   Future<List<DiscoveredAsset>> findCandidates({
