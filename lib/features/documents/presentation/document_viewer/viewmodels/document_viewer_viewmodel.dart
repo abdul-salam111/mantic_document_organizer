@@ -21,8 +21,6 @@ class DocumentViewerViewModel extends ChangeNotifier {
   }
 
   Future<void> share(DocumentItem document) => _processing.share(document);
-  Future<void> exportPdf(DocumentItem document) =>
-      _processing.exportPdf(document);
 
   Future<void> shareFile(String path) => _processing.shareFile(path);
 
@@ -100,6 +98,49 @@ class DocumentViewerViewModel extends ChangeNotifier {
     final current = document;
     if (current == null) return;
     await _documentUseCases.trashDocument(current.id);
+  }
+
+  // Long-press-a-page-to-select, keyed by path (not index — indices shift
+  // as filePaths changes, paths don't).
+  final Set<String> _selectedPaths = {};
+  Set<String> get selectedPaths => Set.unmodifiable(_selectedPaths);
+  bool get isSelecting => _selectedPaths.isNotEmpty;
+  int get selectedCount => _selectedPaths.length;
+  bool isSelected(String path) => _selectedPaths.contains(path);
+
+  void toggleFileSelection(String path) {
+    if (!_selectedPaths.add(path)) _selectedPaths.remove(path);
+    notifyListeners();
+  }
+
+  void clearSelection() {
+    if (_selectedPaths.isEmpty) return;
+    _selectedPaths.clear();
+    notifyListeners();
+  }
+
+  /// Removes the selected pages from the document. If that would leave it
+  /// with none, trashes the whole document instead of leaving a page-less
+  /// one behind — same "the last page going away means the document goes
+  /// away" rule scanner apps like CamScanner use. Callers can tell which
+  /// happened from [selectedCount] vs. the document's filePaths length
+  /// *before* calling this (it clears the selection itself).
+  Future<void> deleteSelectedFiles() async {
+    final current = document;
+    if (current == null || _selectedPaths.isEmpty) return;
+    final toRemove = Set<String>.of(_selectedPaths);
+    _selectedPaths.clear();
+    final remaining = current.filePaths
+        .where((path) => !toRemove.contains(path))
+        .toList();
+    if (remaining.isEmpty) {
+      await _documentUseCases.trashDocument(current.id);
+    } else {
+      await _documentUseCases.updateDocument(
+        current.copyWith(filePaths: remaining),
+      );
+    }
+    notifyListeners();
   }
 
   @override

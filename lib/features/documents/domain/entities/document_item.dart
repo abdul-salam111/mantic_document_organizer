@@ -67,6 +67,7 @@ class DocumentItem {
     bool? isFavorite,
     String? description,
     String? ocrText,
+    List<String>? filePaths,
   }) => DocumentItem(
     id: id,
     title: title ?? this.title,
@@ -76,7 +77,7 @@ class DocumentItem {
     createdAt: createdAt,
     tags: tags,
     isFavorite: isFavorite ?? this.isFavorite,
-    filePaths: filePaths,
+    filePaths: filePaths ?? this.filePaths,
     isExpirable: isExpirable,
     expiryDate: expiryDate,
     description: description ?? this.description,

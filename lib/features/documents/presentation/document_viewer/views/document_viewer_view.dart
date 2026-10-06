@@ -17,8 +17,6 @@ import '../../../../home/home_exports.dart';
 import '../viewmodels/document_viewer_viewmodel.dart';
 import 'share_document_sheet.dart';
 
-enum _DocumentAction { exportPdf, delete }
-
 class DocumentViewerView extends StatelessWidget {
   final DocumentItem document;
 
@@ -40,51 +38,37 @@ class DocumentViewerView extends StatelessWidget {
           if (current == null) return const SizedBox.shrink();
 
           return Scaffold(
-            appBar: CustomAppBar(
-              title: current.title,
-              actions: [
-                IconButton(
-                  tooltip: current.isFavorite
-                      ? AppLocalizations.of(context).removeFromFavorites
-                      : AppLocalizations.of(context).addToFavorites,
-                  icon: Icon(
-                    current.isFavorite ? Iconsax.heart5 : Iconsax.heart,
-                    color: current.isFavorite
-                        ? context.errorAccent
-                        : context.white,
-                  ),
-                  onPressed: () => persistAction(context, vm.toggleFavorite),
-                ),
-                PopupMenuButton<_DocumentAction>(
-                  icon: Icon(Iconsax.more, color: context.white),
-                  onSelected: (action) =>
-                      _handleAction(context, vm, current, action),
-                  itemBuilder: (context) => [
-                    if (current.filePaths.any(isImagePath))
-                      PopupMenuItem(
-                        value: _DocumentAction.exportPdf,
-                        child: _MenuRow(
-                          icon: Iconsax.document_download,
-                          label: AppLocalizations.of(context).exportAsPdf,
+            appBar: vm.isSelecting
+                ? SelectionAppBar(
+                    count: vm.selectedCount,
+                    onClose: vm.clearSelection,
+                    onDelete: () =>
+                        _confirmDeleteSelectedFiles(context, vm, current),
+                  )
+                : CustomAppBar(
+                    title: current.title,
+                    actions: [
+                      IconButton(
+                        tooltip: current.isFavorite
+                            ? AppLocalizations.of(context).removeFromFavorites
+                            : AppLocalizations.of(context).addToFavorites,
+                        icon: Icon(
+                          current.isFavorite ? Iconsax.heart5 : Iconsax.heart,
+                          color: current.isFavorite
+                              ? context.errorAccent
+                              : context.white,
                         ),
+                        onPressed: () =>
+                            persistAction(context, vm.toggleFavorite),
                       ),
-                    const PopupMenuDivider(),
-                    PopupMenuItem(
-                      value: _DocumentAction.delete,
-                      child: _MenuRow(
-                        icon: Iconsax.trash,
-                        label: AppLocalizations.of(context).delete,
-                        isDestructive: true,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                    ],
+                  ),
             body: SafeArea(
               child: _PageArea(
                 document: current,
                 onAddFiles: () => _openScannerForDocument(current),
+                selectedPaths: vm.selectedPaths,
+                onToggleSelection: vm.toggleFileSelection,
               ),
             ),
             bottomNavigationBar: _DocumentActionBar(
@@ -104,17 +88,58 @@ class DocumentViewerView extends StatelessWidget {
     );
   }
 
-  Future<void> _handleAction(
+  /// Deletes the selected pages. If that's every page the document has,
+  /// deleting them trashes the whole document instead (same rule
+  /// [DocumentViewerViewModel.deleteSelectedFiles] enforces) — handled here
+  /// too so the confirm dialog's wording and the follow-up toast/navigation
+  /// match which of those actually happened.
+  Future<void> _confirmDeleteSelectedFiles(
     BuildContext context,
     DocumentViewerViewModel vm,
     DocumentItem current,
-    _DocumentAction action,
-  ) {
-    switch (action) {
-      case _DocumentAction.exportPdf:
-        return persistAction(context, () => vm.exportPdf(current)).then((_) {});
-      case _DocumentAction.delete:
-        return _confirmDelete(context, vm, current);
+  ) async {
+    final count = vm.selectedCount;
+    final deletesWholeDocument = count >= current.filePaths.length;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: context.surfaceElevated,
+        title: Text(AppLocalizations.of(context).delete),
+        content: Text(
+          deletesWholeDocument
+              ? AppLocalizations.of(context).deleteDocumentConfirm(
+                  current.title,
+                  DocumentUseCases.trashRetentionPeriod.inDays,
+                )
+              : AppLocalizations.of(context).deleteSelectedFilesConfirm(count),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(
+              AppLocalizations.of(context).delete,
+              style: TextStyle(color: context.error),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    if (!await persistAction(context, vm.deleteSelectedFiles)) return;
+    if (!context.mounted) return;
+    if (deletesWholeDocument) {
+      AppNavigator.pop();
+      AppToastsUtils.success(
+        AppLocalizations.of(context).documentTrashedToast(current.title),
+      );
+    } else {
+      AppToastsUtils.success(
+        AppLocalizations.of(context).selectedFilesDeletedToast(count),
+      );
     }
   }
 
@@ -234,45 +259,6 @@ class DocumentViewerView extends StatelessWidget {
     );
   }
 
-  Future<void> _confirmDelete(
-    BuildContext context,
-    DocumentViewerViewModel vm,
-    DocumentItem current,
-  ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: context.surfaceElevated,
-        title: Text(AppLocalizations.of(context).deleteDocument),
-        content: Text(
-          AppLocalizations.of(context).deleteDocumentConfirm(
-            current.title,
-            DocumentUseCases.trashRetentionPeriod.inDays,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(
-              AppLocalizations.of(context).delete,
-              style: TextStyle(color: context.error),
-            ),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !context.mounted) return;
-    if (!await persistAction(context, () => vm.delete())) return;
-    if (!context.mounted) return;
-    AppNavigator.pop();
-    AppToastsUtils.success(
-      AppLocalizations.of(context).documentTrashedToast(current.title),
-    );
-  }
 }
 
 class _RenameDocumentSheet extends StatefulWidget {
@@ -381,30 +367,6 @@ class _RenameDocumentSheetState extends State<_RenameDocumentSheet> {
   );
 }
 
-class _MenuRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isDestructive;
-
-  const _MenuRow({
-    required this.icon,
-    required this.label,
-    this.isDestructive = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isDestructive ? context.errorAccent : context.textPrimary;
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: color),
-        widthBox(10),
-        Text(label, style: context.bodyMedium.copyWith(color: color)),
-      ],
-    );
-  }
-}
-
 /// Scanner-style actions remain available while the user reads attachments.
 class _DocumentActionBar extends StatelessWidget {
   final VoidCallback onAdd;
@@ -505,8 +467,15 @@ class _DocumentActionItem extends StatelessWidget {
 class _PageArea extends StatefulWidget {
   final DocumentItem document;
   final VoidCallback onAddFiles;
+  final Set<String> selectedPaths;
+  final ValueChanged<String> onToggleSelection;
 
-  const _PageArea({required this.document, required this.onAddFiles});
+  const _PageArea({
+    required this.document,
+    required this.onAddFiles,
+    required this.selectedPaths,
+    required this.onToggleSelection,
+  });
 
   @override
   State<_PageArea> createState() => _PageAreaState();
@@ -518,7 +487,6 @@ class _PageAreaState extends State<_PageArea> {
   final _listKey = GlobalKey();
   late List<GlobalKey> _fileKeys = _keysFor(widget.document.filePaths.length);
   int _currentFile = 0;
-  final Set<int> _selectedFiles = {};
 
   static List<GlobalKey> _keysFor(int count) =>
       List.generate(count, (_) => GlobalKey(), growable: false);
@@ -535,7 +503,6 @@ class _PageAreaState extends State<_PageArea> {
     if (oldWidget.document.filePaths != widget.document.filePaths) {
       _fileKeys = _keysFor(widget.document.filePaths.length);
       _currentFile = 0;
-      _selectedFiles.clear();
       WidgetsBinding.instance.addPostFrameCallback((_) => _updateCurrentFile());
     }
   }
@@ -547,12 +514,6 @@ class _PageAreaState extends State<_PageArea> {
       ..dispose();
     _zoomController.dispose();
     super.dispose();
-  }
-
-  void _toggleFileSelection(int index) {
-    setState(() {
-      if (!_selectedFiles.add(index)) _selectedFiles.remove(index);
-    });
   }
 
   void _updateCurrentFile() {
@@ -596,9 +557,9 @@ class _PageAreaState extends State<_PageArea> {
                   key: _fileKeys[index],
                   child: _SelectableFilePreview(
                     path: paths[index],
-                    isSelected: _selectedFiles.contains(index),
-                    selectionActive: _selectedFiles.isNotEmpty,
-                    onToggle: () => _toggleFileSelection(index),
+                    isSelected: widget.selectedPaths.contains(paths[index]),
+                    selectionActive: widget.selectedPaths.isNotEmpty,
+                    onToggle: () => widget.onToggleSelection(paths[index]),
                     onOpenPreview: () => AppNavigator.pushNamed(
                       RouteNames.filePreview,
                       extra: (widget.document.filePaths, index),

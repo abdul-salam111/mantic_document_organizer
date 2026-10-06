@@ -34,14 +34,7 @@ class DocumentPdfExporter {
 
     final pdfDocument = pw.Document();
     for (final path in imagePaths) {
-      final image = pw.MemoryImage(await File(path).readAsBytes());
-      pdfDocument.addPage(
-        pw.Page(
-          pageFormat: PdfPageFormat.a4,
-          build: (context) =>
-              pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain)),
-        ),
-      );
+      await _addImagePage(pdfDocument, path);
     }
 
     final directory = await getTemporaryDirectory();
@@ -65,14 +58,7 @@ class DocumentPdfExporter {
 
     final pdfDocument = pw.Document();
     for (final path in imagePaths) {
-      final image = pw.MemoryImage(await File(path).readAsBytes());
-      pdfDocument.addPage(
-        pw.Page(
-          pageFormat: PdfPageFormat.a4,
-          build: (context) =>
-              pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain)),
-        ),
-      );
+      await _addImagePage(pdfDocument, path);
     }
 
     final directory = await getTemporaryDirectory();
@@ -98,15 +84,8 @@ class DocumentPdfExporter {
     final sanitized = _sanitize(title);
     final files = <String>[];
     for (var i = 0; i < imagePaths.length; i++) {
-      final image = pw.MemoryImage(await File(imagePaths[i]).readAsBytes());
-      final pdfDocument = pw.Document()
-        ..addPage(
-          pw.Page(
-            pageFormat: PdfPageFormat.a4,
-            build: (context) =>
-                pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain)),
-          ),
-        );
+      final pdfDocument = pw.Document();
+      await _addImagePage(pdfDocument, imagePaths[i]);
       final file = File(
         p.join(directory.path, '${sanitized}_page_${i + 1}.pdf'),
       );
@@ -114,6 +93,39 @@ class DocumentPdfExporter {
       files.add(file.path);
     }
     return files;
+  }
+
+  /// Adds [path] as its own full-bleed page, sized to *its* aspect ratio
+  /// instead of being letterboxed onto a fixed A4 canvas — the look scanner
+  /// apps like CamScanner give a multi-photo PDF, where every page's shape
+  /// just follows whatever was scanned (a wide receipt gets a wide page, a
+  /// tall ID card gets a tall one) rather than all pages sharing one
+  /// generic paper size with blank margins around the actual content.
+  static Future<void> _addImagePage(pw.Document pdfDocument, String path) async {
+    final image = pw.MemoryImage(await File(path).readAsBytes());
+    pdfDocument.addPage(
+      pw.Page(
+        pageFormat: _pageFormatFor(image),
+        margin: pw.EdgeInsets.zero,
+        build: (context) => pw.Image(image, fit: pw.BoxFit.fill),
+      ),
+    );
+  }
+
+  /// A page format matching [image]'s own aspect ratio, scaled so its
+  /// longer edge matches A4's — keeping multi-page output at a familiar,
+  /// printable scale — rather than [PdfPageFormat.a4]'s fixed portrait
+  /// rectangle every image used to be centered/letterboxed onto regardless
+  /// of its actual shape.
+  static PdfPageFormat _pageFormatFor(pw.MemoryImage image) {
+    final width = image.width;
+    final height = image.height;
+    if (width == null || height == null || width <= 0 || height <= 0) {
+      return PdfPageFormat.a4;
+    }
+    final longEdge = width > height ? width : height;
+    final scale = PdfPageFormat.a4.height / longEdge;
+    return PdfPageFormat(width * scale, height * scale);
   }
 
   static String _sanitize(String title) {
