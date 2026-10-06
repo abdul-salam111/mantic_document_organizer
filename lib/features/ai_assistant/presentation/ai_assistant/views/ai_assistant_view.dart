@@ -93,42 +93,44 @@ class _AiAssistantViewState extends State<AiAssistantView>
     vm.failureText = AppLocalizations.of(context).aiAssistantGenericError;
     return ChangeNotifierProvider.value(
       value: vm,
-      child: Scaffold(
-        appBar: CustomAppBar(
-          title: AppLocalizations.of(context).aiAssistantTitle,
-        ),
-        body: SafeArea(
-          child: Consumer<AiAssistantViewModel>(
-            builder: (context, vm, _) {
-              final examples = [
-                AppLocalizations.of(context).aiAssistantExample1,
-                AppLocalizations.of(context).aiAssistantExample2,
-                AppLocalizations.of(context).aiAssistantExample3,
-              ];
-              return Column(
-                children: [
-                  Expanded(
-                    child: vm.messages.isEmpty
-                        ? const _EmptyState()
-                        : ListView.builder(
-                            controller: _scrollController,
-                            padding: const .all(14),
-                            itemCount: vm.messages.length,
-                            itemBuilder: (context, index) => _MessageBubble(
-                              message: vm.messages[index],
-                              vm: vm,
+      child: UnfocusWrapper(
+        child: Scaffold(
+          appBar: CustomAppBar(
+            title: AppLocalizations.of(context).aiAssistantTitle,
+          ),
+          body: SafeArea(
+            child: Consumer<AiAssistantViewModel>(
+              builder: (context, vm, _) {
+                final examples = [
+                  AppLocalizations.of(context).aiAssistantExample1,
+                  AppLocalizations.of(context).aiAssistantExample2,
+                  AppLocalizations.of(context).aiAssistantExample3,
+                ];
+                return Column(
+                  children: [
+                    Expanded(
+                      child: vm.messages.isEmpty
+                          ? const _EmptyState()
+                          : ListView.builder(
+                              controller: _scrollController,
+                              padding: const .all(14),
+                              itemCount: vm.messages.length,
+                              itemBuilder: (context, index) => _MessageBubble(
+                                message: vm.messages[index],
+                                vm: vm,
+                              ),
                             ),
-                          ),
-                  ),
-                  _InputBar(
-                    vm: vm,
-                    focusNode: _inputFocusNode,
-                    onSend: () => _send(vm),
-                    examples: vm.messages.isEmpty ? examples : const [],
-                  ),
-                ],
-              );
-            },
+                    ),
+                    _InputBar(
+                      vm: vm,
+                      focusNode: _inputFocusNode,
+                      onSend: () => _send(vm),
+                      examples: vm.messages.isEmpty ? examples : const [],
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),
