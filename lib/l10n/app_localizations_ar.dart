@@ -534,6 +534,52 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String deleteSelectedFilesConfirm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'حذف $count صفحات؟ لا يمكن التراجع عن هذا الإجراء.',
+      one: 'حذف هذه الصفحة؟ لا يمكن التراجع عن هذا الإجراء.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selectedFilesDeletedToast(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم حذف $count صفحات',
+      one: 'تم حذف الصفحة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashDocumentsConfirm(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'نقل $count مستندات إلى سلة المهملات؟ يمكنك استعادتها خلال $days يومًا قبل حذفها نهائيًا.',
+      one:
+          'نقل هذا المستند إلى سلة المهملات؟ يمكنك استعادته خلال $days يومًا قبل حذفه نهائيًا.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String documentsTrashedToast(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم نقل $count مستندات إلى سلة المهملات',
+      one: 'تم نقل المستند إلى سلة المهملات',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get trashEmptyTitle => 'سلة المهملات فارغة';
 
   @override

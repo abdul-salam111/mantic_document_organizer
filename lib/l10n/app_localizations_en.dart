@@ -535,6 +535,52 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String deleteSelectedFilesConfirm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Delete $count pages? This can\'t be undone.',
+      one: 'Delete this page? This can\'t be undone.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selectedFilesDeletedToast(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pages deleted',
+      one: 'Page deleted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashDocumentsConfirm(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Move $count documents to Trash? You can restore them within $days days before they\'re permanently deleted.',
+      one:
+          'Move this document to Trash? You can restore it within $days days before it\'s permanently deleted.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String documentsTrashedToast(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count documents moved to Trash',
+      one: 'Document moved to Trash',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get trashEmptyTitle => 'Trash is empty';
 
   @override

@@ -990,6 +990,30 @@ abstract class AppLocalizations {
   /// **'\"{name}\" moved to Trash'**
   String documentTrashedToast(String name);
 
+  /// Confirm dialog body shown before deleting the selected pages from a document's viewer
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Delete this page? This can\'t be undone.} other{Delete {count} pages? This can\'t be undone.}}'**
+  String deleteSelectedFilesConfirm(int count);
+
+  /// Success toast shown after deleting the selected pages from a document's viewer
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Page deleted} other{{count} pages deleted}}'**
+  String selectedFilesDeletedToast(int count);
+
+  /// Confirm dialog body shown before bulk-moving selected documents (in a category view) to Trash
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Move this document to Trash? You can restore it within {days} days before it\'s permanently deleted.} other{Move {count} documents to Trash? You can restore them within {days} days before they\'re permanently deleted.}}'**
+  String trashDocumentsConfirm(int count, int days);
+
+  /// Success toast shown after bulk-moving selected documents to Trash
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Document moved to Trash} other{{count} documents moved to Trash}}'**
+  String documentsTrashedToast(int count);
+
   /// Trash screen empty state title
   ///
   /// In en, this message translates to:

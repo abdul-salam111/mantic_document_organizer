@@ -539,6 +539,52 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String deleteSelectedFilesConfirm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '¿Eliminar $count páginas? Esta acción no se puede deshacer.',
+      one: '¿Eliminar esta página? Esta acción no se puede deshacer.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selectedFilesDeletedToast(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count páginas eliminadas',
+      one: 'Página eliminada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashDocumentsConfirm(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '¿Mover $count documentos a la papelera? Podrás restaurarlos durante $days días antes de que se eliminen definitivamente.',
+      one:
+          '¿Mover este documento a la papelera? Podrás restaurarlo durante $days días antes de que se elimine definitivamente.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String documentsTrashedToast(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count documentos movidos a la papelera',
+      one: 'Documento movido a la papelera',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get trashEmptyTitle => 'La papelera está vacía';
 
   @override

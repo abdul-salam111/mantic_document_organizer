@@ -540,6 +540,52 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String deleteSelectedFilesConfirm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Supprimer $count pages ? Cette action est irréversible.',
+      one: 'Supprimer cette page ? Cette action est irréversible.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selectedFilesDeletedToast(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pages supprimées',
+      one: 'Page supprimée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trashDocumentsConfirm(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Déplacer $count documents vers la corbeille ? Vous pourrez les restaurer pendant $days jours avant leur suppression définitive.',
+      one:
+          'Déplacer ce document vers la corbeille ? Vous pourrez le restaurer pendant $days jours avant sa suppression définitive.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String documentsTrashedToast(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count documents déplacés vers la corbeille',
+      one: 'Document déplacé vers la corbeille',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get trashEmptyTitle => 'La corbeille est vide';
 
   @override
