@@ -71,10 +71,12 @@ class MainActivity : FlutterFragmentActivity() {
             intent.setPackage(targetPackage)
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
 
-            if (intent.resolveActivity(packageManager) == null) {
-                result.success(false)
-                return
-            }
+            // No resolveActivity() pre-check: it's unreliable across OEM
+            // Android builds (notably MIUI), sometimes reporting "no
+            // activity found" even though the target app is installed and
+            // would happily handle startActivity directly. Catching
+            // ActivityNotFoundException from the real attempt is the only
+            // check that's actually authoritative.
             startActivity(intent)
             result.success(true)
         } catch (_: Exception) {
