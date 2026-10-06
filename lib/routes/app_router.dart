@@ -156,6 +156,18 @@ class AppRoutes {
             DocumentViewerView(document: state.extra as DocumentItem),
       ),
       GoRoute(
+        path: RoutePaths.filePreview,
+        name: RouteNames.filePreview,
+        builder: (context, state) {
+          final (filePaths, initialIndex) =
+              state.extra as (List<String>, int);
+          return FilePreviewView(
+            filePaths: filePaths,
+            initialIndex: initialIndex,
+          );
+        },
+      ),
+      GoRoute(
         path: RoutePaths.trash,
         name: RouteNames.trash,
         builder: (context, state) => const TrashView(),

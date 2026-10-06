@@ -16,6 +16,7 @@ class RoutePaths {
   static const String manageCategories = "/manage-categories";
   static const String categoryDocuments = "/category-documents";
   static const String documentViewer = "/document-viewer";
+  static const String filePreview = "/file-preview";
   static const String trash = "/trash";
   static const String expiringSoon = "/expiring-soon";
   static const String bulkImport = "/bulk-import";

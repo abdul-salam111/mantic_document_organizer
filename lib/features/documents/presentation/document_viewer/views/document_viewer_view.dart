@@ -5,7 +5,6 @@ import 'package:mantic_doc_org/features/documents/domain/usecases/document_useca
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:pdfx/pdfx.dart';
 
 import '../../../../../core/di/di_exports.dart';
 import '../../../../../core/localization/localization_exports.dart';
@@ -622,6 +621,10 @@ class _PageAreaState extends State<_PageArea> {
                         isSelected: _selectedFiles.contains(index),
                         selectionActive: _selectedFiles.isNotEmpty,
                         onToggle: () => _toggleFileSelection(index),
+                        onOpenPreview: () => AppNavigator.pushNamed(
+                          RouteNames.filePreview,
+                          extra: (widget.document.filePaths, index),
+                        ),
                       ),
                     ),
             ),
@@ -737,18 +740,20 @@ class _SelectableFilePreview extends StatelessWidget {
   final bool isSelected;
   final bool selectionActive;
   final VoidCallback onToggle;
+  final VoidCallback onOpenPreview;
 
   const _SelectableFilePreview({
     required this.path,
     required this.isSelected,
     required this.selectionActive,
     required this.onToggle,
+    required this.onOpenPreview,
   });
 
   @override
   Widget build(BuildContext context) => GestureDetector(
     onLongPress: onToggle,
-    onTap: selectionActive ? onToggle : null,
+    onTap: selectionActive ? onToggle : onOpenPreview,
     child: Stack(
       children: [
         _FilePreview(path: path),
@@ -814,7 +819,9 @@ class _PagePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (isPdfPath(path)) return _PdfPreview(path: path);
+    if (isPdfPath(path)) {
+      return PdfZoomView(path: path, fallback: _UnsupportedPreview(path: path));
+    }
     if (!isImagePath(path)) return _UnsupportedPreview(path: path);
     return InteractiveViewer(
       panEnabled: false,
@@ -827,46 +834,6 @@ class _PagePreview extends StatelessWidget {
           errorBuilder: (context, error, stackTrace) =>
               _UnsupportedPreview(path: path),
         ),
-      ),
-    );
-  }
-}
-
-/// Renders a PDF inline (pinch-zoom, swipe between its own internal pages)
-/// instead of falling back to [_UnsupportedPreview] — the one non-image
-/// attachment type this screen can actually preview rather than just
-/// share out. Owns a [PdfControllerPinch] so it can dispose the underlying
-/// document when the page is swiped away.
-class _PdfPreview extends StatefulWidget {
-  final String path;
-
-  const _PdfPreview({required this.path});
-
-  @override
-  State<_PdfPreview> createState() => _PdfPreviewState();
-}
-
-class _PdfPreviewState extends State<_PdfPreview> {
-  late final PdfControllerPinch _controller = PdfControllerPinch(
-    document: PdfDocument.openFile(widget.path),
-  );
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return PdfViewPinch(
-      controller: _controller,
-      builders: PdfViewPinchBuilders<DefaultBuilderOptions>(
-        options: const DefaultBuilderOptions(),
-        documentLoaderBuilder: (context) =>
-            const Center(child: CircularProgressIndicator()),
-        errorBuilder: (context, error) =>
-            _UnsupportedPreview(path: widget.path),
       ),
     );
   }

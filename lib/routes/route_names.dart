@@ -12,6 +12,7 @@ class RouteNames {
   static const String manageCategories = "manageCategories";
   static const String categoryDocuments = "categoryDocuments";
   static const String documentViewer = "documentViewer";
+  static const String filePreview = "filePreview";
   static const String trash = "trash";
   static const String expiringSoon = "expiringSoon";
   static const String bulkImport = "bulkImport";
