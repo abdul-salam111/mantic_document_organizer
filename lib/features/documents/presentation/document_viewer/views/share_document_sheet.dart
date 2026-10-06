@@ -19,7 +19,6 @@ const String _whatsAppPackage = 'com.whatsapp';
 const String _gmailPackage = 'com.google.android.gm';
 const String _drivePackage = 'com.google.android.apps.docs';
 const String _messengerPackage = 'com.facebook.orca';
-const String _instagramPackage = 'com.instagram.android';
 
 enum ShareSheetAction {
   directApp,
@@ -315,15 +314,6 @@ class _ShareDocumentSheetState extends State<ShareDocumentSheet> {
                           onTap: () => _finish(
                             .directApp,
                             packageName: _messengerPackage,
-                          ),
-                        ),
-                        widthBox(16),
-                        _ShareAppIcon(
-                          iconAsset: AppIcons.instagram,
-                          label: 'Instagram',
-                          onTap: () => _finish(
-                            .directApp,
-                            packageName: _instagramPackage,
                           ),
                         ),
                         widthBox(16),
