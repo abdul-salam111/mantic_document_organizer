@@ -18,3 +18,4 @@ export 'feedback/pending_sync_badge.dart';
 export 'inputs/custom_dropdown_textfield.dart';
 export 'inputs/custom_searchfield.dart';
 export 'inputs/custom_textfield.dart';
+export 'media/pdf_page_thumbnail.dart';

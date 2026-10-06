@@ -6,6 +6,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import 'document_page_rasterizer.dart';
+
 /// Combines a [DocumentItem]'s scanned image pages into a single, shareable
 /// PDF. The document viewer's existing "Share" action already sends
 /// [DocumentItem.filePaths] as-is, which for a multi-page scan means several
@@ -43,16 +45,79 @@ class DocumentPdfExporter {
     }
 
     final directory = await getTemporaryDirectory();
-    final file = File(p.join(directory.path, '${_fileName(document)}.pdf'));
+    final file = File(p.join(directory.path, '${_sanitize(document.title)}.pdf'));
     await file.writeAsBytes(await pdfDocument.save());
     return file.path;
   }
 
-  static String _fileName(DocumentItem document) {
-    final sanitized = document.title.trim().replaceAll(
-      RegExp(r'[\\/:*?"<>|]'),
-      '_',
-    );
+  /// Combines an arbitrary set of attachment paths into a single PDF —
+  /// the share sheet's "Share as PDF" action. Unlike [export], real PDF
+  /// pages in [paths] aren't skipped: they're rasterized first (via
+  /// [DocumentPageRasterizer], same tradeoff as [export]'s own doc comment
+  /// — no library here can merge real PDF byte streams) so a selection
+  /// mixing scanned photos and an existing PDF attachment still produces
+  /// one combined file.
+  static Future<String> combine(List<String> paths, String title) async {
+    final imagePaths = await DocumentPageRasterizer.toImagePaths(paths);
+    if (imagePaths.isEmpty) {
+      throw StateError('No pages to export');
+    }
+
+    final pdfDocument = pw.Document();
+    for (final path in imagePaths) {
+      final image = pw.MemoryImage(await File(path).readAsBytes());
+      pdfDocument.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.a4,
+          build: (context) =>
+              pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain)),
+        ),
+      );
+    }
+
+    final directory = await getTemporaryDirectory();
+    final file = File(p.join(directory.path, '${_sanitize(title)}.pdf'));
+    await file.writeAsBytes(await pdfDocument.save());
+    return file.path;
+  }
+
+  /// Exports every page in [paths] as its own separate single-page PDF
+  /// file — the share sheet's "Export Each Page as PDF" action. A real PDF
+  /// attachment is split page-by-page the same way [combine] merges one in:
+  /// each of its pages is rasterized, then wrapped as its own PDF.
+  static Future<List<String>> exportEachPage(
+    List<String> paths,
+    String title,
+  ) async {
+    final imagePaths = await DocumentPageRasterizer.toImagePaths(paths);
+    if (imagePaths.isEmpty) {
+      throw StateError('No pages to export');
+    }
+
+    final directory = await getTemporaryDirectory();
+    final sanitized = _sanitize(title);
+    final files = <String>[];
+    for (var i = 0; i < imagePaths.length; i++) {
+      final image = pw.MemoryImage(await File(imagePaths[i]).readAsBytes());
+      final pdfDocument = pw.Document()
+        ..addPage(
+          pw.Page(
+            pageFormat: PdfPageFormat.a4,
+            build: (context) =>
+                pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain)),
+          ),
+        );
+      final file = File(
+        p.join(directory.path, '${sanitized}_page_${i + 1}.pdf'),
+      );
+      await file.writeAsBytes(await pdfDocument.save());
+      files.add(file.path);
+    }
+    return files;
+  }
+
+  static String _sanitize(String title) {
+    final sanitized = title.trim().replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
     return sanitized.isEmpty ? 'document' : sanitized;
   }
 }

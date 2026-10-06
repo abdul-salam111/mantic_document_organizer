@@ -888,6 +888,60 @@ abstract class AppLocalizations {
   /// **'Couldn\'t create PDF. Please try again.'**
   String get exportPdfFailedToast;
 
+  /// Share sheet file-selection toggle label, shown when not every file is selected
+  ///
+  /// In en, this message translates to:
+  /// **'Select All'**
+  String get selectAll;
+
+  /// Share sheet file-selection toggle label, shown when every file is selected
+  ///
+  /// In en, this message translates to:
+  /// **'Deselect All'**
+  String get deselectAll;
+
+  /// Share sheet app-row button that opens the OS share sheet listing every installed app
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get shareViaMore;
+
+  /// Share sheet option: combine the selected files into a single PDF and share it
+  ///
+  /// In en, this message translates to:
+  /// **'Share as PDF'**
+  String get shareAsPdfOption;
+
+  /// Share sheet option: share the selected files as separate images
+  ///
+  /// In en, this message translates to:
+  /// **'Share as Images'**
+  String get shareAsImagesOption;
+
+  /// Share sheet option: export every selected page as its own separate PDF file, then share them all together
+  ///
+  /// In en, this message translates to:
+  /// **'Export Each Page as PDF'**
+  String get exportEachPageAsPdfOption;
+
+  /// Share sheet option: save the selected files to the device's photo gallery
+  ///
+  /// In en, this message translates to:
+  /// **'Save to Gallery'**
+  String get saveToGalleryOption;
+
+  /// Warning toast shown when a share sheet action is tapped with no files selected
+  ///
+  /// In en, this message translates to:
+  /// **'Select at least one file to share'**
+  String get noFilesSelectedToast;
+
+  /// Success toast shown after Save to Gallery finishes
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to gallery'**
+  String get savedToGalleryToast;
+
   /// Document Viewer overflow menu entry
   ///
   /// In en, this message translates to:

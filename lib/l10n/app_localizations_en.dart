@@ -476,6 +476,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportPdfFailedToast => 'Couldn\'t create PDF. Please try again.';
 
   @override
+  String get selectAll => 'Select All';
+
+  @override
+  String get deselectAll => 'Deselect All';
+
+  @override
+  String get shareViaMore => 'More';
+
+  @override
+  String get shareAsPdfOption => 'Share as PDF';
+
+  @override
+  String get shareAsImagesOption => 'Share as Images';
+
+  @override
+  String get exportEachPageAsPdfOption => 'Export Each Page as PDF';
+
+  @override
+  String get saveToGalleryOption => 'Save to Gallery';
+
+  @override
+  String get noFilesSelectedToast => 'Select at least one file to share';
+
+  @override
+  String get savedToGalleryToast => 'Saved to gallery';
+
+  @override
   String get rename => 'Rename';
 
   @override

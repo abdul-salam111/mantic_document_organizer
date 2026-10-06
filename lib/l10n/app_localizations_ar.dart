@@ -475,6 +475,33 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر إنشاء ملف PDF. يرجى المحاولة مرة أخرى.';
 
   @override
+  String get selectAll => 'تحديد الكل';
+
+  @override
+  String get deselectAll => 'إلغاء تحديد الكل';
+
+  @override
+  String get shareViaMore => 'المزيد';
+
+  @override
+  String get shareAsPdfOption => 'مشاركة كملف PDF';
+
+  @override
+  String get shareAsImagesOption => 'مشاركة كصور';
+
+  @override
+  String get exportEachPageAsPdfOption => 'تصدير كل صفحة كملف PDF';
+
+  @override
+  String get saveToGalleryOption => 'الحفظ في المعرض';
+
+  @override
+  String get noFilesSelectedToast => 'اختر ملفًا واحدًا على الأقل للمشاركة';
+
+  @override
+  String get savedToGalleryToast => 'تم الحفظ في المعرض';
+
+  @override
   String get rename => 'إعادة تسمية';
 
   @override

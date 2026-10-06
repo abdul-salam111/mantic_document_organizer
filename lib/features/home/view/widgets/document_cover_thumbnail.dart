@@ -1,9 +1,7 @@
 import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:pdfx/pdfx.dart';
 
 import '../../../../core/constants/constants_exports.dart';
 import '../../../../core/widgets/widgets_exports.dart';
@@ -68,74 +66,11 @@ class DocumentCoverThumbnail extends StatelessWidget {
         child: SizedBox(
           width: width,
           height: height,
-          child: _PdfCover(path: path, fallback: _iconFallback()),
+          child: PdfPageThumbnail(path: path, fallback: _iconFallback()),
         ),
       );
     }
 
     return _iconFallback();
-  }
-}
-
-/// Renders a PDF's first page as a small raster thumbnail. Kept deliberately
-/// low-resolution (see [_renderWidth]) since this only ever needs to fill a
-/// card-sized square, not a full-screen preview (that's document_viewer's
-/// job) — opening/rendering/closing the document on every build would be
-/// wasteful, so the render is done once and cached in state.
-class _PdfCover extends StatefulWidget {
-  final String path;
-  final Widget fallback;
-
-  const _PdfCover({required this.path, required this.fallback});
-
-  @override
-  State<_PdfCover> createState() => _PdfCoverState();
-}
-
-class _PdfCoverState extends State<_PdfCover> {
-  static const double _renderWidth = 160;
-
-  late Future<Uint8List?> _cover = _renderFirstPage();
-
-  @override
-  void didUpdateWidget(covariant _PdfCover oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // A list that inserts new items at the front (e.g. Home's Recent Files)
-    // shifts every other item's position without giving them a distinct
-    // Key, so Flutter reuses this State for whatever document now occupies
-    // this slot — recompute rather than keep showing the previous
-    // document's already-rendered page.
-    if (oldWidget.path != widget.path) {
-      _cover = _renderFirstPage();
-    }
-  }
-
-  Future<Uint8List?> _renderFirstPage() async {
-    try {
-      final document = await PdfDocument.openFile(widget.path);
-      final page = await document.getPage(1);
-      final scale = _renderWidth / page.width;
-      final image = await page.render(
-        width: _renderWidth,
-        height: page.height * scale,
-      );
-      await page.close();
-      await document.close();
-      return image?.bytes;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<Uint8List?>(
-      future: _cover,
-      builder: (context, snapshot) {
-        final bytes = snapshot.data;
-        if (bytes == null) return widget.fallback;
-        return Image.memory(bytes, fit: .cover);
-      },
-    );
   }
 }

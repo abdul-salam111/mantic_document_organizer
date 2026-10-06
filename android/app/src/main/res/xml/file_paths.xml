@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Used by the FileProvider declared in AndroidManifest.xml for the share
+     sheet's direct-to-app sharing (MainActivity's shareToApp handler).
+     files-path covers context.getFilesDir() — where path_provider's
+     getApplicationDocumentsDirectory() puts document attachments.
+     cache-path covers context.getCacheDir() — where path_provider's
+     getTemporaryDirectory() puts generated PDFs and rasterized pages. -->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <files-path name="app_files" path="." />
+    <cache-path name="app_cache" path="." />
+</paths>

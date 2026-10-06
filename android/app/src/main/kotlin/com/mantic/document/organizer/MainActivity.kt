@@ -1,6 +1,8 @@
 package com.mantic.document.organizer
 
+import android.content.Intent
 import android.net.Uri
+import androidx.core.content.FileProvider
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
@@ -20,6 +22,64 @@ class MainActivity : FlutterFragmentActivity() {
             flutterEngine.dartExecutor.binaryMessenger,
             OCR_CHANNEL,
         ).setMethodCallHandler(::handleOcrCall)
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            SHARE_CHANNEL,
+        ).setMethodCallHandler(::handleShareCall)
+    }
+
+    // Opens one specific installed app directly with files attached (the
+    // document viewer share sheet's WhatsApp/Gmail buttons) — see
+    // DirectShareService on the Dart side for why every failure mode here
+    // just resolves `false` rather than throwing: the caller always falls
+    // back to the generic OS share sheet.
+    private fun handleShareCall(call: MethodCall, result: MethodChannel.Result) {
+        if (call.method != "shareToApp") {
+            result.notImplemented()
+            return
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        val paths = call.argument<List<String>>("paths")
+        val targetPackage = call.argument<String>("package")
+        if (paths.isNullOrEmpty() || targetPackage.isNullOrBlank()) {
+            result.success(false)
+            return
+        }
+
+        try {
+            val authority = "$packageName.fileprovider"
+            val uris = ArrayList<Uri>()
+            for (path in paths) {
+                val file = File(path)
+                if (file.exists()) {
+                    uris.add(FileProvider.getUriForFile(this, authority, file))
+                }
+            }
+            if (uris.isEmpty()) {
+                result.success(false)
+                return
+            }
+
+            val intent = if (uris.size == 1) {
+                Intent(Intent.ACTION_SEND).putExtra(Intent.EXTRA_STREAM, uris[0])
+            } else {
+                Intent(Intent.ACTION_SEND_MULTIPLE)
+                    .putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
+            }
+            intent.type = "*/*"
+            intent.setPackage(targetPackage)
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
+            if (intent.resolveActivity(packageManager) == null) {
+                result.success(false)
+                return
+            }
+            startActivity(intent)
+            result.success(true)
+        } catch (_: Exception) {
+            result.success(false)
+        }
     }
 
     private fun handleOcrCall(call: MethodCall, result: MethodChannel.Result) {
@@ -66,5 +126,6 @@ class MainActivity : FlutterFragmentActivity() {
 
     private companion object {
         const val OCR_CHANNEL = "mantic.document.organizer/ocr"
+        const val SHARE_CHANNEL = "mantic.document.organizer/share"
     }
 }

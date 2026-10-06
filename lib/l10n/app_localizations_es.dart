@@ -479,6 +479,34 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo crear el PDF. Inténtalo de nuevo.';
 
   @override
+  String get selectAll => 'Seleccionar todo';
+
+  @override
+  String get deselectAll => 'Deseleccionar todo';
+
+  @override
+  String get shareViaMore => 'Más';
+
+  @override
+  String get shareAsPdfOption => 'Compartir como PDF';
+
+  @override
+  String get shareAsImagesOption => 'Compartir como imágenes';
+
+  @override
+  String get exportEachPageAsPdfOption => 'Exportar cada página como PDF';
+
+  @override
+  String get saveToGalleryOption => 'Guardar en la galería';
+
+  @override
+  String get noFilesSelectedToast =>
+      'Selecciona al menos un archivo para compartir';
+
+  @override
+  String get savedToGalleryToast => 'Guardado en la galería';
+
+  @override
   String get rename => 'Renombrar';
 
   @override

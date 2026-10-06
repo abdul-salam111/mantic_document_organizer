@@ -1,6 +1,9 @@
 import '../../domain/entities/document_item.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../../core/utils/document_pdf_exporter.dart';
+import '../../../../core/utils/document_page_rasterizer.dart';
+import '../../../../core/sharing/direct_share_service.dart';
+import '../../../../core/gallery/gallery_saver_service.dart';
 import '../../domain/entities/attachment_item.dart';
 import '../../domain/entities/document_suggestion.dart';
 import '../../domain/repositories/document_processing_repository.dart';
@@ -13,7 +16,15 @@ class DocumentProcessingRepositoryImpl
   final AttachmentLocalDataSource _attachments;
   final OcrService _ocr;
   final AiDocumentService _ai;
-  DocumentProcessingRepositoryImpl(this._attachments, this._ocr, this._ai);
+  final DirectShareService _directShare;
+  final GallerySaverService _gallery;
+  DocumentProcessingRepositoryImpl(
+    this._attachments,
+    this._ocr,
+    this._ai,
+    this._directShare,
+    this._gallery,
+  );
   @override
   Future<AttachmentSelection> pickFromCamera() => _attachments.pickFromCamera();
   @override
@@ -47,5 +58,51 @@ class DocumentProcessingRepositoryImpl
   @override
   Future<void> shareFile(String path) async {
     await SharePlus.instance.share(ShareParams(files: [XFile(path)]));
+  }
+
+  @override
+  Future<void> shareFiles(List<String> paths) async {
+    await SharePlus.instance.share(
+      ShareParams(files: [for (final path in paths) XFile(path)]),
+    );
+  }
+
+  @override
+  Future<void> shareDirect(
+    List<String> paths, {
+    required String packageName,
+  }) async {
+    final launched = await _directShare.shareToApp(
+      paths: paths,
+      packageName: packageName,
+    );
+    if (!launched) await shareFiles(paths);
+  }
+
+  @override
+  Future<void> shareAsPdf(List<String> paths, {required String title}) async {
+    final combined = await DocumentPdfExporter.combine(paths, title);
+    await SharePlus.instance.share(ShareParams(files: [XFile(combined)]));
+  }
+
+  @override
+  Future<void> shareAsImages(List<String> paths) async {
+    final images = await DocumentPageRasterizer.toImagePaths(paths);
+    await shareFiles(images);
+  }
+
+  @override
+  Future<void> exportPagesAsPdf(
+    List<String> paths, {
+    required String title,
+  }) async {
+    final files = await DocumentPdfExporter.exportEachPage(paths, title);
+    await shareFiles(files);
+  }
+
+  @override
+  Future<void> saveToGallery(List<String> paths) async {
+    final images = await DocumentPageRasterizer.toImagePaths(paths);
+    await _gallery.saveImages(images);
   }
 }

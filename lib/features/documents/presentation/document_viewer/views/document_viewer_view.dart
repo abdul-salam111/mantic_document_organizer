@@ -15,6 +15,7 @@ import '../../../../../core/widgets/widgets_exports.dart';
 import '../../../../../routes/routes_exports.dart';
 import '../../../../home/home_exports.dart';
 import '../viewmodels/document_viewer_viewmodel.dart';
+import 'share_document_sheet.dart';
 
 enum _DocumentAction { exportPdf, delete }
 
@@ -89,9 +90,7 @@ class DocumentViewerView extends StatelessWidget {
             bottomNavigationBar: _DocumentActionBar(
               onAdd: () => _openScannerForDocument(current),
               onEdit: () => _openEditor(current),
-              onShare: () {
-                persistAction(context, () => vm.share(current));
-              },
+              onShare: () => _openShareSheet(context, vm, current),
               onMove: () {
                 _showMovePicker(context, vm, current);
               },
@@ -125,6 +124,62 @@ class DocumentViewerView extends StatelessWidget {
 
   void _openScannerForDocument(DocumentItem document) {
     AppNavigator.pushNamed(RouteNames.addDocument, extra: (document, true));
+  }
+
+  Future<void> _openShareSheet(
+    BuildContext context,
+    DocumentViewerViewModel vm,
+    DocumentItem current,
+  ) async {
+    final result = await showModalBottomSheet<ShareSheetResult>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: context.surfaceElevated,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * 0.92,
+      ),
+      builder: (_) => ShareDocumentSheet(document: current),
+    );
+    if (result == null || !context.mounted) return;
+
+    switch (result.action) {
+      case ShareSheetAction.directApp:
+        await persistAction(
+          context,
+          () => vm.shareDirect(result.paths, result.packageName!),
+        );
+      case ShareSheetAction.osShareSheet:
+        await persistAction(context, () => vm.shareFiles(result.paths));
+      case ShareSheetAction.shareAsPdf:
+        await persistAction(
+          context,
+          () => vm.shareSelectedAsPdf(result.paths, current.title),
+        );
+      case ShareSheetAction.shareAsImages:
+        await persistAction(
+          context,
+          () => vm.shareSelectedAsImages(result.paths),
+        );
+      case ShareSheetAction.exportPagesAsPdf:
+        await persistAction(
+          context,
+          () => vm.exportSelectedPagesAsPdf(result.paths, current.title),
+        );
+      case ShareSheetAction.saveToGallery:
+        final saved = await persistAction(
+          context,
+          () => vm.saveSelectedToGallery(result.paths),
+        );
+        if (saved && context.mounted) {
+          AppToastsUtils.success(
+            AppLocalizations.of(context).savedToGalleryToast,
+          );
+        }
+    }
   }
 
   Future<void> _showRenameSheet(
@@ -473,7 +528,6 @@ class _PageAreaState extends State<_PageArea> {
   void initState() {
     super.initState();
     _scrollController.addListener(_updateCurrentFile);
-    _zoomController.addListener(_updateZoomState);
   }
 
   @override
@@ -492,19 +546,18 @@ class _PageAreaState extends State<_PageArea> {
     _scrollController
       ..removeListener(_updateCurrentFile)
       ..dispose();
-    _zoomController
-      ..removeListener(_updateZoomState)
-      ..dispose();
+    _zoomController.dispose();
     super.dispose();
   }
 
-  void _updateZoomState() {
+  void _syncZoomState() {
     final isZoomed = _zoomController.value.getMaxScaleOnAxis() > 1.01;
     if (isZoomed != _isZoomed && mounted) setState(() => _isZoomed = isZoomed);
   }
 
   void _resetZoom() {
     _zoomController.value = _zoomController.value.clone()..setIdentity();
+    if (_isZoomed) setState(() => _isZoomed = false);
   }
 
   void _toggleFileSelection(int index) {
@@ -551,6 +604,7 @@ class _PageAreaState extends State<_PageArea> {
         boundaryMargin: const EdgeInsets.all(80),
         minScale: 1,
         maxScale: 4,
+        onInteractionEnd: (_) => _syncZoomState(),
         child: Stack(
           children: [
             ListView.separated(

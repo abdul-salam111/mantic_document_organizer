@@ -6,6 +6,8 @@
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>AppGroupId</key>
+	<string>$(CUSTOM_GROUP_ID)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Dockitly</string>
 	<key>CFBundleExecutable</key>
@@ -44,6 +46,17 @@
 				     required by google_sign_in on iOS to receive the OAuth
 				     redirect back into the app. -->
 				<string>com.googleusercontent.apps.471240093218-129he836isa67t8supme7bl64231m6f5</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<!-- Used by the Share Extension (see ios/Share Extension/) to hand
+				     shared files back to this app; receive_sharing_intent expects
+				     exactly this "ShareMedia-<bundle id>" scheme. -->
+				<string>ShareMedia-$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 			</array>
 		</dict>
 	</array>
@@ -95,7 +108,7 @@
 					<key>UISceneConfigurationName</key>
 					<string>flutter</string>
 					<key>UISceneDelegateClassName</key>
-					<string>FlutterSceneDelegate</string>
+					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
 					<key>UISceneStoryboardFile</key>
 					<string>Main</string>
 				</dict>

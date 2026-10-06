@@ -12,6 +12,12 @@
 <uses-permission
     android:name="android.permission.READ_EXTERNAL_STORAGE"
     android:maxSdkVersion="32" />
+<!-- Save to Gallery (photo_manager) on Android 9 and below — API 29+
+     grants an app write access to the MediaStore entries it creates
+     itself without this permission. -->
+<uses-permission
+    android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+    android:maxSdkVersion="28" />
     <application
         android:label="Dockitly"
         android:name="${applicationName}"
@@ -72,6 +78,22 @@
                 <data android:scheme="com.mantic.document.organizer" />
             </intent-filter>
         </activity>
+        <!-- Lets the document viewer's share sheet hand a document's files
+             directly to one specific installed app (WhatsApp/Gmail) via an
+             explicit-package Intent, instead of only offering the generic
+             OS chooser — see MainActivity's shareToApp channel handler and
+             DirectShareService on the Dart side. Covers both the files this
+             app writes under its own documents dir (attachments) and its
+             cache dir (generated PDFs/rendered pages). -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
         <!-- Captures the completion of browser-based OAuth flows and hands the
              callback URL back to flutter_web_auth_2. -->
         <activity
@@ -114,5 +136,11 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+        <!-- Package visibility (API 30+) for the share sheet's direct-to-app
+             buttons — without these, an explicit-package share Intent to an
+             installed WhatsApp/Gmail can fail to resolve even though the
+             app is present. See MainActivity's shareToApp handler. -->
+        <package android:name="com.whatsapp" />
+        <package android:name="com.google.android.gm" />
     </queries>
 </manifest>

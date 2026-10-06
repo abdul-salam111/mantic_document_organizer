@@ -21,6 +21,7 @@ import 'package:internet_connection_checker/internet_connection_checker.dart';
 import '../../features/categories/presentation/add_category/viewmodel/add_category_viewmodel.dart';
 import '../ai/ai_exports.dart';
 import '../database/database_exports.dart';
+import '../gallery/gallery_saver_service.dart';
 import '../localization/localization_exports.dart';
 import '../networks/networks_exports.dart';
 import '../notifications/notifications_exports.dart';
@@ -107,6 +108,8 @@ Future<void> coreDependencies() async {
   sl.registerLazySingleton(() => AppDatabase());
   sl.registerLazySingleton(() => ExpiryNotificationService());
   sl.registerLazySingleton(() => ShareIntentService());
+  sl.registerLazySingleton(() => DirectShareService());
+  sl.registerLazySingleton(() => GallerySaverService());
 }
 
 Future<void> authDependencies() async {
@@ -247,7 +250,7 @@ Future<void> addDocumentDependencies() async {
     () => DeviceAttachmentDataSource(),
   );
   sl.registerLazySingleton<IDocumentProcessingRepository>(
-    () => DocumentProcessingRepositoryImpl(sl(), sl(), sl()),
+    () => DocumentProcessingRepositoryImpl(sl(), sl(), sl(), sl(), sl()),
   );
   sl.registerLazySingleton(() => DocumentProcessingUseCases(sl()));
   sl.registerFactory<AddDocumentViewModel>(

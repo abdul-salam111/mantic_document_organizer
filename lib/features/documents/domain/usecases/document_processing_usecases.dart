@@ -24,4 +24,15 @@ class DocumentProcessingUseCases {
   Future<void> exportPdf(DocumentItem document) =>
       _repository.exportPdf(document);
   Future<void> shareFile(String path) => _repository.shareFile(path);
+  Future<void> shareFiles(List<String> paths) => _repository.shareFiles(paths);
+  Future<void> shareDirect(List<String> paths, String packageName) =>
+      _repository.shareDirect(paths, packageName: packageName);
+  Future<void> shareAsPdf(List<String> paths, String title) =>
+      _repository.shareAsPdf(paths, title: title);
+  Future<void> shareAsImages(List<String> paths) =>
+      _repository.shareAsImages(paths);
+  Future<void> exportPagesAsPdf(List<String> paths, String title) =>
+      _repository.exportPagesAsPdf(paths, title: title);
+  Future<void> saveToGallery(List<String> paths) =>
+      _repository.saveToGallery(paths);
 }
