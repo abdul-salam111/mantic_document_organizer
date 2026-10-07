@@ -55,12 +55,8 @@ class _ShareDocumentSheetState extends State<ShareDocumentSheet> {
   // height — rather than only being able to hand it to an AspectRatio
   // widget.
   final Map<int, double> _aspectRatios = {};
-
-  @override
-  void initState() {
-    super.initState();
-    _resolveAspectRatios();
-  }
+  bool _selectAllMode = true;
+  bool _previewsStarted = false;
 
   /// Resolved one file at a time, not concurrently — PDF rendering can't
   /// run in parallel on Android (same constraint documented on
@@ -79,26 +75,28 @@ class _ShareDocumentSheetState extends State<ShareDocumentSheet> {
       if (_selected.contains(i)) widget.document.filePaths[i],
   ];
 
-  bool get _allSelected =>
-      widget.document.filePaths.isNotEmpty &&
-      _selected.length == widget.document.filePaths.length;
-
   void _toggle(int index) {
     setState(() {
       if (!_selected.remove(index)) _selected.add(index);
     });
   }
 
-  void _toggleSelectAll() {
+  void _setSelectionMode(bool selectAll) {
+    if (_selectAllMode == selectAll) return;
     setState(() {
-      if (_allSelected) {
-        _selected.clear();
-      } else {
+      _selectAllMode = selectAll;
+      if (selectAll) {
         _selected = {
           for (var i = 0; i < widget.document.filePaths.length; i++) i,
         };
+      } else {
+        _selected.clear();
       }
     });
+    if (!selectAll && !_previewsStarted) {
+      _previewsStarted = true;
+      unawaited(_resolveAspectRatios());
+    }
   }
 
   void _finish(ShareSheetAction action) {
@@ -191,98 +189,130 @@ class _ShareDocumentSheetState extends State<ShareDocumentSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final paths = widget.document.filePaths;
+    final enabled = _selected.isNotEmpty;
+    final colors = Theme.of(context).colorScheme;
 
     return SafeArea(
+      top: false,
       child: Column(
-        crossAxisAlignment: .stretch,
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          const SizedBox(height: 10),
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: context.border,
+                borderRadius: BorderRadius.circular(99),
+              ),
+            ),
+          ),
           Padding(
-            padding: const .fromLTRB(20, 16, 12, 0),
+            padding: const EdgeInsets.fromLTRB(20, 12, 8, 8),
             child: Row(
               children: [
                 Expanded(
-                  child: Text(
-                    widget.document.title,
-                    maxLines: 1,
-                    overflow: .ellipsis,
-                    style: context.titleMedium.copyWith(fontWeight: .bold),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(l10n.share, style: context.titleLarge.copyWith(
+                        fontWeight: FontWeight.bold,
+                      )),
+                      const SizedBox(height: 4),
+                      Text(widget.document.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.bodySmall.copyWith(
+                          color: context.textSecondary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.close, color: context.textPrimary),
+                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
                   onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close_rounded),
                 ),
               ],
             ),
           ),
-          // A single full-width thumbnail can run up to 42% of the screen
-          // height (see _buildThumbnails) — combined with the option tiles
-          // below, that can exceed the sheet's own maxHeight on a short
-          // screen. Expanded+SingleChildScrollView
-          // lets everything past the title bar scroll instead of overflow
-          // (also keeps the sheet filling its full-screen allowance, like a
-          // real full-screen sheet, instead of shrinking to fit a single
-          // small file).
-          Expanded(
+          Flexible(
             child: SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: .stretch,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Padding(
-                    padding: const .symmetric(horizontal: 20),
-                    child: Row(
-                      children: [
-                        Text(
-                          l10n.selectedCount(_selected.length),
-                          style: context.bodySmall.copyWith(
-                            color: context.textSecondary,
-                          ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: SegmentedButton<bool>(
+                      segments: [
+                        ButtonSegment(
+                          value: true,
+                          label: Text(l10n.selectAll),
+                          icon: const Icon(Icons.done_all_rounded),
                         ),
-                        const Spacer(),
-                        TextButton(
-                          onPressed: paths.isEmpty ? null : _toggleSelectAll,
-                          child: Text(
-                            _allSelected ? l10n.deselectAll : l10n.selectAll,
-                          ),
+                        const ButtonSegment(
+                          value: false,
+                          label: Text('Select Files'),
+                          icon: Icon(Icons.checklist_rounded),
+                        ),
+                      ],
+                      selected: {_selectAllMode},
+                      onSelectionChanged: (values) =>
+                          _setSelectionMode(values.single),
+                      style: SegmentedButton.styleFrom(
+                        selectedBackgroundColor: context.primary,
+                        selectedForegroundColor: colors.onPrimaryContainer,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 14),
+                    child: Text(
+                      l10n.selectedCount(_selected.length),
+                      style: context.bodySmall.copyWith(
+                        color: context.textSecondary,
+                      ),
+                    ),
+                  ),
+                  if (!_selectAllMode) ...[
+                    _buildThumbnails(context, l10n, paths),
+                    const SizedBox(height: 20),
+                  ],
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                    child: Column(
+                      children: [
+                        _ShareOptionTile(
+                          icon: Iconsax.document_forward,
+                          label: l10n.shareAsPdfOption,
+                          accent: colors.primary,
+                          onTap: enabled ? () => _finish(ShareSheetAction.shareAsPdf) : null,
+                        ),
+                        _ShareOptionTile(
+                          icon: Iconsax.gallery_export,
+                          label: l10n.shareAsImagesOption,
+                          accent: const Color(0xFF00897B),
+                          onTap: enabled ? () => _finish(ShareSheetAction.shareAsImages) : null,
+                        ),
+                        _ShareOptionTile(
+                          icon: Iconsax.document_copy,
+                          label: l10n.exportEachPageAsPdfOption,
+                          accent: const Color(0xFF7E57C2),
+                          onTap: enabled ? () => _finish(ShareSheetAction.exportPagesAsPdf) : null,
+                        ),
+                        _ShareOptionTile(
+                          icon: Iconsax.gallery_add,
+                          label: l10n.saveToGalleryOption,
+                          accent: const Color(0xFFBF6C10),
+                          onTap: enabled ? () => _finish(ShareSheetAction.saveToGallery) : null,
                         ),
                       ],
                     ),
                   ),
-                  heightBox(4),
-                  _buildThumbnails(context, l10n, paths),
-                  heightBox(12),
-                  Divider(height: 1, color: context.divider),
-                  heightBox(8),
-                  _ShareOptionTile(
-                    icon: Iconsax.share,
-                    label: l10n.shareOption,
-                    onTap: () => _finish(.osShareSheet),
-                  ),
-                  _ShareOptionTile(
-                    // document + forward-arrow reads as "share this
-                    // document" more clearly than the old document_download.
-                    icon: Iconsax.document_forward,
-                    label: l10n.shareAsPdfOption,
-                    onTap: () => _finish(.shareAsPdf),
-                  ),
-                  _ShareOptionTile(
-                    // gallery + export-arrow reads as "send images out of
-                    // the gallery" more clearly than the old plain image.
-                    icon: Iconsax.gallery_export,
-                    label: l10n.shareAsImagesOption,
-                    onTap: () => _finish(.shareAsImages),
-                  ),
-                  _ShareOptionTile(
-                    icon: Iconsax.document_copy,
-                    label: l10n.exportEachPageAsPdfOption,
-                    onTap: () => _finish(.exportPagesAsPdf),
-                  ),
-                  _ShareOptionTile(
-                    icon: Iconsax.gallery_add,
-                    label: l10n.saveToGalleryOption,
-                    onTap: () => _finish(.saveToGallery),
-                  ),
-                  heightBox(8),
                 ],
               ),
             ),
@@ -449,25 +479,57 @@ class _ShareFileThumbnail extends StatelessWidget {
 class _ShareOptionTile extends StatelessWidget {
   final IconData icon;
   final String label;
-  final VoidCallback onTap;
+  final Color accent;
+  final VoidCallback? onTap;
 
   const _ShareOptionTile({
     required this.icon,
     required this.label,
+    required this.accent,
     required this.onTap,
   });
 
   @override
-  Widget build(BuildContext context) => InkWell(
-    onTap: onTap,
-    child: Padding(
-      padding: const .symmetric(horizontal: 20, vertical: 12),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: context.textPrimary),
-          widthBox(16),
-          Expanded(child: Text(label, style: context.bodyMedium)),
-        ],
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: Opacity(
+      opacity: onTap == null ? 0.45 : 1,
+      child: Material(
+        color: context.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: context.border),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(5),
+            child: Row(
+              children: [
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(13),
+                  ),
+                  child: Icon(icon, size: 24, color: accent),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(label, style: context.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w600,
+                  )),
+                ),
+                const SizedBox(width: 8),
+                Icon(Icons.chevron_right_rounded,
+                  color: context.textSecondary, size: 22,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     ),
   );
