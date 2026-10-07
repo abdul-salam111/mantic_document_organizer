@@ -171,7 +171,7 @@ class _FilePreviewActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    // final l10n = AppLocalizations.of(context);
     return SafeArea(
       top: false,
       child: ColoredBox(
@@ -180,12 +180,12 @@ class _FilePreviewActionBar extends StatelessWidget {
           children: [
             _FilePreviewActionItem(
               icon: Iconsax.share,
-              label: l10n.share,
+              label: "Share this File",
               onTap: onShare,
             ),
             _FilePreviewActionItem(
               icon: Iconsax.gallery_add,
-              label: l10n.saveToGalleryOption,
+              label: "Save to Gallery",
               onTap: onSaveToGallery,
             ),
           ],
