@@ -143,8 +143,7 @@ class AddDocumentView extends StatelessWidget {
                 child: Container(
                   padding: const .symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    color: context.surfaceElevated,
-                    border: Border(top: BorderSide(color: context.border)),
+                   
                   ),
                   child: CustomButton(
                     isLoading: vm.isSaving,
