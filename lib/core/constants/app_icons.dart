@@ -17,6 +17,8 @@ class AppIcons {
 
   static const String businessCard = 'assets/icons/business_card.png';
 
+  static const String camera = 'assets/icons/camera.png';
+
   static const String contracts = 'assets/icons/contracts.jpg';
 
   static const String drive = 'assets/icons/drive.png';
@@ -25,6 +27,12 @@ class AppIcons {
 
   static const String exportPagesAsPdf =
       'assets/icons/export_pages_as_pdf.png';
+
+  static const String filesIos = 'assets/icons/files-ios.png';
+
+  static const String galleryAndroid = 'assets/icons/gallery-android.png';
+
+  static const String galleryIos = 'assets/icons/gallery-ios.png';
 
   static const String gmail = 'assets/icons/gmail.png';
 
