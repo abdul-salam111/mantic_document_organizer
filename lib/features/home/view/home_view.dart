@@ -59,7 +59,7 @@ class HomeView extends StatelessWidget {
                                     context,
                                   ).homeSearchHint,
                                   readOnly: true,
-                                  borderColor: context.transparent,
+                                  borderColor: context.border,
                                   // Jumps to the All Docs tab with its own
                                   // search field focused — the AI chat now
                                   // lives behind the dedicated "Ask AI"
@@ -82,6 +82,7 @@ class HomeView extends StatelessWidget {
                                 // on the page, so it shouldn't draw the eye
                                 // first.
                                 backgroundColor: context.surface,
+                                borderColor: context.border,
                                 elevation: 0,
                                 fontSize: 13,
                                 radius: 10,

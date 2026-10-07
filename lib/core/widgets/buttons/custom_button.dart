@@ -16,6 +16,8 @@ class CustomButton extends StatelessWidget {
   final bool isLoading;
   final double? fontSize;
   final Size size;
+  final Color? borderColor;
+  final double borderWidth;
 
   const CustomButton({
     super.key,
@@ -32,6 +34,8 @@ class CustomButton extends StatelessWidget {
     this.iconColor,
     this.isLoading = false,
     this.size = const Size(double.infinity, 50),
+    this.borderColor,
+    this.borderWidth = 1,
   });
 
   @override
@@ -51,10 +55,13 @@ class CustomButton extends StatelessWidget {
         backgroundColor: backgroundColor != null
             ? WidgetStatePropertyAll(backgroundColor)
             : null,
-        shape: radius != null
+        shape: radius != null || borderColor != null
             ? WidgetStatePropertyAll(
                 RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(radius!),
+                  borderRadius: BorderRadius.circular(radius ?? 0),
+                  side: borderColor != null
+                      ? BorderSide(color: borderColor!, width: borderWidth)
+                      : BorderSide.none,
                 ),
               )
             : null,
