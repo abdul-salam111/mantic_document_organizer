@@ -667,7 +667,7 @@ class _CategoryTile extends StatelessWidget {
     return Stack(
       children: [
         Container(
-          width: double.infinity,
+          width: .infinity,
           padding: .all(8),
           decoration: BoxDecoration(
             color: isAddNew ? context.transparent : context.categoryCardSurface,
@@ -688,7 +688,7 @@ class _CategoryTile extends StatelessWidget {
           child: Column(
             mainAxisAlignment: .center,
             children: [
-              FaIcon(iconForKey(iconKey), size: 22, color: _iconColor(context)),
+              FaIcon(iconForKey(iconKey), size: 30, color: _iconColor(context)),
               heightBox(6),
               Text(
                 name,
