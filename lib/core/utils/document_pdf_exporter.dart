@@ -23,6 +23,12 @@ import 'document_page_rasterizer.dart';
 class DocumentPdfExporter {
   const DocumentPdfExporter._();
 
+  /// Height of the visual gap inserted between two files in the combined
+  /// PDF, in PDF points (1 pt = 1/72 inch). 15 px at the PDF library's
+  /// default 72 dpi maps 1:1 to points, so 15 here == 15 px on screen at
+  /// 100% zoom.
+  static const double _fileGap = 15;
+
   /// Builds the combined PDF in the app's temp directory and returns its
   /// path. Throws [StateError] if [document] has no image pages to
   /// rasterize (callers should only offer this action when one exists).
@@ -50,15 +56,30 @@ class DocumentPdfExporter {
   /// — no library here can merge real PDF byte streams) so a selection
   /// mixing scanned photos and an existing PDF attachment still produces
   /// one combined file.
+  ///
+  /// A [_fileGap]-point blank page is inserted between each source file so
+  /// two adjacent files don't visually butt up against each other.
   static Future<String> combine(List<String> paths, String title) async {
-    final imagePaths = await DocumentPageRasterizer.toImagePaths(paths);
-    if (imagePaths.isEmpty) {
+    // Drop any source file that rasterized to zero pages (unsupported type,
+    // unreadable PDF) — otherwise an empty group would produce a gap page
+    // sitting next to nothing.
+    final grouped = (await DocumentPageRasterizer.toImagePathsGrouped(paths))
+        .where((group) => group.isNotEmpty)
+        .toList(growable: false);
+
+    if (grouped.isEmpty) {
       throw StateError('No pages to export');
     }
 
     final pdfDocument = pw.Document();
-    for (final path in imagePaths) {
-      await _addImagePage(pdfDocument, path);
+    for (var i = 0; i < grouped.length; i++) {
+      for (final imagePath in grouped[i]) {
+        await _addImagePage(pdfDocument, imagePath);
+      }
+      // Gap between files, not after the last one.
+      if (i < grouped.length - 1) {
+        _addGapPage(pdfDocument, _fileGap);
+      }
     }
 
     final directory = await getTemporaryDirectory();
@@ -93,6 +114,22 @@ class DocumentPdfExporter {
       files.add(file.path);
     }
     return files;
+  }
+
+  /// Adds a blank page [gap] points tall, with the same width as A4 so it
+  /// reads as a separator strip rather than a full sheet. This is the
+  /// simplest way to force a visual gap between two files in the `pdf`
+  /// package — pages are independent canvases, so there's no "draw
+  /// something between page N and page N+1" API; a thin blank page is
+  /// the idiomatic equivalent.
+  static void _addGapPage(pw.Document pdfDocument, double gap) {
+    pdfDocument.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat(PdfPageFormat.a4.width, gap),
+        margin: pw.EdgeInsets.zero,
+        build: (context) => pw.SizedBox(),
+      ),
+    );
   }
 
   /// Adds [path] as its own full-bleed page, sized to *its* aspect ratio

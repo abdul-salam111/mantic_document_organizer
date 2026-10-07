@@ -33,4 +33,5 @@ class DocumentProcessingUseCases {
       _repository.exportPagesAsPdf(paths, title: title);
   Future<void> saveToGallery(List<String> paths) =>
       _repository.saveToGallery(paths);
+      
 }

@@ -31,6 +31,31 @@ class DocumentPageRasterizer {
     return result;
   }
 
+  /// Like [toImagePaths], but preserves the per-source grouping — one inner
+  /// list per entry in [paths], holding that file's own pages in order.
+  /// A path that contributes no pages (unsupported type, unreadable PDF)
+  /// yields an empty inner list rather than being dropped, so the caller
+  /// can still tell "this input produced nothing" apart from "this input
+  /// wasn't here at all" if it ever needs to. Entries that DO produce
+  /// pages keep their order and grouping, which is what lets the combined
+  /// PDF exporter insert a gap between files without a gap landing in the
+  /// middle of one PDF's own pages.
+  static Future<List<List<String>>> toImagePathsGrouped(
+    List<String> paths,
+  ) async {
+    final grouped = <List<String>>[];
+    for (final path in paths) {
+      if (isImagePath(path)) {
+        grouped.add([path]);
+      } else if (isPdfPath(path)) {
+        grouped.add(await _renderPages(path));
+      } else {
+        grouped.add(const []);
+      }
+    }
+    return grouped;
+  }
+
   /// Renders every page of [path] to a scratch JPEG, one page at a time —
   /// Android disallows rendering multiple PDF pages concurrently (same
   /// constraint OcrService and document_cover_thumbnail already work

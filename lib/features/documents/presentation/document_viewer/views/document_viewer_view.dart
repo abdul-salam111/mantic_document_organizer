@@ -211,32 +211,72 @@ class DocumentViewerView extends StatelessWidget {
 
     switch (result.action) {
       case ShareSheetAction.osShareSheet:
-        await persistAction(context, () => vm.shareFiles(result.paths));
-      case ShareSheetAction.shareAsPdf:
-        showLoadingPopup(
+        final dismiss = showLoadingPopup(
           context,
           message: AppLocalizations.of(context).preparingPdfMessage,
         );
-        await persistAction(
+        try {
+          await persistAction(context, () => vm.shareFiles(result.paths));
+        } finally {
+          await dismiss();
+        }
+
+      case ShareSheetAction.shareAsPdf:
+        final dismiss = showLoadingPopup(
           context,
-          () => vm.shareSelectedAsPdf(result.paths, current.title),
+          message: AppLocalizations.of(context).preparingPdfMessage,
         );
-        if (context.mounted) Navigator.of(context).pop();
+        try {
+          await persistAction(
+            context,
+            () => vm.shareSelectedAsPdf(result.paths, current.title),
+          );
+        } finally {
+          await dismiss();
+        }
+
       case ShareSheetAction.shareAsImages:
-        await persistAction(
+        final dismiss = showLoadingPopup(
           context,
-          () => vm.shareSelectedAsImages(result.paths),
+          message: AppLocalizations.of(context).preparingPdfMessage,
         );
+        try {
+          await persistAction(
+            context,
+            () => vm.shareSelectedAsImages(result.paths),
+          );
+        } finally {
+          await dismiss();
+        }
+
       case ShareSheetAction.exportPagesAsPdf:
-        await persistAction(
+        final dismiss = showLoadingPopup(
           context,
-          () => vm.exportSelectedPagesAsPdf(result.paths, current.title),
+          message: AppLocalizations.of(context).preparingPdfMessage,
         );
+        try {
+          await persistAction(
+            context,
+            () => vm.exportSelectedPagesAsPdf(result.paths, current.title),
+          );
+        } finally {
+          await dismiss();
+        }
+
       case ShareSheetAction.saveToGallery:
-        final saved = await persistAction(
+        final dismiss = showLoadingPopup(
           context,
-          () => vm.saveSelectedToGallery(result.paths),
+          message: AppLocalizations.of(context).preparingPdfMessage,
         );
+        bool saved = false;
+        try {
+          saved = await persistAction(
+            context,
+            () => vm.saveSelectedToGallery(result.paths),
+          );
+        } finally {
+          await dismiss();
+        }
         if (saved && context.mounted) {
           AppToastsUtils.success(
             AppLocalizations.of(context).savedToGalleryToast,
