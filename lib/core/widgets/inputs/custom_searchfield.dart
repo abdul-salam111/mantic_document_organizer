@@ -11,6 +11,8 @@ class CustomSearchField extends StatelessWidget {
   final Color? fillColor;
   final Color? borderColor;
   final IconData? prefixIcon;
+  final FocusNode? focusNode;
+  final bool autofocus;
 
   const CustomSearchField({
     super.key,
@@ -22,6 +24,8 @@ class CustomSearchField extends StatelessWidget {
     this.fillColor,
     this.borderColor,
     this.prefixIcon,
+    this.focusNode,
+    this.autofocus = false,
   });
 
   @override
@@ -32,7 +36,8 @@ class CustomSearchField extends StatelessWidget {
         borderColor ?? context.grey300.withValues(alpha: 0.6);
 
     return TextField(
-      autofocus: false,
+      autofocus: autofocus,
+      focusNode: focusNode,
       controller: controller,
       onChanged: onChanged,
       onTap: onTap,

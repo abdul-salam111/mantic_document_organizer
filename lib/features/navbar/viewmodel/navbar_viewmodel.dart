@@ -4,10 +4,24 @@ class NavbarViewModel extends ChangeNotifier {
   int _selectedIndex = 0;
   int get selectedIndex => _selectedIndex;
 
-  void selectTab(int index) {
-    if (_selectedIndex == index) return;
+  bool _focusSearchPending = false;
+
+  /// [focusSearch] lets a caller (e.g. Home's search field) ask the All
+  /// Docs tab to autofocus its own search field once it's shown, without
+  /// the two tabs needing a direct reference to each other.
+  void selectTab(int index, {bool focusSearch = false}) {
+    final indexChanged = _selectedIndex != index;
     _selectedIndex = index;
-    notifyListeners();
+    if (focusSearch) _focusSearchPending = true;
+    if (indexChanged || focusSearch) notifyListeners();
+  }
+
+  /// Consumed by [SearchView] when it acts on a pending focus request, so
+  /// later rebuilds/listener calls don't keep refocusing the field.
+  bool consumeFocusSearchPending() {
+    if (!_focusSearchPending) return false;
+    _focusSearchPending = false;
+    return true;
   }
 
   /// Handles the system back gesture/button. Not on the Home tab -> jump

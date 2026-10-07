@@ -13,7 +13,8 @@
   "navFavorites": "المفضلة",
   "navProfile": "الملف الشخصي",
 
-  "homeSearchHint": "اسأل الذكاء الاصطناعي عن مستنداتك...",
+  "homeSearchHint": "ابحث في مستنداتك...",
+  "askAi": "اسأل الذكاء الاصطناعي",
   "recentFiles": "الملفات الأخيرة",
   "seeAll": "عرض الكل",
   "categories": "الفئات",
@@ -146,6 +147,7 @@
   "deselectAll": "إلغاء تحديد الكل",
   "shareOption": "مشاركة",
   "preparingPdfMessage": "جارٍ تحضير ملف PDF…",
+  "addingPagesMessage": "جارٍ إضافة الصفحات…",
   "shareAsPdfOption": "مشاركة كملف PDF",
   "shareAsImagesOption": "مشاركة كصور",
   "exportEachPageAsPdfOption": "تصدير كل صفحة كملف PDF",

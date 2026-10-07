@@ -38,7 +38,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navProfile => 'الملف الشخصي';
 
   @override
-  String get homeSearchHint => 'اسأل الذكاء الاصطناعي عن مستنداتك...';
+  String get homeSearchHint => 'ابحث في مستنداتك...';
+
+  @override
+  String get askAi => 'اسأل الذكاء الاصطناعي';
 
   @override
   String get recentFiles => 'الملفات الأخيرة';
@@ -485,6 +488,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get preparingPdfMessage => 'جارٍ تحضير ملف PDF…';
+
+  @override
+  String get addingPagesMessage => 'جارٍ إضافة الصفحات…';
 
   @override
   String get shareAsPdfOption => 'مشاركة كملف PDF';

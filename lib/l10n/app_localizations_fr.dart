@@ -39,7 +39,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navProfile => 'Profil';
 
   @override
-  String get homeSearchHint => 'Demandez à l\'IA à propos de vos documents...';
+  String get homeSearchHint => 'Rechercher dans vos documents...';
+
+  @override
+  String get askAi => 'Demander à l\'IA';
 
   @override
   String get recentFiles => 'Fichiers récents';
@@ -490,6 +493,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get preparingPdfMessage => 'Préparation du PDF…';
+
+  @override
+  String get addingPagesMessage => 'Ajout des pages…';
 
   @override
   String get shareAsPdfOption => 'Partager en PDF';

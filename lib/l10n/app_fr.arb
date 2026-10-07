@@ -13,7 +13,8 @@
   "navFavorites": "Favoris",
   "navProfile": "Profil",
 
-  "homeSearchHint": "Demandez à l'IA à propos de vos documents...",
+  "homeSearchHint": "Rechercher dans vos documents...",
+  "askAi": "Demander à l'IA",
   "recentFiles": "Fichiers récents",
   "seeAll": "Tout voir",
   "categories": "Catégories",
@@ -146,6 +147,7 @@
   "deselectAll": "Tout désélectionner",
   "shareOption": "Partager",
   "preparingPdfMessage": "Préparation du PDF…",
+  "addingPagesMessage": "Ajout des pages…",
   "shareAsPdfOption": "Partager en PDF",
   "shareAsImagesOption": "Partager en images",
   "exportEachPageAsPdfOption": "Exporter chaque page en PDF",

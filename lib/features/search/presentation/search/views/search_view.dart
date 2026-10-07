@@ -14,8 +14,52 @@ import '../../../../home/home_exports.dart';
 import '../../../../../routes/routes_exports.dart';
 import '../viewmodels/search_viewmodel.dart';
 
-class SearchView extends StatelessWidget {
+class SearchView extends StatefulWidget {
   const SearchView({super.key});
+
+  @override
+  State<SearchView> createState() => _SearchViewState();
+}
+
+class _SearchViewState extends State<SearchView> {
+  final FocusNode _searchFocusNode = FocusNode();
+  NavbarViewModel? _navbarViewModel;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final navbarViewModel = context.read<NavbarViewModel>();
+    if (_navbarViewModel != navbarViewModel) {
+      _navbarViewModel?.removeListener(_onNavbarChanged);
+      _navbarViewModel = navbarViewModel..addListener(_onNavbarChanged);
+    }
+  }
+
+  // Home's search field switches to this tab via NavbarViewModel.selectTab
+  // with focusSearch: true, so autofocusing here (rather than taking an
+  // `autofocus` constructor param) works regardless of whether this tab
+  // was already built/mounted by the IndexedStack.
+  void _onNavbarChanged() {
+    final navbarViewModel = _navbarViewModel;
+    if (navbarViewModel == null) return;
+    if (navbarViewModel.selectedIndex == 1 &&
+        navbarViewModel.consumeFocusSearchPending()) {
+      // Deferred a frame: Home's own (readOnly) field still requests focus
+      // for itself as part of handling the same tap, after its onTap
+      // callback runs — requesting focus here synchronously would lose
+      // that race and get overridden right back.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _searchFocusNode.requestFocus();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _navbarViewModel?.removeListener(_onNavbarChanged);
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +80,7 @@ class SearchView extends StatelessWidget {
                   children: [
                     CustomSearchField(
                       hintText: AppLocalizations.of(context).allDocsSearchHint,
+                      focusNode: _searchFocusNode,
                       onChanged: vm.updateQuery,
                     ),
                     heightBox(14),

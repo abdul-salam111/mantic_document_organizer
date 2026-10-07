@@ -156,11 +156,17 @@ abstract class AppLocalizations {
   /// **'Profile'**
   String get navProfile;
 
-  /// Home screen search field placeholder — taps through to the AI Assistant chat, not a keyword filter
+  /// Home screen search field placeholder — tapping it jumps to the All Docs tab with search focused
   ///
   /// In en, this message translates to:
-  /// **'Ask AI about your documents...'**
+  /// **'Search your documents...'**
   String get homeSearchHint;
+
+  /// Button next to Home's search field that opens the AI Assistant chat
+  ///
+  /// In en, this message translates to:
+  /// **'Ask AI'**
+  String get askAi;
 
   /// Home screen section heading
   ///
@@ -911,6 +917,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Preparing PDF…'**
   String get preparingPdfMessage;
+
+  /// Loading popup message shown while the document viewer's Add Pages button scans/picks and saves new pages directly onto the open document
+  ///
+  /// In en, this message translates to:
+  /// **'Adding pages…'**
+  String get addingPagesMessage;
 
   /// Share sheet option: combine the selected files into a single PDF and share it
   ///

@@ -38,7 +38,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navProfile => 'Profile';
 
   @override
-  String get homeSearchHint => 'Ask AI about your documents...';
+  String get homeSearchHint => 'Search your documents...';
+
+  @override
+  String get askAi => 'Ask AI';
 
   @override
   String get recentFiles => 'Recent Files';
@@ -486,6 +489,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get preparingPdfMessage => 'Preparing PDF…';
+
+  @override
+  String get addingPagesMessage => 'Adding pages…';
 
   @override
   String get shareAsPdfOption => 'Share as PDF';

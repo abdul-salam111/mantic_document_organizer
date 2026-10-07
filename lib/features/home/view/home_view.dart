@@ -51,18 +51,47 @@ class HomeView extends StatelessWidget {
                             ],
                           ),
                           heightBox(20),
-                          CustomSearchField(
-                            hintText: AppLocalizations.of(
-                              context,
-                            ).homeSearchHint,
-                            readOnly: true,
-                            prefixIcon: Iconsax.magicpen,
-                            // Routes into the AI chat assistant, not the
-                            // All Docs tab (that's "See All"/the category
-                            // tiles below) — this field is the natural-
-                            // language entry point, not a keyword filter.
-                            onTap: () =>
-                                AppNavigator.pushNamed(RouteNames.aiAssistant),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: CustomSearchField(
+                                  hintText: AppLocalizations.of(
+                                    context,
+                                  ).homeSearchHint,
+                                  readOnly: true,
+                                  borderColor: context.transparent,
+                                  // Jumps to the All Docs tab with its own
+                                  // search field focused — the AI chat now
+                                  // lives behind the dedicated "Ask AI"
+                                  // button beside this field instead.
+                                  onTap: () => context
+                                      .read<NavbarViewModel>()
+                                      .selectTab(1, focusSearch: true),
+                                ),
+                              ),
+                              widthBox(8),
+                              CustomButton(
+                                text: AppLocalizations.of(context).askAi,
+                                icon: Iconsax.magicpen,
+                                iconSize: 18,
+                                iconColor: context.textSecondary,
+                                textColor: context.textSecondary,
+                                // Matches the search field's own fill color
+                                // so the two read as one row — this is a
+                                // secondary shortcut, not the primary CTA
+                                // on the page, so it shouldn't draw the eye
+                                // first.
+                                backgroundColor: context.surface,
+                                elevation: 0,
+                                fontSize: 13,
+                                radius: 10,
+                                padding: 12,
+                                size: const Size(0, 48),
+                                onPressed: () => AppNavigator.pushNamed(
+                                  RouteNames.aiAssistant,
+                                ),
+                              ),
+                            ],
                           ),
                           heightBox(14),
                           if (vm.recentFiles.isNotEmpty) ...[
@@ -396,7 +425,7 @@ class _RecentFileCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: context.surfaceElevated,
           borderRadius: .circular(14),
-          border: Border.all(color: context.border),
+          border: Border.all(color: context.border.withValues(alpha: 0.4)),
           boxShadow: [
             BoxShadow(
               color: context.shadow,
