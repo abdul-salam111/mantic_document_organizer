@@ -104,16 +104,17 @@ class AppRoutes {
         name: RouteNames.addDocument,
         builder: (context, state) {
           final extra = state.extra;
-          if (extra case (DocumentItem document, bool openCameraOnLoad)) {
+          if (extra case (DocumentItem document, AttachmentSource source)) {
             return AddDocumentView(
               editingDocument: document,
-              openCameraOnLoad: openCameraOnLoad,
+              initialSource: source,
             );
           }
           return AddDocumentView(
             initialCategory: extra is CategoryItem ? extra : null,
             editingDocument: extra is DocumentItem ? extra : null,
             initialSharedFilePaths: extra is List<String> ? extra : null,
+            initialSource: extra is AttachmentSource ? extra : null,
           );
         },
       ),

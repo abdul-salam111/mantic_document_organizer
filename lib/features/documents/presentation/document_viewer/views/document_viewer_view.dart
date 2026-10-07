@@ -14,6 +14,7 @@ import '../../../../../core/utils/utils_exports.dart';
 import '../../../../../core/widgets/widgets_exports.dart';
 import '../../../../../routes/routes_exports.dart';
 import '../../../../home/home_exports.dart';
+import '../../add_document/add_document_exports.dart';
 import '../viewmodels/document_viewer_viewmodel.dart';
 import 'share_document_sheet.dart';
 
@@ -66,13 +67,12 @@ class DocumentViewerView extends StatelessWidget {
             body: SafeArea(
               child: _PageArea(
                 document: current,
-                onAddFiles: () => _openScannerForDocument(current),
                 selectedPaths: vm.selectedPaths,
                 onToggleSelection: vm.toggleFileSelection,
               ),
             ),
             bottomNavigationBar: _DocumentActionBar(
-              onAdd: () => _openScannerForDocument(current),
+              onAdd: () => _promptAddPages(context, current),
               onEdit: () => _openEditor(current),
               onShare: () => _openShareSheet(context, vm, current),
               onMove: () {
@@ -147,8 +147,21 @@ class DocumentViewerView extends StatelessWidget {
     AppNavigator.pushNamed(RouteNames.addDocument, extra: document);
   }
 
-  void _openScannerForDocument(DocumentItem document) {
-    AppNavigator.pushNamed(RouteNames.addDocument, extra: (document, true));
+  /// Asks where the new page's file should come from before opening the
+  /// Add Page form at all, so that screen can trigger the matching picker
+  /// automatically (see AddDocumentView.initialSource) instead of making
+  /// the user choose again once it loads — same flow as the navbar's "+"
+  /// button, just editing this document instead of starting a fresh one.
+  Future<void> _promptAddPages(
+    BuildContext context,
+    DocumentItem document,
+  ) async {
+    final source = await AttachmentSourceSheet.show(context);
+    if (source == null || !context.mounted) return;
+    AppNavigator.pushNamed(
+      RouteNames.addDocument,
+      extra: (document, source),
+    );
   }
 
   Future<void> _openShareSheet(
@@ -172,18 +185,18 @@ class DocumentViewerView extends StatelessWidget {
     if (result == null || !context.mounted) return;
 
     switch (result.action) {
-      case ShareSheetAction.directApp:
-        await persistAction(
-          context,
-          () => vm.shareDirect(result.paths, result.packageName!),
-        );
       case ShareSheetAction.osShareSheet:
         await persistAction(context, () => vm.shareFiles(result.paths));
       case ShareSheetAction.shareAsPdf:
+        showLoadingPopup(
+          context,
+          message: AppLocalizations.of(context).preparingPdfMessage,
+        );
         await persistAction(
           context,
           () => vm.shareSelectedAsPdf(result.paths, current.title),
         );
+        if (context.mounted) Navigator.of(context).pop();
       case ShareSheetAction.shareAsImages:
         await persistAction(
           context,
@@ -397,7 +410,7 @@ class _DocumentActionBar extends StatelessWidget {
           children: [
             _DocumentActionItem(
               icon: Icons.add_a_photo_outlined,
-              label: l10n.add,
+              label: l10n.addPagesAction,
               onTap: onAdd,
             ),
             _DocumentActionItem(
@@ -466,13 +479,11 @@ class _DocumentActionItem extends StatelessWidget {
 /// for the file currently at the top of the viewport.
 class _PageArea extends StatefulWidget {
   final DocumentItem document;
-  final VoidCallback onAddFiles;
   final Set<String> selectedPaths;
   final ValueChanged<String> onToggleSelection;
 
   const _PageArea({
     required this.document,
-    required this.onAddFiles,
     required this.selectedPaths,
     required this.onToggleSelection,
   });
@@ -516,20 +527,29 @@ class _PageAreaState extends State<_PageArea> {
     super.dispose();
   }
 
+  // Walks from the last file backward and picks the first (i.e.
+  // highest-index) one whose top has already crossed above the viewport's
+  // top edge — that's the file "at the top" right now. Checking from the
+  // front instead (first file whose *bottom* is still > 0) breaks once an
+  // earlier file is taller than the remaining scroll distance: its bottom
+  // can stay below the viewport top for the entire scroll range, so the
+  // counter would get stuck on it even after a later, shorter file is
+  // clearly the one on screen.
   void _updateCurrentFile() {
     final listBox = _listKey.currentContext?.findRenderObject() as RenderBox?;
     if (!mounted || listBox == null) return;
 
-    for (var index = 0; index < _fileKeys.length; index++) {
+    for (var index = _fileKeys.length - 1; index >= 0; index--) {
       final fileBox =
           _fileKeys[index].currentContext?.findRenderObject() as RenderBox?;
       if (fileBox == null) continue;
       final top = fileBox.localToGlobal(Offset.zero, ancestor: listBox).dy;
-      if (top + fileBox.size.height > 0) {
+      if (top <= 0) {
         if (_currentFile != index) setState(() => _currentFile = index);
         return;
       }
     }
+    if (_currentFile != 0) setState(() => _currentFile = 0);
   }
 
   @override
@@ -549,23 +569,21 @@ class _PageAreaState extends State<_PageArea> {
           key: _listKey,
           controller: _scrollController,
           padding: const .fromLTRB(14, 14, 14, 24),
-          itemCount: paths.length + 1,
+          itemCount: paths.length,
           separatorBuilder: (_, _) => heightBox(14),
-          itemBuilder: (context, index) => index == paths.length
-              ? _AddFilesButton(onTap: widget.onAddFiles)
-              : KeyedSubtree(
-                  key: _fileKeys[index],
-                  child: _SelectableFilePreview(
-                    path: paths[index],
-                    isSelected: widget.selectedPaths.contains(paths[index]),
-                    selectionActive: widget.selectedPaths.isNotEmpty,
-                    onToggle: () => widget.onToggleSelection(paths[index]),
-                    onOpenPreview: () => AppNavigator.pushNamed(
-                      RouteNames.filePreview,
-                      extra: (widget.document.filePaths, index),
-                    ),
-                  ),
-                ),
+          itemBuilder: (context, index) => KeyedSubtree(
+            key: _fileKeys[index],
+            child: _SelectableFilePreview(
+              path: paths[index],
+              isSelected: widget.selectedPaths.contains(paths[index]),
+              selectionActive: widget.selectedPaths.isNotEmpty,
+              onToggle: () => widget.onToggleSelection(paths[index]),
+              onOpenPreview: () => AppNavigator.pushNamed(
+                RouteNames.filePreview,
+                extra: (widget.document.filePaths, index),
+              ),
+            ),
+          ),
         ),
         Positioned(
           top: 12,
@@ -635,72 +653,6 @@ class _FileCounter extends StatelessWidget {
   );
 }
 
-class _AddFilesButton extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _AddFilesButton({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) => Material(
-    color: context.surface,
-    child: InkWell(
-      onTap: onTap,
-      child: CustomPaint(
-        foregroundPainter: _DottedRoundedBorderPainter(color: context.border),
-        child: SizedBox(
-          height: 44,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.add_a_photo_outlined,
-                size: 20,
-                color: context.textSecondary,
-              ),
-              widthBox(8),
-              Text(
-                AppLocalizations.of(context).addFiles,
-                style: context.bodySmall.copyWith(
-                  color: context.textSecondary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
-class _DottedRoundedBorderPainter extends CustomPainter {
-  final Color color;
-
-  const _DottedRoundedBorderPainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final path = Path()
-      ..addRRect(RRect.fromRectAndRadius(Offset.zero & size, Radius.zero));
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 1.2;
-    for (final metric in path.computeMetrics()) {
-      for (var offset = 0.0; offset < metric.length; offset += 9) {
-        canvas.drawPath(
-          metric.extractPath(offset, (offset + 5).clamp(0, metric.length)),
-          paint,
-        );
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DottedRoundedBorderPainter oldDelegate) =>
-      oldDelegate.color != color;
-}
 
 class _SelectableFilePreview extends StatelessWidget {
   final String path;

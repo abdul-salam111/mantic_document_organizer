@@ -1,5 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
@@ -22,19 +21,6 @@
 <uses-permission
     android:name="android.permission.WRITE_EXTERNAL_STORAGE"
     android:maxSdkVersion="28" />
-<!-- AutoImportService / FileSystemDiscoveryDataSource: broader-than-Photos
-     "all files access" (Downloads/Documents), needed because scoped
-     storage only grants an app its own files plus *media* owned by other
-     apps, not arbitrary documents. Google Play restricts this to apps
-     whose core purpose is broad file management and manually reviews
-     apps that request it for a secondary feature — this was tried once
-     before and reverted for exactly that reason (see
-     docs/auto_import_feature_draft.md and
-     GalleryDiscoveryDataSource's doc comment); re-added here as a
-     deliberate, user-confirmed choice despite that risk. -->
-<uses-permission
-    android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
-    tools:ignore="ScopedStorage" />
     <application
         android:label="Dockitly"
         android:name="${applicationName}"
@@ -95,13 +81,11 @@
                 <data android:scheme="com.mantic.document.organizer" />
             </intent-filter>
         </activity>
-        <!-- Lets the document viewer's share sheet hand a document's files
-             directly to one specific installed app (WhatsApp/Gmail) via an
-             explicit-package Intent, instead of only offering the generic
-             OS chooser — see MainActivity's shareToApp channel handler and
-             DirectShareService on the Dart side. Covers both the files this
-             app writes under its own documents dir (attachments) and its
-             cache dir (generated PDFs/rendered pages). -->
+        <!-- Lets the document viewer's share sheet and "export as PDF" hand
+             generated/attached files to the OS share sheet via a content://
+             URI. Covers both the files this app writes under its own
+             documents dir (attachments) and its cache dir (generated
+             PDFs/rendered pages). -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -153,13 +137,5 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
-        <!-- Package visibility (API 30+) for the share sheet's direct-to-app
-             buttons — without these, an explicit-package share Intent to an
-             installed app can fail to resolve even though the app is
-             present. See MainActivity's shareToApp handler. -->
-        <package android:name="com.whatsapp" />
-        <package android:name="com.google.android.gm" />
-        <package android:name="com.google.android.apps.docs" />
-        <package android:name="com.facebook.orca" />
     </queries>
 </manifest>

@@ -129,7 +129,6 @@ Future<void> coreDependencies() async {
     ),
   );
   sl.registerLazySingleton(() => ShareIntentService());
-  sl.registerLazySingleton(() => DirectShareService());
   sl.registerLazySingleton(() => GallerySaverService());
 }
 
@@ -283,7 +282,7 @@ Future<void> addDocumentDependencies() async {
     () => DeviceAttachmentDataSource(),
   );
   sl.registerLazySingleton<IDocumentProcessingRepository>(
-    () => DocumentProcessingRepositoryImpl(sl(), sl(), sl(), sl(), sl()),
+    () => DocumentProcessingRepositoryImpl(sl(), sl(), sl(), sl()),
   );
   sl.registerLazySingleton(() => DocumentProcessingUseCases(sl()));
   sl.registerFactory<AddDocumentViewModel>(

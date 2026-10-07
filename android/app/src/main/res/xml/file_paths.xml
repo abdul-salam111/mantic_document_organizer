@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Used by the FileProvider declared in AndroidManifest.xml for the share
-     sheet's direct-to-app sharing (MainActivity's shareToApp handler).
+<!-- Used by the FileProvider declared in AndroidManifest.xml to hand
+     attached/generated files to the OS share sheet via a content:// URI.
 
      root-path (the whole app-private filesystem), not files-path/cache-path
      individually: path_provider's getApplicationDocumentsDirectory() —

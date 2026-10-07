@@ -25,8 +25,6 @@ class DocumentViewerViewModel extends ChangeNotifier {
   Future<void> shareFile(String path) => _processing.shareFile(path);
 
   Future<void> shareFiles(List<String> paths) => _processing.shareFiles(paths);
-  Future<void> shareDirect(List<String> paths, String packageName) =>
-      _processing.shareDirect(paths, packageName);
   Future<void> shareSelectedAsPdf(List<String> paths, String title) =>
       _processing.shareAsPdf(paths, title);
   Future<void> shareSelectedAsImages(List<String> paths) =>

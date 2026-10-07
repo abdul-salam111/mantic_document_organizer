@@ -2,7 +2,6 @@ import '../../domain/entities/document_item.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../../core/utils/document_pdf_exporter.dart';
 import '../../../../core/utils/document_page_rasterizer.dart';
-import '../../../../core/sharing/direct_share_service.dart';
 import '../../../../core/gallery/gallery_saver_service.dart';
 import '../../domain/entities/attachment_item.dart';
 import '../../domain/entities/document_suggestion.dart';
@@ -16,13 +15,11 @@ class DocumentProcessingRepositoryImpl
   final AttachmentLocalDataSource _attachments;
   final OcrService _ocr;
   final AiDocumentService _ai;
-  final DirectShareService _directShare;
   final GallerySaverService _gallery;
   DocumentProcessingRepositoryImpl(
     this._attachments,
     this._ocr,
     this._ai,
-    this._directShare,
     this._gallery,
   );
   @override
@@ -65,18 +62,6 @@ class DocumentProcessingRepositoryImpl
     await SharePlus.instance.share(
       ShareParams(files: [for (final path in paths) XFile(path)]),
     );
-  }
-
-  @override
-  Future<void> shareDirect(
-    List<String> paths, {
-    required String packageName,
-  }) async {
-    final launched = await _directShare.shareToApp(
-      paths: paths,
-      packageName: packageName,
-    );
-    if (!launched) await shareFiles(paths);
   }
 
   @override

@@ -349,7 +349,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get addDocumentTitle => 'إضافة مستند';
 
   @override
+  String get addPageTitle => 'إضافة صفحة';
+
+  @override
   String get add => 'إضافة';
+
+  @override
+  String get addPagesAction => 'إضافة صفحات';
 
   @override
   String get addFiles => 'إضافة ملفات';
@@ -382,9 +388,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tags => 'الوسوم';
 
   @override
-  String get tagsHint => 'مثال: تأمين السيارة';
-
-  @override
   String tagErrorLimitReached(int maxCount) {
     return 'يمكنك إضافة حتى $maxCount وسوم';
   }
@@ -407,9 +410,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tapToSetExpiryDate => 'اضغط لتحديد تاريخ ووقت انتهاء الصلاحية';
-
-  @override
-  String get attachments => 'المرفقات';
 
   @override
   String get attachmentRequired => 'أضف مستندًا واحدًا على الأقل للحفظ';
@@ -481,7 +481,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get deselectAll => 'إلغاء تحديد الكل';
 
   @override
-  String get shareViaMore => 'المزيد';
+  String get shareOption => 'مشاركة';
+
+  @override
+  String get preparingPdfMessage => 'جارٍ تحضير ملف PDF…';
 
   @override
   String get shareAsPdfOption => 'مشاركة كملف PDF';

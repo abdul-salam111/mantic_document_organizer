@@ -35,15 +35,20 @@ class AddDocumentView extends StatelessWidget {
   /// immediately, same as a fresh camera/gallery/file pick.
   final List<String>? initialSharedFilePaths;
 
-  /// Opens the native scanner after an existing document has been loaded.
-  final bool openCameraOnLoad;
+  /// Set when opened via the navbar's "+" button, or via the document
+  /// viewer's "Add Pages" button, after the user already chose a source
+  /// (Camera/Gallery/Files) from [AttachmentSourceSheet] — triggers that
+  /// picker automatically once this screen loads, instead of making the
+  /// user tap it again from [_AttachmentSection]. Works whether this is a
+  /// fresh document or [editingDocument] is set.
+  final AttachmentSource? initialSource;
 
   const AddDocumentView({
     super.key,
     this.initialCategory,
     this.editingDocument,
     this.initialSharedFilePaths,
-    this.openCameraOnLoad = false,
+    this.initialSource,
   });
 
   @override
@@ -54,16 +59,6 @@ class AddDocumentView extends StatelessWidget {
         final editing = editingDocument;
         if (editing != null) {
           vm.startEditing(editing);
-          if (openCameraOnLoad) {
-            WidgetsBinding.instance.addPostFrameCallback((_) async {
-              final failed = await vm.pickFromCamera();
-              if (failed && providerContext.mounted) {
-                AppToastsUtils.error(
-                  AppLocalizations.of(providerContext).scanFailedToast,
-                );
-              }
-            });
-          }
         } else {
           final category = initialCategory;
           if (category != null) vm.preselectCategory(category);
@@ -72,19 +67,43 @@ class AddDocumentView extends StatelessWidget {
             unawaited(vm.addSharedFiles(sharedPaths));
           }
         }
+        final source = initialSource;
+        if (source != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            switch (source) {
+              case AttachmentSource.camera:
+                final failed = await vm.pickFromCamera();
+                if (failed && providerContext.mounted) {
+                  AppToastsUtils.error(
+                    AppLocalizations.of(providerContext).scanFailedToast,
+                  );
+                }
+              case AttachmentSource.gallery:
+                await vm.pickFromGallery();
+              case AttachmentSource.file:
+                final skippedImages = await vm.pickFile();
+                if (skippedImages && providerContext.mounted) {
+                  AppToastsUtils.warning(
+                    AppLocalizations.of(providerContext).filesImagesNotAllowed,
+                  );
+                }
+            }
+          });
+        }
         return vm;
       },
       child: UnfocusWrapper(
-        child: Scaffold(
-          appBar: CustomAppBar(
-            title: editingDocument != null
-                ? AppLocalizations.of(context).editDocumentTitle
-                : AppLocalizations.of(context).addDocumentTitle,
-          ),
-          body: SafeArea(
-            child: Consumer<AddDocumentViewModel>(
-              builder: (context, vm, _) {
-                return Form(
+        child: Consumer<AddDocumentViewModel>(
+          builder: (context, vm, _) {
+            return Scaffold(
+              appBar: CustomAppBar(
+                title: editingDocument != null
+                    ? AppLocalizations.of(context).editDocumentTitle
+                    : AppLocalizations.of(context).addDocumentTitle,
+              ),
+              body: SafeArea(
+                bottom: false,
+                child: Form(
                   key: vm.formKey,
                   child: ListView(
                     padding: const .symmetric(horizontal: 14, vertical: 20),
@@ -93,17 +112,19 @@ class AddDocumentView extends StatelessWidget {
                       heightBox(24),
                       CustomTextFormField(
                         label: AppLocalizations.of(context).documentTitleLabel,
-                        hintText: AppLocalizations.of(
-                          context,
-                        ).documentTitleHint,
+                        floatingLabel: true,
                         controller: vm.titleController,
                         // Match the elevated white form controls in light
                         // mode while retaining the dark theme's surface.
                         fillColor: context.surfaceElevated,
-                        contentPadding: const .symmetric(
-                          horizontal: 16,
-                          vertical: 19.5,
+                        // Same height as the Tags field's InputDecorator —
+                        // a minHeight constraint instead of tall vertical
+                        // padding, so the floating label doesn't inflate
+                        // this field well past that one.
+                        constraints: const BoxConstraints(
+                          minHeight: _formControlHeight,
                         ),
+                        contentPadding: const .symmetric(horizontal: 16),
                         textCapitalization: .sentences,
                       ),
                       heightBox(20),
@@ -112,47 +133,52 @@ class AddDocumentView extends StatelessWidget {
                       _TagsField(vm: vm),
                       heightBox(20),
                       _ExpirableToggle(vm: vm),
-                      heightBox(32),
-                      CustomButton(
-                        isLoading: vm.isSaving,
-                        text: vm.isEditing
-                            ? AppLocalizations.of(context).update
-                            : AppLocalizations.of(context).save,
-
-                        onPressed: () async {
-                          if (!vm.validateAttachments()) return;
-                          if (!vm.formKey.currentState!.validate()) return;
-                          if (!await persistAction(
-                            context,
-                            () => vm.submit(),
-                          )) {
-                            return;
-                          }
-                          if (!context.mounted) return;
-                          // Compute the message and pop *before* showing the
-                          // toast — another_flushbar pushes its toast as its
-                          // own Navigator route, so popping this screen right
-                          // on top of that in-flight push corrupts the
-                          // navigator's route lifecycle.
-                          final title = vm.titleController.text.trim();
-                          final message = editingDocument != null
-                              ? AppLocalizations.of(
-                                  context,
-                                ).documentUpdatedToast(title)
-                              : AppLocalizations.of(
-                                  context,
-                                ).documentCreatedToast(title);
-                          AppNavigator.pop();
-                          AppToastsUtils.success(message);
-                        },
-                      ),
                       heightBox(20),
                     ],
                   ),
-                );
-              },
-            ),
-          ),
+                ),
+              ),
+              bottomNavigationBar: SafeArea(
+                top: false,
+                child: Container(
+                  padding: const .symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: context.surfaceElevated,
+                    border: Border(top: BorderSide(color: context.border)),
+                  ),
+                  child: CustomButton(
+                    isLoading: vm.isSaving,
+                    text: vm.isEditing
+                        ? AppLocalizations.of(context).update
+                        : AppLocalizations.of(context).save,
+                    onPressed: () async {
+                      if (!vm.validateAttachments()) return;
+                      if (!vm.formKey.currentState!.validate()) return;
+                      if (!await persistAction(context, () => vm.submit())) {
+                        return;
+                      }
+                      if (!context.mounted) return;
+                      // Compute the message and pop *before* showing the
+                      // toast — another_flushbar pushes its toast as its
+                      // own Navigator route, so popping this screen right
+                      // on top of that in-flight push corrupts the
+                      // navigator's route lifecycle.
+                      final title = vm.titleController.text.trim();
+                      final message = editingDocument != null
+                          ? AppLocalizations.of(
+                              context,
+                            ).documentUpdatedToast(title)
+                          : AppLocalizations.of(
+                              context,
+                            ).documentCreatedToast(title);
+                      AppNavigator.pop();
+                      AppToastsUtils.success(message);
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -173,11 +199,6 @@ class _AttachmentSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: .start,
       children: [
-        Text(
-          AppLocalizations.of(context).attachments,
-          style: context.titleMedium.copyWith(fontWeight: .w700),
-        ),
-        heightBox(10),
         Row(
           children: [
             Expanded(
@@ -253,6 +274,78 @@ class _AttachmentSection extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+/// Bottom sheet prompting for a page's source (Camera/Gallery/Files) —
+/// shown by the navbar's "+" button before [AddDocumentView] even opens,
+/// so the chosen picker can run automatically once it does (see
+/// [AddDocumentView.initialSource]) instead of making the user pick again
+/// from [_AttachmentSection] after landing on the form.
+class AttachmentSourceSheet extends StatelessWidget {
+  const AttachmentSourceSheet({super.key});
+
+  static Future<AttachmentSource?> show(BuildContext context) {
+    return showModalBottomSheet<AttachmentSource>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: context.surfaceElevated,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => const AttachmentSourceSheet(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const .fromLTRB(20, 20, 20, 24),
+        child: Column(
+          mainAxisSize: .min,
+          crossAxisAlignment: .start,
+          children: [
+            Text(
+              AppLocalizations.of(context).addPageTitle,
+              style: context.titleMedium.copyWith(fontWeight: .w700),
+            ),
+            heightBox(16),
+            Row(
+              children: [
+                Expanded(
+                  child: _SourceButton(
+                    icon: Iconsax.camera,
+                    label: AppLocalizations.of(context).camera,
+                    onTap: () =>
+                        Navigator.of(context).pop(AttachmentSource.camera),
+                  ),
+                ),
+                widthBox(10),
+                Expanded(
+                  child: _SourceButton(
+                    icon: Iconsax.gallery,
+                    label: AppLocalizations.of(context).gallery,
+                    onTap: () =>
+                        Navigator.of(context).pop(AttachmentSource.gallery),
+                  ),
+                ),
+                widthBox(10),
+                Expanded(
+                  child: _SourceButton(
+                    icon: Iconsax.document,
+                    label: AppLocalizations.of(context).files,
+                    onTap: () =>
+                        Navigator.of(context).pop(AttachmentSource.file),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -438,52 +531,52 @@ class _CategoryPickerTrigger extends StatelessWidget {
         : ((category.colorValue == null ? null : Color(category.colorValue!)) ??
               categoryIconColor(context, category.name));
 
-    return Column(
-      crossAxisAlignment: .start,
-      children: [
-        Text(
-          AppLocalizations.of(context).categoryLabel,
-          style: context.bodySmall.copyWith(
-            color: context.textSecondary,
-            fontSize: 16,
-          ),
-        ),
-        heightBox(5),
-        InkWell(
-          onTap: () => _openPicker(context),
+    return InkWell(
+      onTap: () => _openPicker(context),
+      borderRadius: .circular(12),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: _formControlHeight),
+        padding: const .symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: context.surfaceElevated,
           borderRadius: .circular(12),
-          child: Container(
-            height: _formControlHeight,
-            padding: const .symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: context.surfaceElevated,
-              borderRadius: .circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: context.shadow,
-                  blurRadius: 5,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+          boxShadow: [
+            BoxShadow(
+              color: context.shadow,
+              blurRadius: 5,
+              offset: const Offset(0, 2),
             ),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  alignment: .center,
-                  decoration: BoxDecoration(color: color, shape: .circle),
-                  child: category == null
-                      ? Icon(Iconsax.category, size: 16, color: context.white)
-                      : FaIcon(
-                          iconForKey(category.iconKey),
-                          size: 16,
-                          color: context.white,
-                        ),
-                ),
-                widthBox(12),
-                Expanded(
-                  child: Text(
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              alignment: .center,
+              decoration: BoxDecoration(color: color, shape: .circle),
+              child: category == null
+                  ? Icon(Iconsax.category, size: 16, color: context.white)
+                  : FaIcon(
+                      iconForKey(category.iconKey),
+                      size: 16,
+                      color: context.white,
+                    ),
+            ),
+            widthBox(12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: .start,
+                mainAxisSize: .min,
+                children: [
+                  Text(
+                    AppLocalizations.of(context).categoryLabel,
+                    style: context.bodySmall.copyWith(
+                      color: context.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                  Text(
                     category?.name ??
                         AppLocalizations.of(context).uncategorized,
                     style: context.bodyMedium.copyWith(
@@ -491,17 +584,13 @@ class _CategoryPickerTrigger extends StatelessWidget {
                       color: context.textPrimary,
                     ),
                   ),
-                ),
-                Icon(
-                  Iconsax.arrow_right_3,
-                  size: 16,
-                  color: context.textSecondary,
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+            Icon(Iconsax.arrow_right_3, size: 16, color: context.textSecondary),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
@@ -717,130 +806,118 @@ class _TagsFieldState extends State<_TagsField> {
   Widget build(BuildContext context) {
     final vm = widget.vm;
     final l10n = AppLocalizations.of(context);
-    return Column(
-      crossAxisAlignment: .start,
-      children: [
-        Text(
-          l10n.tags,
-          style: context.bodySmall.copyWith(
-            color: context.textSecondary,
-            fontSize: 16,
+    return GestureDetector(
+      behavior: .translucent,
+      onTap: () => _focusNode.requestFocus(),
+      child: InputDecorator(
+        isFocused: _focusNode.hasFocus,
+        isEmpty:
+            vm.tags.isEmpty &&
+            vm.tagController.text.replaceAll(_selectedTagMarker, '').isEmpty,
+        decoration: InputDecoration(
+          constraints: const BoxConstraints(minHeight: _formControlHeight),
+          filled: true,
+          // InputDecorator inherits the global grey field fill unless
+          // this inline tag field explicitly uses the elevated surface.
+          fillColor: context.surfaceElevated,
+          label: Text(
+            l10n.tags,
+            style: context.bodySmall.copyWith(
+              color: context.textSecondary,
+              fontSize: 16,
+            ),
           ),
+          floatingLabelBehavior: .auto,
+          hintStyle: context.bodySmall.copyWith(color: context.textSecondary),
+          errorText: switch (vm.tagError) {
+            TagError.limitReached => l10n.tagErrorLimitReached(
+              AddDocumentViewModel.maxTagCount,
+            ),
+            TagError.tooLong => l10n.tagErrorTooLong(
+              AddDocumentViewModel.maxTagLength,
+            ),
+            TagError.duplicate => l10n.tagErrorDuplicate,
+            null => null,
+          },
+          errorMaxLines: 2,
         ),
-        heightBox(5),
-        GestureDetector(
-          behavior: .translucent,
-          onTap: () => _focusNode.requestFocus(),
-          child: InputDecorator(
-            isFocused: _focusNode.hasFocus,
-            isEmpty:
-                vm.tags.isEmpty &&
-                vm.tagController.text
-                    .replaceAll(_selectedTagMarker, '')
-                    .isEmpty,
-            decoration: InputDecoration(
-              constraints: const BoxConstraints(minHeight: _formControlHeight),
-              filled: true,
-              // InputDecorator inherits the global grey field fill unless
-              // this inline tag field explicitly uses the elevated surface.
-              fillColor: context.surfaceElevated,
-              hintText: l10n.tagsHint,
-              hintStyle: context.bodySmall.copyWith(
-                color: context.textSecondary,
+        child: Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          crossAxisAlignment: .center,
+          children: [
+            for (final tag in vm.tags)
+              GestureDetector(
+                onTap: () => _selectTag(tag),
+                child: Chip(
+                  label: Text(tag, maxLines: 1, overflow: .ellipsis),
+                  labelPadding: const .symmetric(horizontal: 4),
+                  padding: .zero,
+                  materialTapTargetSize: .shrinkWrap,
+                  deleteIconBoxConstraints: const BoxConstraints.tightFor(
+                    width: 18,
+                    height: 18,
+                  ),
+                  deleteIcon: const Icon(Icons.close, size: 14),
+                  onDeleted: () {
+                    vm.removeTag(tag);
+                    if (_selectedTag == tag) _clearSelectedTag();
+                    _focusNode.requestFocus();
+                  },
+                  backgroundColor: context.surfaceElevated,
+                  deleteIconColor: context.textSecondary,
+                  visualDensity: const VisualDensity(
+                    horizontal: -4,
+                    vertical: -4,
+                  ),
+                  shape: StadiumBorder(
+                    side: BorderSide(
+                      color: _selectedTag == tag
+                          ? context.primary
+                          : context.border,
+                      width: _selectedTag == tag ? 2 : 1,
+                    ),
+                  ),
+                ),
               ),
-              errorText: switch (vm.tagError) {
-                TagError.limitReached => l10n.tagErrorLimitReached(
-                  AddDocumentViewModel.maxTagCount,
-                ),
-                TagError.tooLong => l10n.tagErrorTooLong(
-                  AddDocumentViewModel.maxTagLength,
-                ),
-                TagError.duplicate => l10n.tagErrorDuplicate,
-                null => null,
-              },
-              errorMaxLines: 2,
+            // A fixed width rather than IntrinsicWidth — EditableText
+            // under IntrinsicWidth's two-pass layout is a known source
+            // of flaky/incorrect rendering. A plain TextField already
+            // scrolls its content horizontally past this width, same
+            // as any other single-line field, so nothing is lost.
+            SizedBox(
+              width: 140,
+              child: TextField(
+                controller: vm.tagController,
+                focusNode: _focusNode,
+                onChanged: (_) {
+                  _clearSelectedTag();
+                  vm.clearTagError();
+                },
+                inputFormatters: [
+                  TextInputFormatter.withFunction(_handleSelectedTagEdit),
+                  _CommaTagFormatter(onCommit: _commitFormattedTag),
+                ],
+                // Tags are delimiter-based values. Android IMEs can keep
+                // autocorrect/suggestion text in an active composing
+                // range, and Flutter intentionally does not run input
+                // formatters until that range commits. Turning these off
+                // makes a typed comma reach the formatter immediately.
+                autocorrect: false,
+                enableSuggestions: false,
+                textInputAction: .done,
+                // Keep the keyboard and caret active after Done/Enter.
+                onEditingComplete: () {},
+                onSubmitted: (_) => _commitTag(),
+                style: context.bodySmall.copyWith(color: context.textPrimary),
+                // Only the outer InputDecorator paints the field. Even
+                // border: none would inherit themed focus borders/fill.
+                decoration: null,
+              ),
             ),
-            child: Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              crossAxisAlignment: .center,
-              children: [
-                for (final tag in vm.tags)
-                  GestureDetector(
-                    onTap: () => _selectTag(tag),
-                    child: Chip(
-                      label: Text(tag, maxLines: 1, overflow: .ellipsis),
-                      labelPadding: const .symmetric(horizontal: 4),
-                      padding: .zero,
-                      materialTapTargetSize: .shrinkWrap,
-                      deleteIconBoxConstraints: const BoxConstraints.tightFor(
-                        width: 18,
-                        height: 18,
-                      ),
-                      deleteIcon: const Icon(Icons.close, size: 14),
-                      onDeleted: () {
-                        vm.removeTag(tag);
-                        if (_selectedTag == tag) _clearSelectedTag();
-                        _focusNode.requestFocus();
-                      },
-                      backgroundColor: context.surfaceElevated,
-                      deleteIconColor: context.textSecondary,
-                      visualDensity: const VisualDensity(
-                        horizontal: -4,
-                        vertical: -4,
-                      ),
-                      shape: StadiumBorder(
-                        side: BorderSide(
-                          color: _selectedTag == tag
-                              ? context.primary
-                              : context.border,
-                          width: _selectedTag == tag ? 2 : 1,
-                        ),
-                      ),
-                    ),
-                  ),
-                // A fixed width rather than IntrinsicWidth — EditableText
-                // under IntrinsicWidth's two-pass layout is a known source
-                // of flaky/incorrect rendering. A plain TextField already
-                // scrolls its content horizontally past this width, same
-                // as any other single-line field, so nothing is lost.
-                SizedBox(
-                  width: 140,
-                  child: TextField(
-                    controller: vm.tagController,
-                    focusNode: _focusNode,
-                    onChanged: (_) {
-                      _clearSelectedTag();
-                      vm.clearTagError();
-                    },
-                    inputFormatters: [
-                      TextInputFormatter.withFunction(_handleSelectedTagEdit),
-                      _CommaTagFormatter(onCommit: _commitFormattedTag),
-                    ],
-                    // Tags are delimiter-based values. Android IMEs can keep
-                    // autocorrect/suggestion text in an active composing
-                    // range, and Flutter intentionally does not run input
-                    // formatters until that range commits. Turning these off
-                    // makes a typed comma reach the formatter immediately.
-                    autocorrect: false,
-                    enableSuggestions: false,
-                    textInputAction: .done,
-                    // Keep the keyboard and caret active after Done/Enter.
-                    onEditingComplete: () {},
-                    onSubmitted: (_) => _commitTag(),
-                    style: context.bodySmall.copyWith(
-                      color: context.textPrimary,
-                    ),
-                    // Only the outer InputDecorator paints the field. Even
-                    // border: none would inherit themed focus borders/fill.
-                    decoration: null,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

@@ -654,17 +654,29 @@ abstract class AppLocalizations {
   /// **'Unlock'**
   String get unlock;
 
-  /// Add Document screen title
+  /// Add Document screen title / category document-list 'add' button tooltip
   ///
   /// In en, this message translates to:
   /// **'Add Document'**
   String get addDocumentTitle;
+
+  /// Attachment-source picker sheet heading
+  ///
+  /// In en, this message translates to:
+  /// **'Add Page'**
+  String get addPageTitle;
 
   /// Generic add action label
   ///
   /// In en, this message translates to:
   /// **'Add'**
   String get add;
+
+  /// Document Viewer bottom action bar button — opens the attachment-source picker to add more pages to this document
+  ///
+  /// In en, this message translates to:
+  /// **'Add Pages'**
+  String get addPagesAction;
 
   /// Document Viewer button to add more attachments
   ///
@@ -726,12 +738,6 @@ abstract class AppLocalizations {
   /// **'Tags'**
   String get tags;
 
-  /// Add Document screen text field placeholder
-  ///
-  /// In en, this message translates to:
-  /// **'e.g. Car Insurance'**
-  String get tagsHint;
-
   /// Add Document screen tag validation error
   ///
   /// In en, this message translates to:
@@ -767,12 +773,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap to set the expiry date and time'**
   String get tapToSetExpiryDate;
-
-  /// Add Document screen section heading
-  ///
-  /// In en, this message translates to:
-  /// **'Attachments'**
-  String get attachments;
 
   /// Add Document screen validation message when no attachment has been added
   ///
@@ -900,11 +900,17 @@ abstract class AppLocalizations {
   /// **'Deselect All'**
   String get deselectAll;
 
-  /// Share sheet app-row button that opens the OS share sheet listing every installed app
+  /// Share sheet option: opens the native OS share sheet with the selected files attached, letting the user pick any installed app
   ///
   /// In en, this message translates to:
-  /// **'More'**
-  String get shareViaMore;
+  /// **'Share'**
+  String get shareOption;
+
+  /// Loading popup message shown while combining selected files into a PDF to share
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing PDF…'**
+  String get preparingPdfMessage;
 
   /// Share sheet option: combine the selected files into a single PDF and share it
   ///

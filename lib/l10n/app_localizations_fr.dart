@@ -352,7 +352,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get addDocumentTitle => 'Ajouter un document';
 
   @override
+  String get addPageTitle => 'Ajouter une page';
+
+  @override
   String get add => 'Ajouter';
+
+  @override
+  String get addPagesAction => 'Ajouter des pages';
 
   @override
   String get addFiles => 'Ajouter des fichiers';
@@ -385,9 +391,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tags => 'Étiquettes';
 
   @override
-  String get tagsHint => 'p. ex. Assurance auto';
-
-  @override
   String tagErrorLimitReached(int maxCount) {
     return 'Vous pouvez ajouter jusqu\'à $maxCount étiquettes';
   }
@@ -411,9 +414,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get tapToSetExpiryDate =>
       'Appuyez pour définir la date et l\'heure d\'expiration';
-
-  @override
-  String get attachments => 'Pièces jointes';
 
   @override
   String get attachmentRequired =>
@@ -486,7 +486,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get deselectAll => 'Tout désélectionner';
 
   @override
-  String get shareViaMore => 'Plus';
+  String get shareOption => 'Partager';
+
+  @override
+  String get preparingPdfMessage => 'Préparation du PDF…';
 
   @override
   String get shareAsPdfOption => 'Partager en PDF';

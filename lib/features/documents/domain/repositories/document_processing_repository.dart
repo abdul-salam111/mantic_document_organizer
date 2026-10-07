@@ -19,11 +19,6 @@ abstract interface class IDocumentProcessingRepository {
   /// Native OS share sheet with every file in [paths] attached.
   Future<void> shareFiles(List<String> paths);
 
-  /// Attempts to open [packageName] directly with [paths] attached,
-  /// falling back to [shareFiles] (the OS share sheet) when that fails or
-  /// isn't supported on this platform.
-  Future<void> shareDirect(List<String> paths, {required String packageName});
-
   /// Combines [paths] into a single PDF (rasterizing any real PDF pages
   /// among them) and shares it.
   Future<void> shareAsPdf(List<String> paths, {required String title});

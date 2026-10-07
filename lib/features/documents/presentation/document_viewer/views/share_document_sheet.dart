@@ -4,24 +4,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:pdfx/pdfx.dart';
 
-import '../../../../../core/constants/app_icons.dart';
 import '../../../../../core/localization/localization_exports.dart';
 import '../../../../../core/theme/theme_exports.dart';
 import '../../../../../core/utils/utils_exports.dart';
 import '../../../../../core/widgets/widgets_exports.dart';
 import '../../../domain/entities/document_item.dart';
 
-/// Android package names for the apps shown directly in the share row — see
-/// [DirectShareService] for how these turn into a real direct-to-app share
-/// (with an OS-share-sheet fallback on anything that isn't Android or
-/// doesn't have the app installed).
-const String _whatsAppPackage = 'com.whatsapp';
-const String _gmailPackage = 'com.google.android.gm';
-const String _drivePackage = 'com.google.android.apps.docs';
-const String _messengerPackage = 'com.facebook.orca';
-
 enum ShareSheetAction {
-  directApp,
   osShareSheet,
   shareAsPdf,
   shareAsImages,
@@ -32,13 +21,8 @@ enum ShareSheetAction {
 class ShareSheetResult {
   final ShareSheetAction action;
   final List<String> paths;
-  final String? packageName;
 
-  const ShareSheetResult({
-    required this.action,
-    required this.paths,
-    this.packageName,
-  });
+  const ShareSheetResult({required this.action, required this.paths});
 }
 
 /// Full-screen file-selection + share sheet opened from the document
@@ -117,7 +101,7 @@ class _ShareDocumentSheetState extends State<ShareDocumentSheet> {
     });
   }
 
-  void _finish(ShareSheetAction action, {String? packageName}) {
+  void _finish(ShareSheetAction action) {
     final paths = _selectedPaths;
     if (paths.isEmpty) {
       AppToastsUtils.warning(
@@ -125,9 +109,7 @@ class _ShareDocumentSheetState extends State<ShareDocumentSheet> {
       );
       return;
     }
-    Navigator.of(
-      context,
-    ).pop(ShareSheetResult(action: action, paths: paths, packageName: packageName));
+    Navigator.of(context).pop(ShareSheetResult(action: action, paths: paths));
   }
 
   /// A single file fills the sheet's width, like one big page preview; more
@@ -234,9 +216,9 @@ class _ShareDocumentSheetState extends State<ShareDocumentSheet> {
             ),
           ),
           // A single full-width thumbnail can run up to 42% of the screen
-          // height (see _buildThumbnails) — combined with the share-apps
-          // row and four option tiles below, that can exceed the sheet's
-          // own maxHeight on a short screen. Expanded+SingleChildScrollView
+          // height (see _buildThumbnails) — combined with the option tiles
+          // below, that can exceed the sheet's own maxHeight on a short
+          // screen. Expanded+SingleChildScrollView
           // lets everything past the title bar scroll instead of overflow
           // (also keeps the sheet filling its full-screen allowance, like a
           // real full-screen sheet, instead of shrinking to fit a single
@@ -270,65 +252,12 @@ class _ShareDocumentSheetState extends State<ShareDocumentSheet> {
                   _buildThumbnails(context, l10n, paths),
                   heightBox(12),
                   Divider(height: 1, color: context.divider),
-                  heightBox(12),
-                  Padding(
-                    padding: const .symmetric(horizontal: 14),
-                    child: Text(
-                      l10n.share,
-                      style: context.titleSmall.copyWith(fontWeight: .bold),
-                    ),
-                  ),
-                  heightBox(12),
-                  SizedBox(
-                    height: 60,
-                    child: ListView(
-                      scrollDirection: .horizontal,
-                      padding: const .symmetric(horizontal: 6),
-                      children: [
-                        _ShareAppIcon(
-                          iconAsset: AppIcons.whatsapp,
-                          label: 'WhatsApp',
-                          onTap: () => _finish(
-                            .directApp,
-                            packageName: _whatsAppPackage,
-                          ),
-                        ),
-                        widthBox(16),
-                        _ShareAppIcon(
-                          iconAsset: AppIcons.gmail,
-                          label: 'Gmail',
-                          onTap: () =>
-                              _finish(.directApp, packageName: _gmailPackage),
-                        ),
-                        widthBox(16),
-                        _ShareAppIcon(
-                          iconAsset: AppIcons.drive,
-                          label: 'Drive',
-                          onTap: () =>
-                              _finish(.directApp, packageName: _drivePackage),
-                        ),
-                        widthBox(16),
-                        _ShareAppIcon(
-                          iconAsset: AppIcons.messenger,
-                          label: 'Messenger',
-                          onTap: () => _finish(
-                            .directApp,
-                            packageName: _messengerPackage,
-                          ),
-                        ),
-                        widthBox(16),
-                        _ShareAppIcon(
-                          icon: FontAwesomeIcons.ellipsis,
-                          color: context.textSecondary,
-                          label: l10n.shareViaMore,
-                          onTap: () => _finish(.osShareSheet),
-                        ),
-                      ],
-                    ),
-                  ),
-                  heightBox(16),
-                  Divider(height: 1, color: context.divider),
                   heightBox(8),
+                  _ShareOptionTile(
+                    icon: Iconsax.share,
+                    label: l10n.shareOption,
+                    onTap: () => _finish(.osShareSheet),
+                  ),
                   _ShareOptionTile(
                     // document + forward-arrow reads as "share this
                     // document" more clearly than the old document_download.
@@ -515,66 +444,6 @@ class _ShareFileThumbnail extends StatelessWidget {
     }
     return _fallback(context);
   }
-}
-
-/// One tappable app target in the share row. Either an [iconAsset] (a
-/// transparent-background app logo PNG, shown at its own natural shape with
-/// no extra wrapper) or an [icon]+[color] pair (a FontAwesome glyph inside a
-/// tinted circle, used for the "more" overflow entry, which has no brand
-/// logo of its own).
-class _ShareAppIcon extends StatelessWidget {
-  final String? iconAsset;
-  final FaIconData? icon;
-  final Color? color;
-  final String label;
-  final VoidCallback onTap;
-
-  const _ShareAppIcon({
-    this.iconAsset,
-    this.icon,
-    this.color,
-    required this.label,
-    required this.onTap,
-  }) : assert(
-         iconAsset != null || (icon != null && color != null),
-         'Provide either iconAsset or both icon and color',
-       );
-
-  @override
-  Widget build(BuildContext context) => InkWell(
-    onTap: onTap,
-    borderRadius: .circular(32),
-    child: SizedBox(
-      width: 72,
-      child: Column(
-        mainAxisSize: .min,
-        children: [
-          SizedBox(
-            width: 35,
-            height: 35,
-            child: iconAsset != null
-                ? Image.asset(iconAsset!, fit: .contain)
-                : Container(
-                    alignment: .center,
-                    decoration: BoxDecoration(
-                      color: color!.withValues(alpha: 0.12),
-                      shape: .circle,
-                    ),
-                    child: FaIcon(icon, color: color, size: 22),
-                  ),
-          ),
-          heightBox(6),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: .ellipsis,
-            textAlign: .center,
-            style: context.labelSmall,
-          ),
-        ],
-      ),
-    ),
-  );
 }
 
 class _ShareOptionTile extends StatelessWidget {

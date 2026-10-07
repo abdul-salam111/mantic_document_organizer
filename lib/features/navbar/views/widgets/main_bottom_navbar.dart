@@ -158,13 +158,13 @@ class _AddButton extends StatelessWidget {
       // surround is the button's hit target. Previously InkWell wrapped
       // only the inner disc, leaving the visible outer ring untappable.
       child: SizedBox.expand(
-        child: Material(
-          shape: const CircleBorder(),
-          clipBehavior: Clip.antiAlias,
-          color: context.transparent,
-          child: InkWell(
-            onTap: onPressed,
-            customBorder: const CircleBorder(),
+        child: InkWell(
+          onTap: onPressed,
+          customBorder: const CircleBorder(),
+          child: Material(
+            shape: const CircleBorder(),
+            clipBehavior: Clip.antiAlias,
+            color: context.transparent,
             child: Center(
               child: Container(
                 width: size,

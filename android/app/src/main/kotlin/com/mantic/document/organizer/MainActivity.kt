@@ -1,9 +1,6 @@
 package com.mantic.document.organizer
 
-import android.content.Intent
 import android.net.Uri
-import android.util.Log
-import androidx.core.content.FileProvider
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
@@ -23,75 +20,6 @@ class MainActivity : FlutterFragmentActivity() {
             flutterEngine.dartExecutor.binaryMessenger,
             OCR_CHANNEL,
         ).setMethodCallHandler(::handleOcrCall)
-        MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            SHARE_CHANNEL,
-        ).setMethodCallHandler(::handleShareCall)
-    }
-
-    // Opens one specific installed app directly with files attached (the
-    // document viewer share sheet's WhatsApp/Gmail buttons) — see
-    // DirectShareService on the Dart side for why every failure mode here
-    // just resolves `false` rather than throwing: the caller always falls
-    // back to the generic OS share sheet.
-    private fun handleShareCall(call: MethodCall, result: MethodChannel.Result) {
-        if (call.method != "shareToApp") {
-            result.notImplemented()
-            return
-        }
-
-        @Suppress("UNCHECKED_CAST")
-        val paths = call.argument<List<String>>("paths")
-        val targetPackage = call.argument<String>("package")
-        if (paths.isNullOrEmpty() || targetPackage.isNullOrBlank()) {
-            result.success(false)
-            return
-        }
-
-        try {
-            val authority = "$packageName.fileprovider"
-            val uris = ArrayList<Uri>()
-            for (path in paths) {
-                val file = File(path)
-                if (file.exists()) {
-                    uris.add(FileProvider.getUriForFile(this, authority, file))
-                }
-            }
-            if (uris.isEmpty()) {
-                result.success(false)
-                return
-            }
-
-            val intent = if (uris.size == 1) {
-                Intent(Intent.ACTION_SEND).putExtra(Intent.EXTRA_STREAM, uris[0])
-            } else {
-                Intent(Intent.ACTION_SEND_MULTIPLE)
-                    .putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
-            }
-            intent.type = "*/*"
-            intent.setPackage(targetPackage)
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-
-            // No resolveActivity() pre-check: it's unreliable across OEM
-            // Android builds (notably MIUI), sometimes reporting "no
-            // activity found" even though the target app is installed and
-            // would happily handle startActivity directly. Catching
-            // ActivityNotFoundException from the real attempt is the only
-            // check that's actually authoritative.
-            startActivity(intent)
-            result.success(true)
-        } catch (e: Exception) {
-            // Logged, not surfaced to the user — this always resolves
-            // `false` and the Dart side silently falls back to the OS
-            // share sheet (see DirectShareService), which is the right UX
-            // either way. The log is purely so a *wrong* failure (e.g. a
-            // FileProvider path misconfiguration making every attempt fail
-            // instead of just one genuinely-uninstalled app) shows up in
-            // `adb logcat` instead of being indistinguishable from the
-            // expected "app not installed" case.
-            Log.w("ShareToApp", "shareToApp to $targetPackage failed", e)
-            result.success(false)
-        }
     }
 
     private fun handleOcrCall(call: MethodCall, result: MethodChannel.Result) {
@@ -138,6 +66,5 @@ class MainActivity : FlutterFragmentActivity() {
 
     private companion object {
         const val OCR_CHANNEL = "mantic.document.organizer/ocr"
-        const val SHARE_CHANNEL = "mantic.document.organizer/share"
     }
 }

@@ -36,6 +36,14 @@ class CustomTextFormField extends StatefulWidget {
   final bool showBorder;
   final bool isCollapsed;
   final EdgeInsetsGeometry? contentPadding;
+  final BoxConstraints? constraints;
+
+  /// When true, [label] is rendered as the field's own Material floating
+  /// label instead of a separate heading above it — shown at hint size
+  /// while the field is empty and unfocused, then shrinking to a small
+  /// label once the field is focused or filled. [hintText] is ignored in
+  /// this mode since the label already occupies that spot.
+  final bool floatingLabel;
 
   const CustomTextFormField({
     super.key,
@@ -67,6 +75,8 @@ class CustomTextFormField extends StatefulWidget {
     this.showBorder = true,
     this.isCollapsed = false,
     this.contentPadding,
+    this.floatingLabel = false,
+    this.constraints,
   });
 
   @override
@@ -98,36 +108,43 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
       );
     }
 
+    // Label with optional required asterisk, shared between the static
+    // heading above the field and (in floatingLabel mode) the field's own
+    // Material floating label.
+    Widget? labelRichText() {
+      if (widget.label == null) return null;
+      return RichText(
+        text: TextSpan(
+          children: [
+            TextSpan(
+              text: widget.label!,
+              style: context.bodySmall.copyWith(
+                color: defaultLabelColor,
+                fontSize: widget.labelFontSize,
+              ),
+            ),
+            if (widget.isRequired)
+              TextSpan(
+                text: " *",
+                style: context.bodyMedium.copyWith(
+                  color: context.error,
+                  fontWeight: FontWeight.bold,
+                  fontSize: widget.labelFontSize,
+                ),
+              ),
+          ],
+        ),
+      );
+    }
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Label with optional required asterisk
-        if (widget.label != null)
-          RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: widget.label!,
-                  style: context.bodySmall.copyWith(
-                    color: defaultLabelColor,
-                    fontSize: widget.labelFontSize,
-                  ),
-                ),
-                if (widget.isRequired)
-                  TextSpan(
-                    text: " *",
-                    style: context.bodyMedium.copyWith(
-                      color: context.error,
-                      fontWeight: FontWeight.bold,
-                      fontSize: widget.labelFontSize,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-
-        if (widget.label != null) heightBox(5),
+        if (!widget.floatingLabel) ...[
+          if (labelRichText() case final label?) label,
+          if (widget.label != null) heightBox(5),
+        ],
 
         // Text Form Field
         TextFormField(
@@ -148,7 +165,12 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
           autofillHints: widget.autofillHints,
           decoration: InputDecoration(
             isCollapsed: widget.isCollapsed,
-            hintText: widget.hintText,
+            constraints: widget.constraints,
+            label: widget.floatingLabel ? labelRichText() : null,
+            floatingLabelBehavior: widget.floatingLabel
+                ? FloatingLabelBehavior.auto
+                : null,
+            hintText: widget.floatingLabel ? null : widget.hintText,
             hintStyle:
                 widget.style?.copyWith(color: context.textSecondary) ??
                 context.bodySmall.copyWith(color: context.textSecondary),

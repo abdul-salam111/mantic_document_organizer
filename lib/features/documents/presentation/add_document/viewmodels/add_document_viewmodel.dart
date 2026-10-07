@@ -12,6 +12,12 @@ import 'package:flutter/material.dart';
 
 enum TagError { limitReached, tooLong, duplicate }
 
+/// Where a freshly-added page's file should come from, chosen up front
+/// (the navbar's "+" button prompts for this before even opening the
+/// form) so [AddDocumentView] can trigger the matching picker
+/// automatically instead of requiring an extra in-page tap.
+enum AttachmentSource { camera, gallery, file }
+
 class AddDocumentViewModel extends ChangeNotifier {
   final CategoryUseCases _categoryUseCases;
   final DocumentUseCases _documentUseCases;
