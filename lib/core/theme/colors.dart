@@ -110,6 +110,12 @@ class AppColors {
   static const Color surfaceElevatedLight = white;
   static const Color surfaceElevatedDark = Color(0xFF2C2C2E);
 
+  /// Home screen category cards — a touch dimmer than [surfaceElevatedLight]/
+  /// [surfaceElevatedDark] so they read as slightly less bright than other
+  /// elevated surfaces (dropdowns, the recent-files card).
+  static const Color categoryCardLight = Color(0xFFF2F2F2);
+  static const Color categoryCardDark = Color.fromARGB(255, 26, 26, 27);
+
   // ============================================
   // TEXT COLORS
   // ============================================

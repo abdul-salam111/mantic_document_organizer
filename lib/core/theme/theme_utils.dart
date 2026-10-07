@@ -76,6 +76,8 @@ extension AppColorExtension on BuildContext {
   Color get surface => isDark ? AppColors.surfaceDark : AppColors.surfaceLight;
   Color get surfaceElevated =>
       isDark ? const Color.fromARGB(255, 30, 30, 31) : AppColors.surfaceElevatedLight;
+  Color get categoryCardSurface =>
+      isDark ? AppColors.categoryCardDark : AppColors.categoryCardLight;
 
   // Text (theme-aware)
   Color get textPrimary =>

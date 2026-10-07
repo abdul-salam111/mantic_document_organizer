@@ -640,7 +640,7 @@ class _CategoryTile extends StatelessWidget {
           width: double.infinity,
           padding: .all(8),
           decoration: BoxDecoration(
-            color: isAddNew ? context.transparent : context.surfaceElevated,
+            color: isAddNew ? context.transparent : context.categoryCardSurface,
             borderRadius: .circular(10),
             border: isAddNew
                 ? Border.all(color: context.border, width: 1.5)
@@ -687,7 +687,7 @@ class _CategoryTile extends StatelessWidget {
       height: _listTileHeight,
       padding: .symmetric(horizontal: 14),
       decoration: BoxDecoration(
-        color: isAddNew ? context.transparent : context.surfaceElevated,
+        color: isAddNew ? context.transparent : context.categoryCardSurface,
         borderRadius: .circular(12),
         border: isAddNew ? Border.all(color: context.border, width: 1.5) : null,
         boxShadow: isAddNew
