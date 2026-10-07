@@ -72,7 +72,7 @@ class DocumentViewerView extends StatelessWidget {
               ),
             ),
             bottomNavigationBar: _DocumentActionBar(
-              onAdd: () => _promptAddPages(context, current),
+              onAdd: () => _promptAddPages(context, vm),
               onEdit: () => _openEditor(current),
               onShare: () => _openShareSheet(context, vm, current),
               onMove: () {
@@ -147,21 +147,46 @@ class DocumentViewerView extends StatelessWidget {
     AppNavigator.pushNamed(RouteNames.addDocument, extra: document);
   }
 
-  /// Asks where the new page's file should come from before opening the
-  /// Add Page form at all, so that screen can trigger the matching picker
-  /// automatically (see AddDocumentView.initialSource) instead of making
-  /// the user choose again once it loads — same flow as the navbar's "+"
-  /// button, just editing this document instead of starting a fresh one.
+  /// Asks where the new page's file should come from, then picks and saves
+  /// it straight onto this document — deliberately not routed through the
+  /// full Add Document form (unlike the navbar's "+" button, which has no
+  /// existing document to attach to): the user is already looking at this
+  /// document and just wants more pages on it, with a minimum of taps.
   Future<void> _promptAddPages(
     BuildContext context,
-    DocumentItem document,
+    DocumentViewerViewModel vm,
   ) async {
     final source = await AttachmentSourceSheet.show(context);
     if (source == null || !context.mounted) return;
-    AppNavigator.pushNamed(
-      RouteNames.addDocument,
-      extra: (document, source),
+
+    showLoadingPopup(
+      context,
+      message: AppLocalizations.of(context).addingPagesMessage,
     );
+    AttachmentSelection? selection;
+    try {
+      selection = await vm.addPages(source);
+    } catch (error, stack) {
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stack,
+          library: 'document actions',
+        ),
+      );
+    }
+    if (!context.mounted) return;
+    Navigator.of(context).pop();
+
+    if (selection == null) {
+      AppToastsUtils.error(AppLocalizations.of(context).operationFailedToast);
+    } else if (selection.scanFailed) {
+      AppToastsUtils.error(AppLocalizations.of(context).scanFailedToast);
+    } else if (selection.skippedImages) {
+      AppToastsUtils.warning(
+        AppLocalizations.of(context).filesImagesNotAllowed,
+      );
+    }
   }
 
   Future<void> _openShareSheet(
@@ -271,7 +296,6 @@ class DocumentViewerView extends StatelessWidget {
       AppLocalizations.of(context).documentMovedToast(picked.name),
     );
   }
-
 }
 
 class _RenameDocumentSheet extends StatefulWidget {
@@ -653,7 +677,6 @@ class _FileCounter extends StatelessWidget {
   );
 }
 
-
 class _SelectableFilePreview extends StatelessWidget {
   final String path;
   final bool isSelected;
@@ -739,7 +762,10 @@ class _PagePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isPdfPath(path)) {
-      return PdfZoomView(path: path, fallback: _UnsupportedPreview(path: path));
+      return PdfZoomView(
+        path: path,
+        fallback: _UnsupportedPreview(path: path),
+      );
     }
     if (!isImagePath(path)) return _UnsupportedPreview(path: path);
     return InteractiveViewer(

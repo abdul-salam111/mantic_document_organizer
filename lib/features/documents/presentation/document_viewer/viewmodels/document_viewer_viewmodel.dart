@@ -1,8 +1,11 @@
+import '../../../domain/entities/attachment_item.dart';
 import '../../../domain/usecases/document_processing_usecases.dart';
 import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
 import 'package:mantic_doc_org/features/categories/domain/usecases/category_usecases.dart';
 import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
 import 'package:mantic_doc_org/features/documents/domain/usecases/document_usecases.dart';
+import 'package:mantic_doc_org/features/documents/presentation/add_document/viewmodels/add_document_viewmodel.dart'
+    show AttachmentSource;
 import 'package:flutter/foundation.dart';
 
 class DocumentViewerViewModel extends ChangeNotifier {
@@ -139,6 +142,42 @@ class DocumentViewerViewModel extends ChangeNotifier {
       );
     }
     notifyListeners();
+  }
+
+  /// Picks new pages from [source] and appends them straight onto this
+  /// document — no detour through the full Add Document form. Returns the
+  /// raw [AttachmentSelection] so the caller can show the same
+  /// scan-failed/skipped-images toasts [AddDocumentView]'s own pickers do;
+  /// an empty selection just means the user cancelled the picker.
+  Future<AttachmentSelection> addPages(AttachmentSource source) async {
+    final selection = switch (source) {
+      AttachmentSource.camera => await _processing.pickFromCamera(),
+      AttachmentSource.gallery => await _processing.pickFromGallery(),
+      AttachmentSource.file => await _processing.pickFile(),
+    };
+    final current = document;
+    if (selection.items.isEmpty || current == null) return selection;
+
+    final newTexts = <String>[];
+    for (final item in selection.items) {
+      final text = await _processing.extractText(item.path);
+      if (text.trim().isNotEmpty) newTexts.add(text);
+    }
+    final mergedOcrText = [
+      current.ocrText,
+      ...newTexts,
+    ].where((text) => text.trim().isNotEmpty).join('\n\n');
+
+    await _documentUseCases.updateDocument(
+      current.copyWith(
+        filePaths: [
+          ...current.filePaths,
+          for (final item in selection.items) item.path,
+        ],
+        ocrText: mergedOcrText,
+      ),
+    );
+    return selection;
   }
 
   @override

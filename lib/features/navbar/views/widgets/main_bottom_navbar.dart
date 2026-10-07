@@ -33,7 +33,7 @@ class MainBottomNavbar extends StatelessWidget {
             Container(
               height: _barHeight,
               decoration: BoxDecoration(
-                color: context.surfaceElevated,
+                color: context.navigationBarSurface,
                 borderRadius: const .only(
                   topLeft: .circular(24),
                   topRight: .circular(24),
