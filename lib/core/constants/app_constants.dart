@@ -3,5 +3,5 @@ class AppConstants {
   /// import -- covers both the manual "Find more documents" entry point and
   /// AutoImportService's one-time automatic scan, which share the same
   /// review screen.
-  static const bool bulkImportEnabled = true;
+  static const bool bulkImportEnabled = false;
 }
