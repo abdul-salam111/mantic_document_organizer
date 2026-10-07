@@ -162,4 +162,55 @@ void main() {
     expect(f.discovery.requestPermissionCalls, 1);
     await disposeIfLeftPending();
   });
+
+  test(
+    'the automatic scan (onPermissionGranted) leaves a never-scanned '
+    "source's `since` null, so it falls back to the discovery datasource's "
+    'own ~12-month window',
+    () async {
+      f.seedFound([candidate('a')]);
+      await service.onPermissionGranted();
+      expect(f.discovery.lastSince, isNull);
+      await disposeIfLeftPending();
+    },
+  );
+
+  test(
+    'runManualScan (Profile -> Find more documents) prompts and is repeatable',
+    () async {
+      f.seedFound([candidate('a')]);
+      await service.runManualScan();
+      expect(f.discovery.requestPermissionCalls, 1);
+      expect(notifications.foundCalls, [1]);
+      // Never gated by the one-shot flag -- running it again is allowed
+      // even though the flag was never set by this entry point.
+      expect(
+        await storage.readValues(StorageKeys.hasRunInitialAutoImport),
+        isNot('true'),
+      );
+      await disposeIfLeftPending();
+    },
+  );
+
+  test(
+    'runManualScan overrides a never-scanned source with an epoch `since`, '
+    'so it covers the whole history instead of only the last ~12 months',
+    () async {
+      f.seedFound([candidate('a')]);
+      await service.runManualScan();
+      expect(f.discovery.lastSince, DateTime.fromMillisecondsSinceEpoch(0));
+      await disposeIfLeftPending();
+    },
+  );
+
+  test(
+    'runManualScan still works after the one-shot flag is already spent',
+    () async {
+      await storage.setValues(StorageKeys.hasRunInitialAutoImport, 'true');
+      f.seedFound([candidate('a')]);
+      await service.runManualScan();
+      expect(notifications.foundCalls, [1]);
+      await disposeIfLeftPending();
+    },
+  );
 }

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:mantic_doc_org/features/bulk_import/domain/entities/bulk_import_candidate.dart';
 import 'package:mantic_doc_org/features/bulk_import/domain/entities/discovered_asset.dart';
 import 'package:mantic_doc_org/features/bulk_import/domain/repositories/bulk_import_repository.dart';
+import 'package:mantic_doc_org/features/bulk_import/domain/repositories/discovery_examined_assets_repository.dart';
 import 'package:mantic_doc_org/features/bulk_import/domain/repositories/discovery_watermark_repository.dart';
 import 'package:mantic_doc_org/features/bulk_import/domain/repositories/gallery_discovery_repository.dart';
 import 'package:mantic_doc_org/features/bulk_import/domain/usecases/bulk_import_usecases.dart';
@@ -148,6 +149,23 @@ class FakeWatermarkStore implements DiscoveryWatermarkRepository {
   }
 }
 
+/// In-memory stand-in for the real sqflite-backed store -- mirrors its
+/// exact-id dedup contract without touching a database.
+class FakeExaminedAssetsStore implements DiscoveryExaminedAssetsRepository {
+  final examined = <String>{};
+  int markExaminedCalls = 0;
+
+  @override
+  Future<List<String>> filterUnexamined(List<String> assetIds) async =>
+      [for (final id in assetIds) if (!examined.contains(id)) id];
+
+  @override
+  Future<void> markExamined(List<String> assetIds) async {
+    markExaminedCalls++;
+    examined.addAll(assetIds);
+  }
+}
+
 class FakeCategories extends ChangeNotifier implements ICategoryRepository {
   @override
   List<CategoryItem> categories = [
@@ -169,6 +187,9 @@ class FakeDocuments extends ChangeNotifier implements IDocumentRepository {
     if (failures.contains(document.id)) throw StateError('database failed');
     documents.add(document);
   }
+
+  @override
+  Future<void> init() async {}
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -244,6 +265,7 @@ class ImportFixture {
   final processing = FakeProcessing();
   final discovery = FakeDiscovery();
   final watermarkStore = FakeWatermarkStore();
+  final examinedAssetsStore = FakeExaminedAssetsStore();
   final connectivity = FakeConnectivity();
   late final vm = BulkImportViewModel(
     imports: BulkImportUseCases(imports),
@@ -252,6 +274,7 @@ class ImportFixture {
     processing: DocumentProcessingUseCases(processing),
     discovery: GalleryDiscoveryUseCases(discovery),
     watermark: watermarkStore,
+    examinedAssets: examinedAssetsStore,
     checkConnectivity: connectivity.check,
   );
 
@@ -268,6 +291,7 @@ class ImportFixture {
   // (AutoImportService) split.
   final fileSystemDiscovery = FakeDiscovery();
   final fileSystemWatermarkStore = FakeWatermarkStore();
+  final fileSystemExaminedAssetsStore = FakeExaminedAssetsStore();
   late final vmWithFileSystem = BulkImportViewModel(
     imports: BulkImportUseCases(imports),
     categories: CategoryUseCases(categories),
@@ -275,9 +299,11 @@ class ImportFixture {
     processing: DocumentProcessingUseCases(processing),
     discovery: GalleryDiscoveryUseCases(discovery),
     watermark: watermarkStore,
+    examinedAssets: examinedAssetsStore,
     checkConnectivity: connectivity.check,
     fileSystemDiscovery: GalleryDiscoveryUseCases(fileSystemDiscovery),
     fileSystemWatermark: fileSystemWatermarkStore,
+    fileSystemExaminedAssets: fileSystemExaminedAssetsStore,
   );
 
   /// Like [seedFound], but splits candidates across the gallery and

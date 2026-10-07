@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
+import '../../../core/background/document_sync_background_service.dart';
 import '../../../core/database/database_exports.dart';
 import '../../../core/di/di_exports.dart';
 import '../../../core/local_storage/local_storage_exports.dart';
@@ -11,7 +14,6 @@ import '../../../core/shared/shared_exports.dart';
 import '../../../core/theme/theme_exports.dart';
 import '../../../core/utils/utils_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
-import '../../documents/domain/usecases/document_usecases.dart';
 import '../domain/entities/backup_space.dart';
 import '../domain/entities/sync_progress.dart';
 import '../domain/usecases/backup_usecases.dart';
@@ -27,7 +29,6 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
   static const _appScheme = 'mantic-drive-auth';
   BackupSpace? _space;
   bool _loading = false;
-  bool _syncing = false;
 
   @override
   void initState() {
@@ -61,24 +62,24 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
     }
   }
 
+  /// Kicks off the backup and returns immediately -- the sync itself runs
+  /// in the background (via DocumentSyncBackgroundService), with progress
+  /// and completion/failure surfaced through a notification, so there's no
+  /// need to stay on this page and wait. [_SyncStatusCard] below still
+  /// reflects live progress reactively if the user does stay.
   Future<void> _backUpNow() async {
     final token = SessionController.instance.userToken;
     final space = _space;
-    if (token == null || space == null || !space.isDriveConnected || _syncing) {
-      return;
-    }
+    if (token == null || space == null || !space.isDriveConnected) return;
     if (!await _canSyncOnCurrentConnection()) return;
-
-    setState(() => _syncing = true);
-    try {
-      await sl<AppDatabase>().queueExistingDocumentsForSync();
-      await _runSync(token: token, spaceId: space.id);
-      // Home keeps an in-memory document list. Reload it after a restore so
-      // downloaded documents are visible without reopening the application.
-      await sl<DocumentUseCases>().init();
-    } finally {
-      if (mounted) setState(() => _syncing = false);
-    }
+    AppToastsUtils.info('Backing up in the background…');
+    unawaited(
+      sl<DocumentSyncBackgroundService>().runBackup(
+        token: token,
+        spaceId: space.id,
+        queueExistingDocuments: true,
+      ),
+    );
   }
 
   /// Checks the "Use Mobile Data" setting against the current connection
@@ -91,17 +92,6 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
       AppToastsUtils.info(AppLocalizations.of(context).wifiOnlySyncToast);
     }
     return allowed;
-  }
-
-  Future<void> _runSync({
-    required String token,
-    required String spaceId,
-  }) async {
-    try {
-      await sl<DocumentSyncService>().sync(token: token, spaceId: spaceId);
-    } catch (error) {
-      debugPrint('Document sync failed: $error');
-    }
   }
 
   Future<void> _connect() async {
@@ -191,7 +181,13 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
                       final token = SessionController.instance.userToken;
                       if (token == null) return;
                       if (!await _canSyncOnCurrentConnection()) return;
-                      await _runSync(token: token, spaceId: _space!.id);
+                      AppToastsUtils.info('Retrying in the background…');
+                      unawaited(
+                        sl<DocumentSyncBackgroundService>().runBackup(
+                          token: token,
+                          spaceId: _space!.id,
+                        ),
+                      );
                     },
                   ),
                 ],
@@ -229,8 +225,7 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
                   CustomButton(
                     text: 'Back up now',
                     icon: Icons.cloud_upload_outlined,
-                    isLoading: _syncing,
-                    onPressed: _syncing ? null : _backUpNow,
+                    onPressed: _backUpNow,
                   ),
                   heightBox(6),
                   Center(

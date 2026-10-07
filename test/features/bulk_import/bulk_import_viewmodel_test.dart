@@ -120,6 +120,45 @@ void main() {
     },
   );
 
+  test(
+    'an asset already marked examined is never re-staged, even when the '
+    'date-based watermark alone would have let it through again -- this is '
+    'the exact-id defense against a copied-in file carrying a misleading '
+    'date (see GalleryDiscoveryDataSource.findCandidates)',
+    () async {
+      f.seedFound([candidate('a')]);
+      await f.vm.discover();
+      expect(f.imports.stageCalls, 1);
+      expect(f.examinedAssetsStore.examined, {'a'});
+      // Force the watermark back far enough that date alone would offer
+      // 'a' again -- the exact-id record must still catch it regardless.
+      f.watermarkStore.stored = DateTime(2000, 1, 1);
+      f.seedFound([candidate('a')]);
+      final found = await f.vm.discover();
+      expect(found, false);
+      expect(f.imports.stageCalls, 1); // unchanged -- never re-staged
+    },
+  );
+
+  test(
+    'a candidate the AI rejected is marked examined too, so it never '
+    'resurfaces even once the same file would otherwise qualify',
+    () async {
+      f.seedFound([candidate('a')]);
+      f.processing.suggestion = const AiDocumentSuggestion(isDocument: false);
+      await f.vm.discover();
+      expect(f.vm.candidates, isEmpty);
+      expect(f.examinedAssetsStore.examined, {'a'});
+      // Even if the AI would now accept it, the asset was already examined
+      // and decided on -- it must not come back for a second opinion.
+      f.processing.suggestion = FakeProcessing().suggestion;
+      f.seedFound([candidate('a')]);
+      final found = await f.vm.discover();
+      expect(found, false);
+      expect(f.vm.candidates, isEmpty);
+    },
+  );
+
   test('declined gallery permission is reported without staging anything', () async {
     f.discovery.permission = DiscoveryPermission.denied;
     f.seedFound([candidate('a')]);
@@ -149,6 +188,25 @@ void main() {
     expect(f.discovery.lastSince, DateTime(2024, 6, 1));
     expect(f.watermarkStore.stored, DateTime(2025, 1, 1));
   });
+
+  test(
+    'the watermark advances to the newest examined timestamp, not merely '
+    'the last one iterated -- otherwise a repeat scan would re-admit '
+    'almost this entire batch instead of only genuinely new assets',
+    () async {
+      // Deliberately out of date order and with the newest asset in the
+      // middle, so a naive "last iterated" or "first iterated" watermark
+      // would both get this wrong -- only an actual max survives.
+      f.imports.picked = [candidate('a'), candidate('b'), candidate('c')];
+      f.discovery.assets = [
+        discoveredAsset('a', takenAt: DateTime(2025, 2, 1)),
+        discoveredAsset('b', takenAt: DateTime(2025, 3, 1)), // newest
+        discoveredAsset('c', takenAt: DateTime(2025, 1, 1)), // oldest
+      ];
+      await f.vm.discover();
+      expect(f.watermarkStore.stored, DateTime(2025, 3, 1));
+    },
+  );
 
   test(
     'a failed AI analysis keeps the candidate, retryable and importable',
@@ -193,19 +251,21 @@ void main() {
     },
   );
 
-  test('25-candidate cap stops scanning and reports more were found', () async {
-    f.seedFound(List.generate(30, (i) => candidate('$i')));
-    final found = await f.vm.discover();
-    expect(found, true);
-    expect(f.vm.candidates.length, 25);
-    expect(f.vm.scanHasMore, true);
-    // Assets beyond the cap are never staged, so nothing needed removal.
-    expect(f.imports.stageCalls, 25);
-    expect(f.imports.removed, isEmpty);
-    // Discovery's OCR + AI-analysis pass is a single sequential loop.
-    expect(f.processing.maxConcurrent, 1);
-    expect(f.processing.maxAnalyzeConcurrent, 1);
-  });
+  test(
+    'discovery is uncapped -- a batch larger than the old 25-candidate cap '
+    'is still found entirely in one pass',
+    () async {
+      f.seedFound(List.generate(30, (i) => candidate('$i')));
+      final found = await f.vm.discover();
+      expect(found, true);
+      expect(f.vm.candidates.length, 30);
+      expect(f.imports.stageCalls, 30);
+      expect(f.imports.removed, isEmpty);
+      // Discovery's OCR + AI-analysis pass is a single sequential loop.
+      expect(f.processing.maxConcurrent, 1);
+      expect(f.processing.maxAnalyzeConcurrent, 1);
+    },
+  );
 
   test(
     'deselecting a queued retry cancels it; reselecting retries exactly once',

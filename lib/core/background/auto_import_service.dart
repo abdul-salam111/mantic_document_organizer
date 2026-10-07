@@ -6,14 +6,17 @@ import '../notifications/notifications_exports.dart';
 import '../../features/bulk_import/bulk_import_exports.dart';
 import '../../routes/routes_exports.dart';
 
-/// Drives the one-time, automatic "import everything important" scan right
-/// after a user grants photo/file access (see AutoImportConsentSheet) --
-/// runs in-app, in the background (the app stays open; this is not a true
+/// Drives every scan that happens outside the manual "Find my documents"
+/// button inside the old Bulk Import dialog flow -- the one-time automatic
+/// scan right after a user grants photo/file access (see
+/// AutoImportConsentSheet), its startup-recovery counterpart, and the
+/// repeatable "Find more documents" entry point in Profile. All three run
+/// in-app, in the background (the app stays open; this is not a true
 /// OS-level service), progress surfaced only through a notification so the
-/// rest of the app stays fully usable while it runs. Never creates a
-/// document itself -- it only gets the user to BulkImportReviewView, the
-/// same "never save without confirmation" screen the manual "Find more
-/// documents" entry point already uses.
+/// rest of the app stays fully usable while it runs. None of them ever
+/// create a document directly -- they only get the user to
+/// BulkImportReviewView, the single "never save without confirmation"
+/// screen every entry point shares.
 class AutoImportService {
   AutoImportService({
     required BulkImportViewModel Function() createViewModel,
@@ -22,12 +25,6 @@ class AutoImportService {
        _notifications = notifications {
     _notifications.onReviewTapped = _openReview;
   }
-
-  /// Generous cap for this one-time pass only -- deliberately higher than
-  /// [BulkImportViewModel.maxCandidates] (used by the manual, repeatable
-  /// "Find more documents" flow), since this is meant to be a genuine
-  /// "find everything important" first pass rather than one capped batch.
-  static const int initialScanCandidateCeiling = 100;
 
   final BulkImportViewModel Function() _createViewModel;
   final AutoImportNotifications _notifications;
@@ -56,7 +53,8 @@ class AutoImportService {
       vm.dispose();
       return;
     }
-    await _runScan(vm, allowPermissionPrompts: false);
+    await _markOneShotFlag();
+    await _runScan(vm, allowPermissionPrompts: false, restrictToRecentWindow: true);
   }
 
   /// Called by AutoImportConsentSheet right after the user grants
@@ -69,18 +67,40 @@ class AutoImportService {
         'true') {
       return;
     }
-    await _runScan(_createViewModel(), allowPermissionPrompts: true);
+    await _markOneShotFlag();
+    await _runScan(
+      _createViewModel(),
+      allowPermissionPrompts: true,
+      restrictToRecentWindow: true,
+    );
   }
+
+  /// Profile -> "Find more documents": a direct, explicit, repeatable user
+  /// request, unlike the two one-time paths above -- never gated by the
+  /// one-shot flag, and never limited to the last ~12 months the way the
+  /// automatic first scan is -- the user tapped this expecting it to look
+  /// through their entire history, not just recent files, all in one pass.
+  Future<void> runManualScan() async {
+    if (!AppConstants.bulkImportEnabled || _running) return;
+    await _runScan(
+      _createViewModel(),
+      allowPermissionPrompts: true,
+      restrictToRecentWindow: false,
+    );
+  }
+
+  // One real attempt per install, set before scanning starts -- a crash
+  // mid-scan must not retry on every subsequent launch. Any further scan
+  // from these two one-time paths is the user-initiated runManualScan().
+  Future<void> _markOneShotFlag() =>
+      storage.setValues(StorageKeys.hasRunInitialAutoImport, 'true');
 
   Future<void> _runScan(
     BulkImportViewModel vm, {
     required bool allowPermissionPrompts,
+    required bool restrictToRecentWindow,
   }) async {
     _running = true;
-    // One real attempt per install, set before scanning starts -- a crash
-    // mid-scan must not retry on every subsequent launch. Any further scan
-    // is the existing, user-initiated "Find more documents" entry point.
-    await storage.setValues(StorageKeys.hasRunInitialAutoImport, 'true');
     var lastShown = DateTime.fromMillisecondsSinceEpoch(0);
     void onProgress() {
       final now = DateTime.now();
@@ -88,11 +108,11 @@ class AutoImportService {
         return;
       }
       lastShown = now;
+      // No fixed budget any more (the scan is deliberately uncapped) --
+      // `totalEstimate: 0` renders as an indeterminate progress bar instead
+      // of a misleading "N of 150" that doesn't reflect the real total.
       unawaited(
-        _notifications.showScanning(
-          examined: vm.scanExamined,
-          totalEstimate: BulkImportViewModel.maxExaminedPerScan * 2,
-        ),
+        _notifications.showScanning(examined: vm.scanExamined, totalEstimate: 0),
       );
     }
 
@@ -100,8 +120,8 @@ class AutoImportService {
     try {
       await _notifications.showScanning(examined: 0, totalEstimate: 0);
       await vm.discoverAll(
-        maxCandidatesOverride: initialScanCandidateCeiling,
         allowPermissionPrompts: allowPermissionPrompts,
+        restrictToRecentWindow: restrictToRecentWindow,
       );
     } finally {
       vm.removeListener(onProgress);
@@ -113,6 +133,9 @@ class AutoImportService {
       vm.dispose();
       return;
     }
+    // A still-unreviewed batch from an earlier scan would otherwise leak
+    // its staging session (and be silently unreachable once overwritten).
+    _pendingReviewViewModel?.dispose();
     _pendingReviewViewModel = vm;
     await _notifications.showFound(vm.candidates.length);
   }

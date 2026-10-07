@@ -208,18 +208,19 @@ class _ScanStatus extends StatelessWidget {
     animation: viewModel,
     builder: (context, _) {
       final examined = viewModel.scanExamined;
-      final budget = BulkImportViewModel.maxExaminedPerScan;
       final started = examined > 0;
+      // No fixed budget to measure progress against any more (the scan is
+      // deliberately uncapped) -- always indeterminate.
       return Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            LinearProgressIndicator(value: started ? examined / budget : null),
+            const LinearProgressIndicator(),
             const SizedBox(height: 8),
             Text(
               started
-                  ? 'Scanning… $examined of $budget checked · ${viewModel.scanFound} found'
+                  ? 'Scanning… $examined checked · ${viewModel.scanFound} found'
                   : 'Looking through your photos…',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodySmall,

@@ -79,7 +79,13 @@ class GalleryDiscoveryDataSource implements GalleryDiscoveryRepository {
         if (asset.width < minDimension || asset.height < minDimension) {
           continue; // Icons/stickers/thumbnails, not photographed documents.
         }
-        final takenAt = asset.createDateTime;
+        // modifiedDateTime (not createDateTime/EXIF "date taken") on
+        // purpose: a photo copied/restored/AirDropped in from elsewhere
+        // keeps its original, possibly old, capture date, which would
+        // otherwise make it look already-seen to the watermark filter below
+        // even though it's brand new to this device. modifiedDateTime
+        // reflects when it actually landed here.
+        final takenAt = asset.modifiedDateTime;
         if (!takenAt.isAfter(cutoff)) continue;
         found.add(
           DiscoveredAsset(

@@ -4,6 +4,10 @@
 /// step discovery's cheap filters exist to avoid doing for every asset.
 class DiscoveredAsset {
   final String id;
+  // Despite the name, this is the timestamp used for the recency filter and
+  // watermark -- "when did this land on the device" -- not necessarily the
+  // asset's original creation/capture date. See each discovery datasource's
+  // own assignment of this field for why.
   final DateTime takenAt;
   final Future<String?> Function() resolvePath;
 

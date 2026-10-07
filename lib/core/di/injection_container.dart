@@ -50,12 +50,14 @@ import 'dart:io';
 
 import '../../features/bulk_import/bulk_import_exports.dart';
 import '../../features/bulk_import/data/bulk_import_local_datasource.dart';
+import '../../features/bulk_import/data/discovery_examined_assets_store.dart';
 import '../../features/bulk_import/data/discovery_watermark_store.dart';
 import '../../features/bulk_import/data/file_system_discovery_datasource.dart';
 import '../../features/bulk_import/data/gallery_discovery_datasource.dart';
 import '../../features/bulk_import/domain/usecases/bulk_import_usecases.dart';
 import '../../features/bulk_import/domain/usecases/gallery_discovery_usecases.dart';
 import '../background/auto_import_service.dart';
+import '../background/document_sync_background_service.dart';
 import '../local_storage/local_storage_exports.dart';
 
 // GENERATED_IMPORTS_START
@@ -190,6 +192,18 @@ Future<void> backupDependencies() async {
   );
   sl.registerLazySingleton(() => PrepareBackupUsecase(sl()));
   sl.registerLazySingleton(() => ConnectGoogleDriveUsecase(sl()));
+  sl.registerLazySingleton(
+    () => DocumentSyncNotifications(sl()),
+    dispose: (service) => service.dispose(),
+  );
+  sl.registerLazySingleton(
+    () => DocumentSyncBackgroundService(
+      syncService: sl(),
+      database: sl(),
+      documents: sl(),
+      notifications: sl(),
+    ),
+  );
 }
 
 Future<void> documentStorageDependencies() async {
@@ -299,6 +313,10 @@ Future<void> bulkImportDependencies() async {
       processing: sl(),
       discovery: GalleryDiscoveryUseCases(GalleryDiscoveryDataSource()),
       watermark: DiscoveryWatermarkStore(),
+      examinedAssets: DiscoveryExaminedAssetsStore(
+        database: sl(),
+        source: DiscoveryExaminedAssetsStore.gallerySource,
+      ),
       // Same connectivity check DioHelper already uses -- discovery is now
       // AI-driven and cannot work offline at all.
       checkConnectivity: () => InternetConnectionChecker.instance.hasConnection,
@@ -310,6 +328,12 @@ Future<void> bulkImportDependencies() async {
       fileSystemWatermark: Platform.isAndroid
           ? DiscoveryWatermarkStore(
               storageKey: StorageKeys.autoImportFileSystemWatermark,
+            )
+          : null,
+      fileSystemExaminedAssets: Platform.isAndroid
+          ? DiscoveryExaminedAssetsStore(
+              database: sl(),
+              source: DiscoveryExaminedAssetsStore.fileSystemSource,
             )
           : null,
     ),

@@ -26,7 +26,7 @@ class AppDatabase {
     final path = join(await getDatabasesPath(), 'mantic.db');
     _db = await openDatabase(
       path,
-      version: 6,
+      version: 7,
       onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: (db, version) async {
         await db.execute('''
@@ -75,6 +75,7 @@ class AppDatabase {
         await _createSyncState(db);
         await _createUploadedAttachments(db);
         await _createCategorySyncState(db);
+        await _createDiscoveryExaminedAssets(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -93,6 +94,9 @@ class AppDatabase {
         }
         if (oldVersion < 6) {
           await _createCategorySyncState(db);
+        }
+        if (oldVersion < 7) {
+          await _createDiscoveryExaminedAssets(db);
         }
       },
     );
@@ -138,6 +142,29 @@ class AppDatabase {
       remote_category_id TEXT NOT NULL UNIQUE
     )
   ''');
+
+  /// Exact, per-asset record of what Bulk Import discovery has already
+  /// looked at -- the authoritative "have I seen this one before" check,
+  /// independent of any asset date field (see
+  /// GalleryDiscoveryDataSource.findCandidates's own doc comment on why a
+  /// date alone is never fully trustworthy for this: a copied-in file can
+  /// carry an old, misleading date). [source] distinguishes the gallery and
+  /// filesystem discovery sources, which must never share one asset-id
+  /// namespace.
+  Future<void> _createDiscoveryExaminedAssets(DatabaseExecutor db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS discovery_examined_assets (
+        source TEXT NOT NULL,
+        asset_id TEXT NOT NULL,
+        examined_at INTEGER NOT NULL,
+        PRIMARY KEY (source, asset_id)
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_discovery_examined_assets_source_time '
+      'ON discovery_examined_assets(source, examined_at)',
+    );
+  }
 
   Future<void> _enqueueDocumentMutation(
     DatabaseExecutor db,
@@ -352,6 +379,79 @@ class AppDatabase {
     where: 'local_document_id = ? AND remote_attachment_id = ?',
     whereArgs: [documentId, remoteAttachmentId],
   );
+
+  // ---------------------------------------------------------------------
+  // Bulk Import discovery -- exact "already examined" tracking
+  // ---------------------------------------------------------------------
+
+  /// Caps how many examined-asset rows [markDiscoveryAssetsExamined] keeps
+  /// per source. A single "Find more documents"/first-launch scan is
+  /// deliberately uncapped (see BulkImportViewModel._scanSource) and can
+  /// examine well beyond this many assets in one pass on a large library --
+  /// that's fine, since a pruned row's asset is always older than the
+  /// watermark by then and so is already excluded by the date-window filter
+  /// on any later scan regardless. This cap only stops a heavy, long-running
+  /// user's history from growing this table without bound.
+  static const int discoveryExaminedAssetsRetentionCap = 20000;
+
+  /// Returns the subset of [assetIds] NOT already recorded as examined for
+  /// [source]. Empty input short-circuits without touching the database.
+  Future<List<String>> filterUnexaminedDiscoveryAssets(
+    String source,
+    List<String> assetIds,
+  ) async {
+    if (assetIds.isEmpty) return const [];
+    final placeholders = List.filled(assetIds.length, '?').join(',');
+    final rows = await _requireDb.query(
+      'discovery_examined_assets',
+      columns: ['asset_id'],
+      where: 'source = ? AND asset_id IN ($placeholders)',
+      whereArgs: [source, ...assetIds],
+    );
+    final examined = {for (final row in rows) row['asset_id'] as String};
+    return [for (final id in assetIds) if (!examined.contains(id)) id];
+  }
+
+  /// Idempotently records every one of [assetIds] as examined for
+  /// [source], then prunes the oldest rows beyond
+  /// [discoveryExaminedAssetsRetentionCap] so the table can't grow
+  /// unbounded for a heavy, long-running user.
+  Future<void> markDiscoveryAssetsExamined(
+    String source,
+    List<String> assetIds,
+  ) async {
+    if (assetIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _requireDb.transaction((txn) async {
+      final batch = txn.batch();
+      for (final id in assetIds) {
+        batch.insert('discovery_examined_assets', {
+          'source': source,
+          'asset_id': id,
+          'examined_at': now,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
+      }
+      await batch.commit(noResult: true);
+      final total = Sqflite.firstIntValue(
+        await txn.rawQuery(
+          'SELECT COUNT(*) FROM discovery_examined_assets WHERE source = ?',
+          [source],
+        ),
+      );
+      final overflow = (total ?? 0) - discoveryExaminedAssetsRetentionCap;
+      if (overflow > 0) {
+        await txn.delete(
+          'discovery_examined_assets',
+          where:
+              'source = ? AND asset_id IN ('
+              'SELECT asset_id FROM discovery_examined_assets '
+              'WHERE source = ? ORDER BY examined_at ASC LIMIT ?'
+              ')',
+          whereArgs: [source, source, overflow],
+        );
+      }
+    });
+  }
 
   // ---------------------------------------------------------------------
   // Categories

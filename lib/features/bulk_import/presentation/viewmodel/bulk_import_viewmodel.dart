@@ -9,6 +9,7 @@ import '../../../documents/domain/entities/document_suggestion.dart';
 import '../../../documents/domain/usecases/document_usecases.dart';
 import '../../../documents/domain/usecases/document_processing_usecases.dart';
 import '../../domain/entities/bulk_import_candidate.dart';
+import '../../domain/repositories/discovery_examined_assets_repository.dart';
 import '../../domain/repositories/discovery_watermark_repository.dart';
 import '../../domain/repositories/gallery_discovery_repository.dart';
 import '../../domain/usecases/bulk_import_usecases.dart';
@@ -28,28 +29,33 @@ class BulkImportViewModel extends ChangeNotifier {
     required DocumentProcessingUseCases processing,
     required GalleryDiscoveryUseCases discovery,
     required DiscoveryWatermarkRepository watermark,
+    required DiscoveryExaminedAssetsRepository examinedAssets,
     required Future<bool> Function() checkConnectivity,
     GalleryDiscoveryUseCases? fileSystemDiscovery,
     DiscoveryWatermarkRepository? fileSystemWatermark,
+    DiscoveryExaminedAssetsRepository? fileSystemExaminedAssets,
   }) : _imports = imports,
        _categories = categories,
        _documents = documents,
        _processing = processing,
        _discovery = discovery,
        _watermark = watermark,
+       _examinedAssets = examinedAssets,
        _checkConnectivity = checkConnectivity,
        _fileSystemDiscovery = fileSystemDiscovery,
-       _fileSystemWatermark = fileSystemWatermark {
+       _fileSystemWatermark = fileSystemWatermark,
+       _fileSystemExaminedAssets = fileSystemExaminedAssets {
     _categories.addListener(_notify);
   }
 
-  static const maxCandidates = 25;
-  // Bounds how many assets a single scan examines (metadata + the OCR +
-  // AI-analysis pass below), so one tap has a predictable cost. Each
-  // examined asset with any readable text now costs a real network call
-  // (see discover()), unlike the free local check this replaced -- this
-  // budget hasn't been re-tuned for that yet.
-  static const maxExaminedPerScan = 150;
+  // Deliberately uncapped: both `discover()` ("Find more documents" in
+  // Profile) and `discoverAll()` (the first-launch automatic scan) process
+  // every asset [restrictToRecentWindow] admits in a single pass instead of
+  // splitting it across repeated, capped "scan again" batches. This is only
+  // a defensive ceiling against runaway iteration on a pathologically large
+  // library, never a real per-scan budget -- a scan this large can take a
+  // while and costs one AI call per readable-text asset found.
+  static const unboundedExamineLimit = 1 << 30;
 
   final BulkImportUseCases _imports;
   final CategoryUseCases _categories;
@@ -57,11 +63,13 @@ class BulkImportViewModel extends ChangeNotifier {
   final DocumentProcessingUseCases _processing;
   final GalleryDiscoveryUseCases _discovery;
   final DiscoveryWatermarkRepository _watermark;
+  final DiscoveryExaminedAssetsRepository _examinedAssets;
   final Future<bool> Function() _checkConnectivity;
   // Android-only filesystem discovery (Downloads/Documents); null on iOS or
   // whenever that source isn't wired up — see bulkImportDependencies().
   final GalleryDiscoveryUseCases? _fileSystemDiscovery;
   final DiscoveryWatermarkRepository? _fileSystemWatermark;
+  final DiscoveryExaminedAssetsRepository? _fileSystemExaminedAssets;
   final List<BulkImportCandidate> _candidates = [];
   final Map<String, int> _revisions = {};
   Future<void> _queue = Future.value();
@@ -75,7 +83,6 @@ class BulkImportViewModel extends ChangeNotifier {
   bool _isImporting = false;
   bool permissionDenied = false;
   bool offline = false;
-  bool scanHasMore = false;
   String? notice;
   int scanExamined = 0;
   int scanFound = 0;
@@ -120,15 +127,17 @@ class BulkImportViewModel extends ChangeNotifier {
   void _event(String event, int count) =>
       developer.log('$event count=$count', name: 'bulk_import');
 
-  /// Finds likely-document photos automatically: requires a network
-  /// connection, requests gallery permission, enumerates recent assets, and
-  /// sends each one's extracted text to the AI service, which decides
-  /// inclusion and returns category/tags/title in the same call -- see
-  /// "Why AI replaced a local classifier" in the feature doc. Returns false
-  /// when offline, on permission denial, or when nothing new was found.
-  /// Items beyond available room are left unprocessed (not watermarked) so
-  /// a later scan finds them again, reported via [scanHasMore].
+  /// Opens the OS permission settings screen for the gallery discovery
+  /// source, for [permissionDenied]'s "Open Settings" action.
   Future<void> openPermissionSettings() => _discovery.openSettings();
+
+  /// Finds likely-document photos automatically: requires a network
+  /// connection, requests gallery permission, enumerates every unexamined
+  /// asset [restrictToRecentWindow] admits, and sends each one's extracted
+  /// text to the AI service, which decides inclusion and returns
+  /// category/tags/title in the same call -- see "Why AI replaced a local
+  /// classifier" in the feature doc. Returns false when offline, on
+  /// permission denial, or when nothing new was found.
 
   /// Passive check (never prompts) across every configured source -- true
   /// if at least one is already granted. AutoImportService's unattended
@@ -151,7 +160,6 @@ class BulkImportViewModel extends ChangeNotifier {
     notice = null;
     permissionDenied = false;
     offline = false;
-    scanHasMore = false;
     scanExamined = 0;
     scanFound = 0;
     _notify();
@@ -168,17 +176,15 @@ class BulkImportViewModel extends ChangeNotifier {
       final denied = await _scanSource(
         discovery: _discovery,
         watermark: _watermark,
-        maxExamined: maxExaminedPerScan,
-        maxCandidatesCeiling: maxCandidates,
+        examinedAssets: _examinedAssets,
         allowPrompt: true,
+        restrictToRecentWindow: true,
       );
       if (denied) {
         permissionDenied = true;
         return false;
       }
-      notice = scanFound > 0 && scanHasMore
-          ? 'Found $scanFound documents. More were found than fit at once; scan again to find the rest.'
-          : scanFound == 0
+      notice = scanFound == 0
           ? 'No new documents found in your photo library.'
           : null;
       _event('discovered', scanFound);
@@ -196,8 +202,7 @@ class BulkImportViewModel extends ChangeNotifier {
   }
 
   /// Like [discover], but also scans the filesystem discovery source when
-  /// one is configured (Android only -- see `bulkImportDependencies()`),
-  /// and allows a higher combined candidate cap via [maxCandidatesOverride].
+  /// one is configured (Android only -- see `bulkImportDependencies()`).
   /// Used only by AutoImportService's one-time automatic scan; the manual
   /// "Find more documents" entry point keeps calling [discover].
   ///
@@ -214,18 +219,21 @@ class BulkImportViewModel extends ChangeNotifier {
   /// other caller, always reached via an explicit user action) behaves
   /// exactly like [discover] always has.
   Future<bool> discoverAll({
-    int? maxCandidatesOverride,
     bool allowPermissionPrompts = true,
+    // true (the one-time automatic scan): a source with no watermark yet
+    // falls back to the discovery datasource's own ~12-month window (see
+    // GalleryDiscoveryDataSource.defaultScanWindow). false (the manual
+    // "Find more documents" entry point): that fallback is bypassed so a
+    // never-scanned source covers the user's entire history instead.
+    bool restrictToRecentWindow = true,
   }) async {
     if (!_editable || _isScanning) return false;
-    final ceiling = maxCandidatesOverride ?? maxCandidates;
     final done = Completer<void>();
     _scanningDone = done.future;
     _isScanning = true;
     notice = null;
     permissionDenied = false;
     offline = false;
-    scanHasMore = false;
     scanExamined = 0;
     scanFound = 0;
     _notify();
@@ -240,30 +248,30 @@ class BulkImportViewModel extends ChangeNotifier {
       final galleryDenied = await _scanSource(
         discovery: _discovery,
         watermark: _watermark,
-        maxExamined: maxExaminedPerScan,
-        maxCandidatesCeiling: ceiling,
+        examinedAssets: _examinedAssets,
         allowPrompt: allowPermissionPrompts,
+        restrictToRecentWindow: restrictToRecentWindow,
       );
       if (!galleryDenied) anyGranted = true;
       final fsDiscovery = _fileSystemDiscovery;
       final fsWatermark = _fileSystemWatermark;
-      if (fsDiscovery != null && fsWatermark != null && !(_closed || _disposed)) {
+      final fsExaminedAssets = _fileSystemExaminedAssets;
+      if (fsDiscovery != null &&
+          fsWatermark != null &&
+          fsExaminedAssets != null &&
+          !(_closed || _disposed)) {
         final fsDenied = await _scanSource(
           discovery: fsDiscovery,
           watermark: fsWatermark,
-          maxExamined: maxExaminedPerScan,
-          maxCandidatesCeiling: ceiling,
+          examinedAssets: fsExaminedAssets,
           allowPrompt: allowPermissionPrompts,
+          restrictToRecentWindow: restrictToRecentWindow,
         );
         if (!fsDenied) anyGranted = true;
       }
       permissionDenied = !anyGranted;
       if (permissionDenied) return false;
-      notice = scanFound > 0 && scanHasMore
-          ? 'Found $scanFound documents. More were found than fit at once; scan again to find the rest.'
-          : scanFound == 0
-          ? 'No new documents found.'
-          : null;
+      notice = scanFound == 0 ? 'No new documents found.' : null;
       _event('discovered', scanFound);
       return scanFound > 0;
     } catch (_) {
@@ -280,16 +288,17 @@ class BulkImportViewModel extends ChangeNotifier {
   /// Scans one discovery source (stage -> OCR -> AI analyze -> candidate) --
   /// extracted from the single-source loop [discover] used to be, so
   /// [discoverAll] can run it once per configured source while sharing the
-  /// same [_candidates]/[scanFound]/[scanExamined] accumulation and the
-  /// same [scanHasMore] signal. Returns true if this source's permission
-  /// was denied (nothing was scanned); callers decide what that means for
-  /// the overall result.
+  /// same [_candidates]/[scanFound]/[scanExamined] accumulation. Deliberately
+  /// uncapped: every unexamined asset [restrictToRecentWindow] admits is
+  /// processed in this one pass, not split across repeated "scan again"
+  /// batches. Returns true if this source's permission was denied (nothing
+  /// was scanned); callers decide what that means for the overall result.
   Future<bool> _scanSource({
     required GalleryDiscoveryUseCases discovery,
     required DiscoveryWatermarkRepository watermark,
-    required int maxExamined,
-    required int maxCandidatesCeiling,
+    required DiscoveryExaminedAssetsRepository examinedAssets,
     required bool allowPrompt,
+    required bool restrictToRecentWindow,
   }) async {
     if (_closed || _disposed) return false;
     // allowPrompt=false (unattended startup-recovery path) never calls
@@ -303,34 +312,63 @@ class BulkImportViewModel extends ChangeNotifier {
         : await discovery.hasPermission();
     if (_closed || _disposed) return false;
     if (!granted) return true;
-    final room = maxCandidatesCeiling - _candidates.length;
-    if (room <= 0) {
-      notice = 'You can import up to $maxCandidatesCeiling files at a time.';
-      return false;
-    }
-    final since = await watermark.read();
+    // A never-scanned source (no stored watermark) otherwise falls back to
+    // the discovery datasource's own ~12-month default window. That default
+    // is right for the one-time automatic scan (restrictToRecentWindow:
+    // true) -- but "Find more documents" is an explicit, repeatable user
+    // request that should be able to reach the user's entire history, so it
+    // overrides the missing watermark with the epoch instead of leaving it
+    // null for the datasource to narrow down itself.
+    final stored = await watermark.read();
+    final since = stored ??
+        (restrictToRecentWindow ? null : DateTime.fromMillisecondsSinceEpoch(0));
     final found = await discovery.findCandidates(
       since: since,
-      maxExamined: maxExamined,
+      maxExamined: unboundedExamineLimit,
     );
     if (_closed || _disposed) return false;
+    // The date window above is only a cost bound on how far back to even
+    // look -- it is never the actual "have I seen this one" decision,
+    // because no single date field on an asset is reliably trustworthy for
+    // that (see GalleryDiscoveryDataSource.findCandidates's own doc
+    // comment on copied-in files carrying an old, misleading date). This
+    // exact, per-id check against discovery_examined_assets is the real
+    // dedup: a copied-in old photo whose date happens to still look old is
+    // still included here as long as it fell within the window above, and
+    // still correctly treated as new since its id was never recorded.
+    final unexaminedIds = (await examinedAssets.filterUnexamined([
+      for (final asset in found) asset.id,
+    ])).toSet();
+    if (_closed || _disposed) return false;
+    final toExamine = [
+      for (final asset in found)
+        if (unexaminedIds.contains(asset.id)) asset,
+    ];
     final availableCategories = [for (final c in categories) c.name];
     DateTime? processedThrough;
-    var foundThisSource = 0;
-    for (final asset in found) {
-      if (foundThisSource >= room) {
-        scanHasMore = true;
-        break;
-      }
+    for (final asset in toExamine) {
       scanExamined++;
-      processedThrough = asset.takenAt;
+      // The watermark must advance to the *newest* examined timestamp, not
+      // simply the last one iterated -- [found] is newest-first, so an
+      // unconditional overwrite here would leave it pointing at the oldest
+      // item instead, and the next scan's `since` filter would then
+      // re-admit almost this entire batch again instead of only genuinely
+      // new assets.
+      if (processedThrough == null || asset.takenAt.isAfter(processedThrough)) {
+        processedThrough = asset.takenAt;
+      }
+      // Recorded immediately, before resolving/staging/OCR/AI run -- so a
+      // scan that gets cancelled or cut off partway through never leaves
+      // an asset it already decided to look at in limbo, re-examined (and
+      // re-billed to the AI) on the very next scan.
+      await examinedAssets.markExamined([asset.id]);
       _notify();
       final path = await asset.resolvePath();
       if (_closed || _disposed) return false;
       if (path == null) continue;
       final staged = await _imports.stage([
         (path: path, name: p.basename(path)),
-      ], limit: room - foundThisSource);
+      ], limit: 1);
       if (_closed || _disposed) return false;
       if (staged.candidates.isEmpty) continue;
       final candidate = staged.candidates.first;
@@ -363,7 +401,6 @@ class BulkImportViewModel extends ChangeNotifier {
         continue;
       }
       scanFound++;
-      foundThisSource++;
       final withText = candidate.copyWith(ocrText: text);
       if (suggestion == null) {
         // A transient AI/network failure must never silently drop a real
