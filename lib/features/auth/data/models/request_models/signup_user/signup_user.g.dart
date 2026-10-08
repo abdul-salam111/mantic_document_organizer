@@ -7,7 +7,7 @@ part of 'signup_user.dart';
 // **************************************************************************
 
 _SignupUser _$SignupUserFromJson(Map<String, dynamic> json) => _SignupUser(
-  name: json['name'] as String?,
+  name: json['display_name'] as String?,
   email: json['email'] as String?,
   password: json['password'] as String?,
 );

@@ -50,12 +50,20 @@ bool _isCleanArchitectureProvider(Directory libDir) {
   final features = Directory('${libDir.path}/features').listSync();
   if (features.isEmpty) return false;
 
-  final firstFeature = features.first;
-  if (firstFeature is! Directory) return false;
-
-  return Directory('${firstFeature.path}/data').existsSync() &&
-      Directory('${firstFeature.path}/domain').existsSync() &&
-      Directory('${firstFeature.path}/presentation').existsSync();
+  // Not every feature folder necessarily uses the full data/domain/
+  // presentation layering (e.g. a lighter view/viewmodel-only feature) --
+  // checking an arbitrary single folder (`features.first`, in filesystem
+  // listing order, not alphabetical) made this detection order-dependent
+  // and could false-negative on a real Clean Architecture project. Treat
+  // the project as Clean Architecture if ANY feature folder has the
+  // layering, not just whichever one happened to be listed first.
+  return features.any(
+    (feature) =>
+        feature is Directory &&
+        Directory('${feature.path}/data').existsSync() &&
+        Directory('${feature.path}/domain').existsSync() &&
+        Directory('${feature.path}/presentation').existsSync(),
+  );
 }
 
 // Splits arbitrary input (snake_case, camelCase, PascalCase,

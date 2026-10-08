@@ -19,6 +19,7 @@ import 'core/theme/theme_exports.dart';
 
 void main() {
   runZonedGuarded(
+    
     () async {
       WidgetsFlutterBinding.ensureInitialized();
 

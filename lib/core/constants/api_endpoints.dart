@@ -16,6 +16,8 @@ class ApiEndPoints {
       '${baseUrl}auth/resend-verification-email';
   static const String currentUser = '${baseUrl}auth/me';
   static const String spaces = '${baseUrl}spaces';
+  static const String acceptInvitation = '${baseUrl}invitations/accept';
+  static const String acceptJoinLink = '${baseUrl}join-links/accept';
   static const String storageConnections = '${baseUrl}storage/connections';
   static const String googleDriveAuthorizationUrl =
       '${baseUrl}storage/google/authorization-url';

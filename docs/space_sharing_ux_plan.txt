@@ -1,0 +1,466 @@
+================================================================================
+CATEGORY SHARING — FLUTTER UX & FLOW PLAN
+================================================================================
+
+Status: DRAFT — please edit this file directly with any changes before we
+build. Anywhere you see "OPEN QUESTION" or "RECOMMENDATION", that's a decision
+point for you, not something already settled.
+
+What this document is: the concrete, screen-by-screen UX plan for the
+category-sharing feature ("Family Documents" use case) on the Flutter side.
+The backend for this (Space / Membership / Invitation / SpaceJoinLink, roles
+owner/editor/viewer) is already built, deployed, and tested — see
+/Users/abdulsalam/Flutter_Projects/mantic_doc_org_backend. The technical
+build plan for the Flutter side lives in this session's plan file
+(~/.claude/plans/replicated-sauteeing-pearl.md) — that one is "what files
+change and in what order." THIS document is "what does the person actually
+see and tap, and why."
+
+Related existing docs in this folder, for context (partially superseded by
+what's actually built — e.g. they describe S3 storage, this app uses Google
+Drive instead):
+  - collaborative_sync_and_backup_plan.md — the original architecture doc.
+    Its "UX details" section has some good early thinking; this document
+    supersedes it with concrete screens and copy.
+  - project_doc.md — calls this "Vault"/"VaultMember" (Phase 4). We're
+    building it now, named "shared space" in code, surfaced to the user as
+    a category that happens to be shared — no new "Vault" concept in the UI.
+
+--------------------------------------------------------------------------------
+0. EXPERIENCE PRINCIPLES
+--------------------------------------------------------------------------------
+
+These are the rules every screen below follows. If a later decision seems to
+conflict with one of these, that's worth a second look.
+
+1. The fast path has zero typing. Tap Share -> see a QR code and a link,
+   immediately, with no form to fill in first. Email-invite is there for
+   people who want more control, but it is NOT the first thing you see.
+
+2. Never silently hide an action. A Viewer who can't add documents should
+   SEE why (a role badge, a disabled-with-explanation state) — not just find
+   the "+" button missing and wonder if the app is broken.
+
+3. Every "you joined" moment ends with a concrete next step. Not a toast that
+   evaporates — a screen with a clear "Open Family Documents" button that
+   takes you straight into the content you just joined. Joining something
+   with no visible result is exactly why collaboration features die.
+
+4. Be honest about the one real limitation: a shared link/QR only works if
+   the other person already has the app installed (there's no web fallback
+   yet — see section 8, item 4). We write the copy to set that expectation
+   rather than let people hit a silent dead end and think something's broken.
+
+5. Reuse what already exists. This app already has a visual language
+   (CustomButton, gradient hero cards, surfaceElevated cards, Iconsax icons,
+   AppToastsUtils) from the Backup screen and others. New screens should
+   look like they belong, not like a bolted-on feature.
+
+--------------------------------------------------------------------------------
+1. WHERE "SHARE" LIVES (entry points)
+--------------------------------------------------------------------------------
+
+Primary entry point: Manage Categories screen
+  (lib/features/categories/presentation/manage_categories/)
+
+  Current state: each category row has two trailing icon buttons, Edit and
+  Delete (manage_categories_view.dart, _CategoryRow).
+
+  RECOMMENDATION (change needed): replace the two bare icon buttons with a
+  single "more options" (kebab / three-dot) icon that opens a small menu:
+  Edit, Share, Delete. Reasoning: a third bare icon button makes the row
+  cramped on small phones, and this pattern doesn't scale if we ever add a
+  fourth action. A consolidated menu is the standard mobile pattern for
+  "a few actions on a list row" and reads as more deliberate than a row of
+  icons. If the category is already shared, add a small people-badge
+  (icon + member count, e.g. a pill showing "2") to the LEFT of the menu
+  button, always visible without opening the menu — sharing status should be
+  visible at a glance, not something you have to dig for.
+
+  OPEN QUESTION: are you OK with this row-layout change, or would you rather
+  keep Edit/Delete as visible icons and ONLY add Share as a third icon
+  (accepting the more cramped row)? Recommendation above assumes the menu
+  consolidation; if you'd rather not touch the existing row layout, say so
+  here and we'll just bolt on a third icon instead.
+
+Secondary entry point: Home screen category tile
+  (lib/features/home/view/home_view.dart)
+
+  A shared category's tile on Home should also show the people-badge (same
+  one as above). Tapping the badge specifically (not the whole tile, which
+  still opens the category as normal) jumps straight to the Share screen.
+  This means a returning user doesn't have to go through Manage Categories
+  every time they want to check who's in "Family Documents" or grab the
+  link again.
+
+  IMPORTANT (no duplicate spaces): this badge only ever appears on a
+  category that's ALREADY shared (spaceId != null locally), so tapping it
+  must go straight to ShareCategoryView for that category's EXISTING
+  spaceId — it must never run the "create a new space" step from Flow A /
+  Step 1. There is exactly one space per shared category, full stop; no
+  code path, from any entry point, re-creates or duplicates it. Same icon,
+  same name, same everything — this is just a shortcut to the one Share
+  screen that already exists for that category, not a second share
+  surface. If a category is unshared, it shows no badge at all on Home,
+  and sharing it for the first time only ever happens through the Manage
+  Categories entry point (section 1's primary entry point, which already
+  has the one-time "create" branch).
+
+What does NOT get a Share entry point in v1: individual documents. Sharing
+is category-level only, matching how you described the feature. A document
+inside a shared category is visible to all members automatically — there's
+no separate "share this one document" action.
+
+--------------------------------------------------------------------------------
+2. FLOW A — OWNER SHARES A CATEGORY
+--------------------------------------------------------------------------------
+
+Step 1: Tap Share (from either entry point above).
+
+  If this category isn't a shared space yet: show a brief one-time
+  confirmation bottom sheet before creating anything server-side —
+  "Share [Category Name]? Anyone you invite will be able to see every
+  document in this category. [Share category] [Cancel]" — because this is
+  a one-way-ish door (creating a space, moving the category's sync identity
+  server-side) and shouldn't happen from an accidental tap. After
+  confirming, create the space + category server-side (ShareCategoryUsecase
+  from the technical plan), then go straight to Step 2 — don't make them
+  tap Share twice.
+
+  If it's already shared: skip straight to Step 2.
+
+Step 2: The Share screen.
+
+  Layout (top to bottom), styled like BackupSetupPage's card-based look
+  (gradient hero header, surfaceElevated rounded cards, same spacing
+  rhythm):
+
+  - Header: category icon + name, subtitle "Shared with N people"
+    (or "Not shared with anyone yet" if N=0, i.e. right after creation).
+
+  - QR code card: centered QR code encoding the join-link (see section 6 for
+    exact rendering rules — this MUST stay light-background/black-modules
+    regardless of app dark mode, or it becomes unscannable). Caption under
+    it: "Anyone who scans this joins as an Editor and can add documents."
+    Below the QR: the plain link text (selectable/copyable) with a
+    "Copy link" button and a "Share link" button (opens the OS share sheet
+    via the existing share_plus dependency — so it can go out through
+    WhatsApp, Messages, email, AirDrop, whatever the person actually uses).
+
+  - Below that, smaller/secondary: "Prefer to invite by email instead?"
+    — tapping opens a small bottom sheet: email field, role dropdown
+    (Editor / Viewer, defaulting to Editor), Send button. On send: toast
+    "Invite sent to [email]" and the new pending invite appears in the
+    Pending section below. This is deliberately the SECONDARY path per
+    principle #1 — most people will just use the QR/link.
+
+  - Members section: list of current members — avatar initials, name,
+    email, role badge. The owner's own row shows "Owner" (not editable).
+    Every other row: a role dropdown (Editor/Viewer) and a remove (x)
+    action, with a confirmation ("Remove [name] from [category]? They'll
+    lose access to its documents immediately.") before actually removing.
+
+  - Pending invitations section (only visible if there are any, only to the
+    owner): "[email] — invited, expires in N days" with a revoke (x)
+    action. No confirmation needed for revoke (low-stakes, reversible by
+    re-inviting).
+
+  - "Sync now" row at the bottom, reusing the same progress/status pattern
+    as BackupSetupPage's _SyncStatusCard (idle / syncing / up to date /
+    failed-with-retry) — scoped to this one shared category's space.
+
+Step 3 (owner-side, ongoing): whenever the owner reopens the Share screen,
+  it reflects current state — if someone joined since last visit, they just
+  appear in Members. No push notification for "someone joined" in v1 (see
+  section 8, deferred items) — the owner discovers it by revisiting the
+  screen or by seeing new documents sync in.
+
+--------------------------------------------------------------------------------
+3. FLOW B — JOINING A SHARED CATEGORY
+--------------------------------------------------------------------------------
+
+There are two ways a recipient encounters an invite (a tapped link, or a
+scanned QR) and two states they can be in (already signed in, or not). All
+four combinations should converge on the same "Joining..." -> result screen.
+
+3.1 Tapped link, app installed, already signed in
+  (most common case if they're an existing user adding a second shared
+  category, or re-tapping a link they were sent)
+
+  - Deep link resolves (app_links) while the app may be in foreground,
+    background, or cold-started.
+  - Show a brief "Joining..." overlay (not a full page — a small centered
+    spinner is enough, this should take well under a second).
+  - On success: a confirmation screen (not just a toast — see principle #3):
+    "You've joined [Space Name]" with the category's icon/color, a primary
+    button "Open [Space Name]" (navigates directly into that category's
+    filtered document list) and a secondary "Done" (dismiss, stay on
+    whatever screen you were on).
+  - If they were ALREADY a member (re-tapping an old link, or re-scanning
+    their own QR by mistake): same success screen, no special-casing needed
+    — the backend's accept is idempotent, so this just looks like a normal
+    successful join from the UI's point of view. Don't show an error for
+    this case.
+
+3.2 Tapped link, app installed, NOT signed in
+
+  - The deep link's token can't be redeemed yet (the accept endpoints
+    require an authenticated user). Persist the raw token locally
+    (mirrors the existing StorageKeys.pendingBackupSetup pattern — new
+    StorageKeys.pendingSpaceJoinToken), then route to the sign-in screen
+    with a contextual banner above the form: "Sign in to continue joining a
+    shared space." (We deliberately can't name the space yet here — we
+    don't know its name until after the token is redeemed, which needs
+    auth first. Don't invent a name or oversell this banner.)
+  - This must work for BOTH sign-in (existing account) and sign-up (brand
+    new family member with no account yet) — after either succeeds, resume
+    automatically: call the accept endpoint with the stored token, then show
+    the same success screen as 3.1. The person should never have to
+    manually re-find the link after signing up.
+  - If they dismiss/cancel out of sign-in without completing it: the
+    pending token stays saved. Next time they open the app and sign in for
+    any reason, resume the accept then too (check for a pending token right
+    after every successful sign-in, not just ones that started from a
+    deep link).
+
+3.3 In-app QR scanner (new "Join via QR" screen)
+
+  RECOMMENDATION: this isn't just a nice-to-have alternative to tapping a
+  link — it's the more reliable mechanism given the known limitation in
+  principle #4. A custom-scheme link only works if the OS recognizes it as
+  openable (usually fine when tapped from Messages/WhatsApp, less
+  predictable from a generic Camera app's QR detection depending on
+  platform/OS version). Scanning with mobile_scanner INSIDE Mantic bypasses
+  that uncertainty entirely — it just reads the QR payload and calls the
+  same accept logic directly, no OS link-resolution involved. This is also
+  the natural fit for the literal scenario you described: someone shows the
+  QR code on their own phone's screen and the other person scans it with
+  theirs.
+
+  Entry point: OPEN QUESTION — where should "Join via QR" live? Candidates:
+    (a) Profile screen, a new tile near "Sync & backup"
+    (b) A small action from the "+" add-document flow's entry sheet
+    (c) Both
+  RECOMMENDATION: (a), Profile. It's a one-time-ish action (you join a
+  given family's space once), so it doesn't need to be as prominent as
+  "add a document," which happens constantly. Profile already hosts
+  other account-adjacent, infrequent actions (Trash, Sync & backup).
+
+  Screen: full-screen camera view with a scan target overlay (standard QR
+  scanner UI), a cancel/back button, and a "Enter link manually" fallback
+  (small text link at the bottom, in case the QR itself is damaged/unclear
+  — opens a simple text field to paste a link instead). On successful scan:
+  same "Joining..." -> result screen as 3.1/3.2 (including the
+  not-signed-in branch if applicable).
+
+  Camera permission denied: reuse the existing openAppSettings() pattern
+  already used in the bulk-import feature
+  (file_system_discovery_datasource.dart) — same wording style: explain why
+  the permission is needed, one button to open Settings, one to go back.
+
+3.4 Email invite acceptance
+
+  Same accept flow as above, just via the invitation-accept endpoint
+  instead of join-link-accept, triggered the same way (tapping the link in
+  the actual invitation email). No separate UI needed beyond what's already
+  described — email invites and link/QR invites converge on the identical
+  "Joining..." -> result screen, the only difference is which token/
+  endpoint gets called under the hood, which the deep-link handler already
+  knows from the link's path (accept-invitation vs join-space).
+
+  NOT in v1 (see section 8): an in-app "My Invitations" list for someone to
+  accept an email invite without finding the actual email. The backend has
+  no "list invitations addressed to me" endpoint today (only "list
+  invitations I sent, as the space owner"), so this would need a new
+  backend endpoint too. Worth doing later if email delivery/findability
+  turns out to be a problem in practice; not blocking for v1 since the
+  link/QR path is the one you actually described wanting.
+
+--------------------------------------------------------------------------------
+4. ROLE-GATED UI — WHAT CHANGES ACROSS THE APP
+--------------------------------------------------------------------------------
+
+Every one of these needs a "what's my role in this category" check before
+deciding what to show. A Viewer should see WHY something is missing, per
+principle #2 — don't just hide controls with no explanation.
+
+  - Home screen category tile: people-badge if shared (section 1).
+
+  - Document list for a shared category (wherever "All Docs" / search's
+    category-tab filtering lands): if the signed-in user's role is Viewer,
+    hide the floating "+" add-document button for that category context (or
+    show it disabled — RECOMMENDATION: hide it entirely rather than a
+    disabled ghost button, and instead show a small persistent banner at
+    the top of that filtered list: "You have view-only access to this
+    category." — a disabled button invites repeated frustrated taps; an
+    explanatory banner is seen once and understood).
+
+  - Add Document flow's category picker (category_picker_sheet.dart):
+    Viewer-role shared categories shouldn't be selectable as a destination
+    at all — exclude them from the picker rather than showing them and
+    failing on submit. (An Editor-role shared category IS selectable, same
+    as any personal category.)
+
+  - Document viewer action bar: for a document inside a Viewer-role shared
+    category, hide Edit/Delete/Move, keep Export/Share/view actions.
+    RECOMMENDATION (carried over from collaborative_sync_and_backup_plan.md
+    — this was good thinking already): show "Added by [name]" and a
+    last-synced indicator in the document viewer for shared documents, so
+    it's clear this came from someone else, not a mystery document that
+    appeared.
+
+  - Manage Categories row: Edit/Delete should also respect role — a Viewer
+    shouldn't see Edit/Delete for a shared category they don't own (only
+    the owner can rename/delete a shared category per the backend's
+    authorization rules — Editor can add/edit documents, but category
+    management stays Owner-only).
+
+--------------------------------------------------------------------------------
+5. VISUAL DESIGN NOTES
+--------------------------------------------------------------------------------
+
+QR code rendering (qr_flutter):
+  - ALWAYS render on a solid white card with real padding (quiet zone)
+    around the QR, regardless of the app's current theme/dark mode. Never
+    tint or recolor the QR modules to match app theming — a QR code needs
+    strong black-on-white contrast to scan reliably, and "dark mode QR
+    codes" are a common and completely avoidable scanning-failure bug.
+  - Minimum rendered size ~220x220 logical pixels for reliable scanning
+    from a few feet away (e.g. one phone's screen being scanned by
+    another's camera, the exact use case here).
+  - Put the category's icon as a small embedded center logo, only if
+    qr_flutter's version supports an embedded-image overlay cleanly without
+    hurting scannability (higher error-correction level needed if so) —
+    OPEN QUESTION: nice touch but adds risk; recommend skipping this for
+    v1 and shipping a plain QR first, revisit as polish later.
+
+Icons (Iconsax, matching the rest of the app's icon set): share, link,
+people/profile_2user (member badges), scan_barcode or scan (QR scanner
+entry) are the icons to reach for. NOTE: verify the exact Iconsax constant
+names exist in the installed package version when implementing — don't
+assume these spellings are exact.
+
+Color/role badges: reuse context.primary for the "Editor" default state,
+a neutral/textSecondary tone for "Viewer", consistent with how the app
+already uses tinted icon-badge circles elsewhere (ProfileView's menu tiles,
+BackupSetupPage's _StatusIcon). Don't invent a new badge visual language.
+
+Components to reuse directly (don't rebuild):
+  - CustomButton for all primary actions.
+  - AppToastsUtils for every toast ("Invite sent," "Copied," "Removed," the
+    viewer-blocked explanation if that route is chosen over a banner, etc.)
+    — this is already what the rest of the app funnels through.
+  - share_plus (already a dependency) for the "Share link" OS share sheet.
+  - The BackupSetupPage card/status patterns for the Share screen's overall
+    layout and its "Sync now" row.
+
+--------------------------------------------------------------------------------
+6. MICRO-COPY REFERENCE
+--------------------------------------------------------------------------------
+
+(Starting point — adjust freely, this is the kind of thing that's easy to
+tweak once it's in front of you on a real screen.)
+
+  Share confirmation (first time):
+    "Share [Category]?"
+    "Anyone you invite will be able to see every document in this
+    category."
+    Buttons: "Share category" / "Cancel"
+
+  QR screen caption:
+    "Anyone who scans this joins as an Editor and can add documents."
+    (If you generate a Viewer-only link later: "...joins as a Viewer and
+    can see documents, but can't add new ones.")
+
+  Link-sharing reminder (near the Share/Copy buttons):
+    "They'll need Mantic Document Organizer installed to open this link."
+
+  Email invite sent:
+    Toast: "Invite sent to [email]."
+
+  Joining — in progress:
+    "Joining..."
+
+  Joining — success:
+    "You've joined [Space Name]"
+    Buttons: "Open [Space Name]" / "Done"
+
+  Joining — expired/revoked (404 from accept):
+    "This invite link has expired or was cancelled. Ask the space owner
+    for a new one."
+
+  Joining — wrong email (403 from invitation-accept):
+    "This invite was sent to a different email address. Sign in with the
+    invited address, or ask for a new invite."
+
+  Joining — offline:
+    "You're offline — try again once you're connected. Nothing on this
+    device has changed."
+
+  Viewer-blocked explanation (banner, per section 4):
+    "You have view-only access to this category."
+
+  Remove member confirmation:
+    "Remove [name] from [Category]? They'll lose access to its documents
+    immediately."
+
+  Pre-sign-in banner (section 3.2):
+    "Sign in to continue joining a shared space."
+
+--------------------------------------------------------------------------------
+7. SCREENS/COMPONENTS TO BUILD (maps to the technical plan)
+--------------------------------------------------------------------------------
+
+  - ShareCategoryView — the main Share screen (section 2).
+  - Share-confirmation bottom sheet (first-time-share-only).
+  - Invite-by-email bottom sheet (secondary action within ShareCategoryView).
+  - JoinSpaceScanView — the in-app QR scanner (section 3.3).
+  - "Joining..." overlay + join-result screen/sheet (shared by every join
+    path in section 3).
+  - Manage Categories row: menu consolidation + people-badge
+    (section 1 — existing file, modified not new).
+  - Home category tile: people-badge (section 1 — existing file, modified).
+  - Role-gating changes across Add Document's category picker, the
+    document list, and the document viewer action bar (section 4 —
+    existing files, modified).
+
+--------------------------------------------------------------------------------
+8. OUT OF SCOPE FOR V1 (explicitly deferred)
+--------------------------------------------------------------------------------
+
+  1. Viewer-only join links as a first-class option in the main Share
+     screen (the backend supports it — JoinLinkCreateRequest.role — but the
+     UI only surfaces one Editor-default link per category for v1, per
+     principle #1's "no typing, no choices" fast path). Could add an
+     "Advanced: create a view-only link" option later without backend
+     changes.
+  2. "Someone joined" / "someone added a document" push notifications.
+     Owner discovers activity by revisiting the Share screen or seeing docs
+     sync in. A notification system is a meaningfully separate feature.
+  3. In-app "My Invitations" inbox for accepting an email invite without
+     the original email (needs a new backend endpoint — see section 3.4).
+  4. HTTPS universal-link fallback for when the recipient doesn't have the
+     app installed yet (currently: link just silently does nothing). This
+     is the single biggest real UX gap in this plan and the main reason
+     for principle #4's honest "make sure they have the app installed"
+     copy. Worth revisiting once the app is store-published.
+  5. An activity log / "who changed what" feed (mentioned as a good idea in
+     collaborative_sync_and_backup_plan.md's conflict-handling section) —
+     not needed for a first release at this category-sharing scale.
+  6. Live/real-time updates (someone else's new document appearing without
+     a manual sync or app-resume trigger) — sync stays user/lifecycle
+     triggered per the technical plan, not a background poller.
+
+--------------------------------------------------------------------------------
+9. OPEN QUESTIONS, COLLECTED
+--------------------------------------------------------------------------------
+
+  - Section 1: OK with consolidating Manage Categories' Edit/Delete into a
+    menu (+ Share), or keep three bare icons?
+  - Section 3.3: "Join via QR" entry point — Profile only, or also
+    surfaced from the Add Document flow?
+  - Section 5: embed the category icon inside the QR code, or keep it
+    plain for v1?
+
+Edit this file directly with your answers/changes, then let me know and
+we'll start building against it.

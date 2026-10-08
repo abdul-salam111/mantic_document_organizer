@@ -160,8 +160,7 @@ class AppRoutes {
         path: RoutePaths.filePreview,
         name: RouteNames.filePreview,
         builder: (context, state) {
-          final (filePaths, initialIndex) =
-              state.extra as (List<String>, int);
+          final (filePaths, initialIndex) = state.extra as (List<String>, int);
           return FilePreviewView(
             filePaths: filePaths,
             initialIndex: initialIndex,

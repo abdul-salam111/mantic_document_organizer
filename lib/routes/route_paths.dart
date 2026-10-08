@@ -25,5 +25,6 @@ class RoutePaths {
   // GENERATED_ROUTE_PATHS_START
 
   static const String aiAssistant = "/ai-assistant";
+  static const String sharing = "/sharing";
   // GENERATED_ROUTE_PATHS_END
 }

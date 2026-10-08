@@ -26,7 +26,7 @@ class AppDatabase {
     final path = join(await getDatabasesPath(), 'mantic.db');
     _db = await openDatabase(
       path,
-      version: 7,
+      version: 8,
       onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: (db, version) async {
         await db.execute('''
@@ -34,7 +34,9 @@ class AppDatabase {
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
             icon_key TEXT NOT NULL,
-            color INTEGER
+            color INTEGER,
+            space_id TEXT,
+            my_role TEXT
           )
         ''');
         await db.execute('''
@@ -97,6 +99,10 @@ class AppDatabase {
         }
         if (oldVersion < 7) {
           await _createDiscoveryExaminedAssets(db);
+        }
+        if (oldVersion < 8) {
+          await db.execute('ALTER TABLE categories ADD COLUMN space_id TEXT');
+          await db.execute('ALTER TABLE categories ADD COLUMN my_role TEXT');
         }
       },
     );
@@ -511,6 +517,8 @@ class AppDatabase {
     'name': category.name,
     'icon_key': category.iconKey,
     'color': category.colorValue,
+    'space_id': category.spaceId,
+    'my_role': category.myRole,
   };
 
   CategoryItem _categoryFromRow(Map<String, Object?> row) => CategoryItem(
@@ -518,6 +526,8 @@ class AppDatabase {
     name: row['name'] as String,
     iconKey: row['icon_key'] as String,
     colorValue: row['color'] as int?,
+    spaceId: row['space_id'] as String?,
+    myRole: row['my_role'] as String?,
   );
 
   // ---------------------------------------------------------------------

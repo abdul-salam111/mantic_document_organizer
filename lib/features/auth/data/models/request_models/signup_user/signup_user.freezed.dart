@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SignupUser {
 
-@JsonKey(name: "name") String? get name;@JsonKey(name: "email") String? get email;@JsonKey(name: "password") String? get password;
+@JsonKey(name: "display_name") String? get name;@JsonKey(name: "email") String? get email;@JsonKey(name: "password") String? get password;
 /// Create a copy of SignupUser
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $SignupUserCopyWith<$Res>  {
   factory $SignupUserCopyWith(SignupUser value, $Res Function(SignupUser) _then) = _$SignupUserCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "name") String? name,@JsonKey(name: "email") String? email,@JsonKey(name: "password") String? password
+@JsonKey(name: "display_name") String? name,@JsonKey(name: "email") String? email,@JsonKey(name: "password") String? password
 });
 
 
@@ -155,7 +155,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "name")  String? name, @JsonKey(name: "email")  String? email, @JsonKey(name: "password")  String? password)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "display_name")  String? name, @JsonKey(name: "email")  String? email, @JsonKey(name: "password")  String? password)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SignupUser() when $default != null:
 return $default(_that.name,_that.email,_that.password);case _:
@@ -176,7 +176,7 @@ return $default(_that.name,_that.email,_that.password);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "name")  String? name, @JsonKey(name: "email")  String? email, @JsonKey(name: "password")  String? password)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "display_name")  String? name, @JsonKey(name: "email")  String? email, @JsonKey(name: "password")  String? password)  $default,) {final _that = this;
 switch (_that) {
 case _SignupUser():
 return $default(_that.name,_that.email,_that.password);case _:
@@ -196,7 +196,7 @@ return $default(_that.name,_that.email,_that.password);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "name")  String? name, @JsonKey(name: "email")  String? email, @JsonKey(name: "password")  String? password)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "display_name")  String? name, @JsonKey(name: "email")  String? email, @JsonKey(name: "password")  String? password)?  $default,) {final _that = this;
 switch (_that) {
 case _SignupUser() when $default != null:
 return $default(_that.name,_that.email,_that.password);case _:
@@ -211,10 +211,10 @@ return $default(_that.name,_that.email,_that.password);case _:
 @JsonSerializable()
 
 class _SignupUser implements SignupUser {
-  const _SignupUser({@JsonKey(name: "name") this.name, @JsonKey(name: "email") this.email, @JsonKey(name: "password") this.password});
+  const _SignupUser({@JsonKey(name: "display_name") this.name, @JsonKey(name: "email") this.email, @JsonKey(name: "password") this.password});
   factory _SignupUser.fromJson(Map<String, dynamic> json) => _$SignupUserFromJson(json);
 
-@override@JsonKey(name: "name") final  String? name;
+@override@JsonKey(name: "display_name") final  String? name;
 @override@JsonKey(name: "email") final  String? email;
 @override@JsonKey(name: "password") final  String? password;
 
@@ -251,7 +251,7 @@ abstract mixin class _$SignupUserCopyWith<$Res> implements $SignupUserCopyWith<$
   factory _$SignupUserCopyWith(_SignupUser value, $Res Function(_SignupUser) _then) = __$SignupUserCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "name") String? name,@JsonKey(name: "email") String? email,@JsonKey(name: "password") String? password
+@JsonKey(name: "display_name") String? name,@JsonKey(name: "email") String? email,@JsonKey(name: "password") String? password
 });
 
 

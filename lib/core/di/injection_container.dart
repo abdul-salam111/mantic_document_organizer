@@ -64,6 +64,8 @@ import '../local_storage/local_storage_exports.dart';
 
 import '../../features/ai_assistant/ai_assistant_exports.dart';
 
+import '../../features/sharing/sharing_exports.dart';
+
 // GENERATED_IMPORTS_END
 
 final sl = GetIt.instance;
@@ -93,6 +95,7 @@ Future<void> setupLocator() async {
   // GENERATED_SETUP_CALLS_START
 
   await aiAssistantDependencies();
+  await sharingDependencies();
   // GENERATED_SETUP_CALLS_END
 }
 
@@ -412,6 +415,38 @@ Future<void> aiAssistantDependencies() async {
   sl.registerLazySingleton<AiAssistantViewModel>(
     () => AiAssistantViewModel(documentUseCases: sl(), aiChatService: sl()),
   );
+}
+
+/// Sharing Feature Dependencies
+///
+/// No ViewModel registered yet -- the real screens (ShareCategoryView,
+/// JoinSpaceScanView, etc., see docs/space_sharing_ux_plan.txt) land in a
+/// later step; this wires the data/domain layer they'll depend on.
+Future<void> sharingDependencies() async {
+  // DataSource
+  sl.registerLazySingleton<IRemoteSharingDataSource>(
+    () => RemoteSharingDataSourceImpl(dioHelper: sl()),
+  );
+
+  // Repository
+  sl.registerLazySingleton<ISharingRepository>(
+    () => SharingRepositoryImpl(dataSource: sl()),
+  );
+
+  // UseCases
+  sl.registerLazySingleton(() => CreateSpaceUsecase(sl()));
+  sl.registerLazySingleton(() => CreateSpaceCategoryUsecase(sl()));
+  sl.registerLazySingleton(() => ListMembersUsecase(sl()));
+  sl.registerLazySingleton(() => UpdateMemberRoleUsecase(sl()));
+  sl.registerLazySingleton(() => RemoveMemberUsecase(sl()));
+  sl.registerLazySingleton(() => InviteMemberUsecase(sl()));
+  sl.registerLazySingleton(() => ListInvitationsUsecase(sl()));
+  sl.registerLazySingleton(() => RevokeInvitationUsecase(sl()));
+  sl.registerLazySingleton(() => AcceptInvitationUsecase(sl()));
+  sl.registerLazySingleton(() => CreateJoinLinkUsecase(sl()));
+  sl.registerLazySingleton(() => ListJoinLinksUsecase(sl()));
+  sl.registerLazySingleton(() => RevokeJoinLinkUsecase(sl()));
+  sl.registerLazySingleton(() => AcceptJoinLinkUsecase(sl()));
 }
 
 // GENERATED_DEPENDENCIES_END

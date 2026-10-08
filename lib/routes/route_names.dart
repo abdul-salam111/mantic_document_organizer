@@ -21,5 +21,6 @@ class RouteNames {
   // GENERATED_ROUTE_NAMES_START
 
   static const String aiAssistant = "aiAssistant";
+  static const String sharing = "sharing";
   // GENERATED_ROUTE_NAMES_END
 }
