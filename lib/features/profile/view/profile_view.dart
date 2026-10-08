@@ -66,6 +66,14 @@ class ProfileView extends StatelessWidget {
                     subtitle: 'Keep your documents securely backed up',
                     onTap: vm.setUpBackup,
                   ),
+                  heightBox(10),
+                  _ProfileMenuTile(
+                    icon: Iconsax.scan_barcode,
+                    iconColor: context.primary,
+                    label: 'Join a shared category',
+                    subtitle: 'Scan a QR code someone shared with you',
+                    onTap: () => AppNavigator.pushNamed(RouteNames.joinSpaceScan),
+                  ),
                   if (vm.isSignedIn) ...[
                     heightBox(20),
                     Divider(color: context.divider, height: 1),
