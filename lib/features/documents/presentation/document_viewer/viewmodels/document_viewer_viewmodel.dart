@@ -8,18 +8,24 @@ import 'package:mantic_doc_org/features/documents/presentation/add_document/view
     show AttachmentSource;
 import 'package:flutter/foundation.dart';
 
+import '../../../../../core/background/document_sync_background_service.dart';
+import '../../../../../core/utils/shared_space_sync.dart';
+
 class DocumentViewerViewModel extends ChangeNotifier {
   final DocumentProcessingUseCases _processing;
   final DocumentUseCases _documentUseCases;
   final CategoryUseCases _categoryUseCases;
+  final DocumentSyncBackgroundService _syncBackgroundService;
 
   DocumentViewerViewModel({
     required DocumentProcessingUseCases processing,
     required DocumentUseCases documentUseCases,
     required CategoryUseCases categoryUseCases,
+    required DocumentSyncBackgroundService syncBackgroundService,
   }) : _processing = processing,
        _documentUseCases = documentUseCases,
-       _categoryUseCases = categoryUseCases {
+       _categoryUseCases = categoryUseCases,
+       _syncBackgroundService = syncBackgroundService {
     _documentUseCases.addListener(notifyListeners);
   }
 
@@ -90,11 +96,24 @@ class DocumentViewerViewModel extends ChangeNotifier {
     await _documentUseCases.toggleFavorite(current);
   }
 
+  /// The shared space a local category belongs to, if any -- used to
+  /// trigger a background sync right after a mutation so the change
+  /// reaches other members without them needing to tap "Sync now"
+  /// themselves (see docs/space_sharing_ux_plan.txt's sync triggers).
+  String? _spaceIdFor(String categoryId) =>
+      _categoryUseCases.byId(categoryId)?.spaceId;
+
+  void _syncIfShared(String categoryId) => triggerSharedSpaceSyncIfNeeded(
+    syncBackgroundService: _syncBackgroundService,
+    spaceId: _spaceIdFor(categoryId),
+  );
+
   Future<void> rename(String newTitle) async {
     final current = document;
     final trimmed = newTitle.trim();
     if (current == null || trimmed.isEmpty) return;
     await _documentUseCases.updateDocument(current.copyWith(title: trimmed));
+    _syncIfShared(current.categoryId);
   }
 
   Future<void> moveToCategory(CategoryItem category) async {
@@ -107,6 +126,7 @@ class DocumentViewerViewModel extends ChangeNotifier {
         iconKey: category.iconKey,
       ),
     );
+    _syncIfShared(category.id);
   }
 
   /// Soft delete — moves the document to Trash, recoverable within
@@ -116,6 +136,7 @@ class DocumentViewerViewModel extends ChangeNotifier {
     final current = document;
     if (current == null) return;
     await _documentUseCases.trashDocument(current.id);
+    _syncIfShared(current.categoryId);
   }
 
   // Long-press-a-page-to-select, keyed by path (not index — indices shift
@@ -158,6 +179,7 @@ class DocumentViewerViewModel extends ChangeNotifier {
         current.copyWith(filePaths: remaining),
       );
     }
+    _syncIfShared(current.categoryId);
     notifyListeners();
   }
 

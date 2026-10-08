@@ -3,11 +3,18 @@ import 'package:mantic_doc_org/features/documents/domain/entities/document_item.
 import 'package:mantic_doc_org/features/documents/domain/usecases/document_usecases.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../../../../core/background/document_sync_background_service.dart';
+import '../../../../../core/utils/shared_space_sync.dart';
+
 class CategoryDocumentsViewModel extends ChangeNotifier {
   final DocumentUseCases _documentUseCases;
+  final DocumentSyncBackgroundService _syncBackgroundService;
 
-  CategoryDocumentsViewModel({required DocumentUseCases documentUseCases})
-    : _documentUseCases = documentUseCases {
+  CategoryDocumentsViewModel({
+    required DocumentUseCases documentUseCases,
+    required DocumentSyncBackgroundService syncBackgroundService,
+  }) : _documentUseCases = documentUseCases,
+       _syncBackgroundService = syncBackgroundService {
     _documentUseCases.addListener(notifyListeners);
   }
 
@@ -88,6 +95,10 @@ class CategoryDocumentsViewModel extends ChangeNotifier {
     if (ids.isEmpty) return;
     await _documentUseCases.trashDocuments(ids);
     _selectedIds.clear();
+    triggerSharedSpaceSyncIfNeeded(
+      syncBackgroundService: _syncBackgroundService,
+      spaceId: _category.spaceId,
+    );
     notifyListeners();
   }
 

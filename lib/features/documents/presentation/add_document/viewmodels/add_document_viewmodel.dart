@@ -10,6 +10,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../../../core/background/document_sync_background_service.dart';
+import '../../../../../core/utils/shared_space_sync.dart';
+
 enum TagError { limitReached, tooLong, duplicate }
 
 /// Where a freshly-added page's file should come from, chosen up front
@@ -22,6 +25,7 @@ class AddDocumentViewModel extends ChangeNotifier {
   final CategoryUseCases _categoryUseCases;
   final DocumentUseCases _documentUseCases;
   final DocumentProcessingUseCases _processing;
+  final DocumentSyncBackgroundService _syncBackgroundService;
 
   /// No default category selection — opening this screen with no category
   /// already in context (the navbar's "+" button) starts on Uncategorized,
@@ -32,9 +36,11 @@ class AddDocumentViewModel extends ChangeNotifier {
     required CategoryUseCases categoryUseCases,
     required DocumentUseCases documentUseCases,
     required DocumentProcessingUseCases processing,
+    required DocumentSyncBackgroundService syncBackgroundService,
   }) : _categoryUseCases = categoryUseCases,
        _documentUseCases = documentUseCases,
-       _processing = processing;
+       _processing = processing,
+       _syncBackgroundService = syncBackgroundService;
 
   /// Called from the view when opened with a category already in
   /// context (e.g. the "+" button on a category's document list) — picks
@@ -391,6 +397,10 @@ class AddDocumentViewModel extends ChangeNotifier {
       } else {
         await _documentUseCases.addDocument(item);
       }
+      triggerSharedSpaceSyncIfNeeded(
+        syncBackgroundService: _syncBackgroundService,
+        spaceId: category?.spaceId,
+      );
     } finally {
       _isSaving = false;
       notifyListeners();

@@ -305,6 +305,7 @@ Future<void> addDocumentDependencies() async {
       categoryUseCases: sl(),
       documentUseCases: sl(),
       processing: sl(),
+      syncBackgroundService: sl(),
     ),
   );
 }
@@ -380,7 +381,10 @@ Future<void> manageCategoriesDependencies() async {
 
 Future<void> categoryDocumentsDependencies() async {
   sl.registerFactory<CategoryDocumentsViewModel>(
-    () => CategoryDocumentsViewModel(documentUseCases: sl()),
+    () => CategoryDocumentsViewModel(
+      documentUseCases: sl(),
+      syncBackgroundService: sl(),
+    ),
   );
 }
 
@@ -390,6 +394,7 @@ Future<void> documentViewerDependencies() async {
       documentUseCases: sl(),
       categoryUseCases: sl(),
       processing: sl(),
+      syncBackgroundService: sl(),
     ),
   );
 }
@@ -486,6 +491,14 @@ Future<void> sharingDependencies() async {
     () => DeepLinkService(
       acceptInvitation: sl(),
       acceptJoinLink: sl(),
+      syncBackgroundService: sl(),
+    ),
+    dispose: (service) => service.dispose(),
+  );
+
+  sl.registerLazySingleton(
+    () => SharedSpacesResumeSync(
+      categoryUseCases: sl(),
       syncBackgroundService: sl(),
     ),
     dispose: (service) => service.dispose(),

@@ -1,10 +1,16 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mantic_doc_org/core/background/document_sync_background_service.dart';
+import 'package:mantic_doc_org/core/database/database_exports.dart';
 import 'package:mantic_doc_org/core/di/injection_container.dart';
 import 'package:mantic_doc_org/core/localization/localization_exports.dart';
+import 'package:mantic_doc_org/core/notifications/document_sync_notifications.dart';
+import 'package:mantic_doc_org/core/notifications/notification_plugin.dart';
 import 'package:mantic_doc_org/core/theme/theme.dart';
 import 'package:mantic_doc_org/core/widgets/inputs/custom_textfield.dart';
+import 'package:mantic_doc_org/features/backup/data/services/document_sync_service.dart';
 import 'package:mantic_doc_org/features/categories/domain/usecases/category_usecases.dart';
 import 'package:mantic_doc_org/features/documents/domain/usecases/document_processing_usecases.dart';
 import 'package:mantic_doc_org/features/documents/domain/usecases/document_usecases.dart';
@@ -36,6 +42,15 @@ void main() {
       categoryUseCases: CategoryUseCases(categories),
       documentUseCases: DocumentUseCases(documents),
       processing: DocumentProcessingUseCases(FakeProcessing()),
+      // Never actually invoked -- no test here calls submit() -- just
+      // needs to be constructible.
+      syncBackgroundService: DocumentSyncBackgroundService(
+        syncService: DocumentSyncService(AppDatabase(), Dio()),
+        database: AppDatabase(),
+        documents: DocumentUseCases(documents),
+        categories: CategoryUseCases(categories),
+        notifications: DocumentSyncNotifications(AppNotificationPlugin()),
+      ),
     );
     sl.registerFactory<AddDocumentViewModel>(() => vm);
     addTearDown(() async {

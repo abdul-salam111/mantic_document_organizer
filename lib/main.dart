@@ -64,6 +64,7 @@ void main() {
       // Must come after loadUserFromStorage(), since it decides whether an
       // incoming link can be redeemed now or needs to wait for sign-in.
       unawaited(sl<DeepLinkService>().init());
+      sl<SharedSpacesResumeSync>().init();
       // Fire-and-forget: runs in the background after the app is already
       // showing, covering only "permission was granted in a previous
       // session but the scan never finished" -- the real first run is

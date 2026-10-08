@@ -2,3 +2,4 @@
 // SessionController.
 export 'session_manager.dart';
 export 'deep_link_service.dart';
+export 'shared_spaces_resume_sync.dart';
