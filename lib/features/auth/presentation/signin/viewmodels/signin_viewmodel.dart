@@ -14,12 +14,15 @@ import '../../../domain/usecases/social_signin_usecase.dart';
 class SigninViewModel extends ChangeNotifier with UseCaseExecutor {
   final SigninUsecase _signinUsecase;
   final SocialSigninUsecase _socialSigninUsecase;
+  final DeepLinkService _deepLinkService;
 
   SigninViewModel({
     required SigninUsecase signinUsecase,
     required SocialSigninUsecase socialSigninUsecase,
+    required DeepLinkService deepLinkService,
   }) : _signinUsecase = signinUsecase,
-       _socialSigninUsecase = socialSigninUsecase;
+       _socialSigninUsecase = socialSigninUsecase,
+       _deepLinkService = deepLinkService;
 
   AuthEntity? _user;
   AuthEntity? get user => _user;
@@ -78,6 +81,17 @@ class SigninViewModel extends ChangeNotifier with UseCaseExecutor {
         _user = user;
         await SessionController.instance.saveUserInStorage(user);
         await SessionController.instance.loadUserFromStorage();
+
+        // A deep-linked invitation/join-link caught while signed out takes
+        // priority -- it's what actually brought this person to sign in.
+        final pendingJoinToken = await storage.readValues(
+          StorageKeys.pendingSpaceJoinToken,
+        );
+        if (pendingJoinToken != null && pendingJoinToken.isNotEmpty) {
+          await _deepLinkService.resumePendingIfAny();
+          return;
+        }
+
         final pendingBackup = await storage.readValues(
           StorageKeys.pendingBackupSetup,
         );

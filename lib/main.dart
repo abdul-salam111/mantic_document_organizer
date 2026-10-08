@@ -11,6 +11,7 @@ import 'core/localization/localization_exports.dart';
 import 'core/networks/networks_exports.dart';
 import 'core/notifications/notifications_exports.dart';
 import 'core/security/security_exports.dart';
+import 'core/services/services_exports.dart';
 import 'core/sharing/sharing_exports.dart';
 import 'features/categories/domain/usecases/category_usecases.dart';
 import 'features/documents/domain/usecases/document_usecases.dart';
@@ -59,6 +60,10 @@ void main() {
       await sl<LocaleController>().loadLocale();
       await sl<SecurityController>().loadSecurity();
       await sl<NetworkPreferenceController>().loadNetworkPreference();
+      await SessionController.instance.loadUserFromStorage();
+      // Must come after loadUserFromStorage(), since it decides whether an
+      // incoming link can be redeemed now or needs to wait for sign-in.
+      unawaited(sl<DeepLinkService>().init());
       // Fire-and-forget: runs in the background after the app is already
       // showing, covering only "permission was granted in a previous
       // session but the scan never finished" -- the real first run is

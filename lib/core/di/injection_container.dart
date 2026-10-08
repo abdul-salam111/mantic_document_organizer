@@ -65,6 +65,7 @@ import '../local_storage/local_storage_exports.dart';
 import '../../features/ai_assistant/ai_assistant_exports.dart';
 
 import '../../features/sharing/sharing_exports.dart';
+import '../services/services_exports.dart';
 
 // GENERATED_IMPORTS_END
 
@@ -171,7 +172,11 @@ Future<void> authDependencies() async {
 
   // provider
   sl.registerFactory<SigninViewModel>(
-    () => SigninViewModel(signinUsecase: sl(), socialSigninUsecase: sl()),
+    () => SigninViewModel(
+      signinUsecase: sl(),
+      socialSigninUsecase: sl(),
+      deepLinkService: sl(),
+    ),
   );
   sl.registerFactory<SignupViewModel>(
     () => SignupViewModel(signupUsecase: sl(), socialSigninUsecase: sl()),
@@ -447,6 +452,11 @@ Future<void> sharingDependencies() async {
   sl.registerLazySingleton(() => ListJoinLinksUsecase(sl()));
   sl.registerLazySingleton(() => RevokeJoinLinkUsecase(sl()));
   sl.registerLazySingleton(() => AcceptJoinLinkUsecase(sl()));
+
+  sl.registerLazySingleton(
+    () => DeepLinkService(acceptInvitation: sl(), acceptJoinLink: sl()),
+    dispose: (service) => service.dispose(),
+  );
 }
 
 // GENERATED_DEPENDENCIES_END

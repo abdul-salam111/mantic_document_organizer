@@ -46,6 +46,10 @@ class StorageKeys {
   static const String pendingBackupSetup = 'pendingBackupSetup';
   static const String backupSpaceId = 'backupSpaceId';
   static const String backupEnabled = 'backupEnabled';
+  // A deep-linked invitation/join-link token caught while signed out (see
+  // DeepLinkService) -- redeemed right after the next successful sign-in.
+  static const String pendingSpaceJoinToken = 'pendingSpaceJoinToken';
+  static const String pendingSpaceJoinKind = 'pendingSpaceJoinKind';
 }
 
 extension LocalStorageGetters on LocalStorage {
