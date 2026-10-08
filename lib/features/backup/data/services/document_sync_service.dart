@@ -18,7 +18,15 @@ class DocumentSyncService {
 
   final AppDatabase _database;
   final Dio _dio;
-  bool _running = false;
+
+  /// Keyed by spaceId, not a single flag -- a shared category's space and
+  /// the personal backup space (or two different shared spaces) must be
+  /// able to sync at the same time. A single global flag here meant a
+  /// "Sync now" tap for one space would silently no-op (no error, no
+  /// toast, nothing) whenever any other space happened to be mid-sync --
+  /// this is exactly what made a shared category's "Sync now" look like
+  /// it was doing nothing while a personal backup ran.
+  final Set<String> _runningSpaceIds = {};
 
   /// Live status of the current/last run, for the setup/profile UI to show
   /// a real progress bar instead of a bare spinner.
@@ -46,8 +54,7 @@ class DocumentSyncService {
     bool isPersonalSpace = true,
     String? newCategoryRole,
   }) async {
-    if (_running) return;
-    _running = true;
+    if (!_runningSpaceIds.add(spaceId)) return;
     progress.value = const SyncProgress(stage: SyncStage.preparing);
     try {
       final scopedCategoryIds = await _scopedLocalCategoryIds(
@@ -110,7 +117,7 @@ class DocumentSyncService {
       );
       rethrow;
     } finally {
-      _running = false;
+      _runningSpaceIds.remove(spaceId);
     }
   }
 

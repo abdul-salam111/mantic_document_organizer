@@ -106,7 +106,7 @@ class _ShareCategoryViewState extends State<ShareCategoryView> {
                 : !vm.isAlreadyShared
                 ? const SizedBox.shrink()
                 : RefreshIndicator(
-                    onRefresh: vm.loadAll,
+                    onRefresh: vm.refreshAll,
                     child: ListView(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
                       children: [

@@ -34,7 +34,11 @@ class DocumentSyncBackgroundService {
   final DocumentUseCases _documents;
   final CategoryUseCases _categories;
   final DocumentSyncNotifications _notifications;
-  bool _running = false;
+
+  /// Keyed by spaceId -- see DocumentSyncService's matching field for why
+  /// a single global flag was wrong here (it let one space's sync being
+  /// in-flight silently swallow another space's "Sync now" tap).
+  final Set<String> _runningSpaceIds = {};
 
   /// [queueExistingDocuments] matches "Back up now"'s existing behavior of
   /// queuing every current document before syncing, so a first backup (or
@@ -64,8 +68,7 @@ class DocumentSyncBackgroundService {
     String? newCategoryRole,
     bool queueExistingDocuments = false,
   }) async {
-    if (_running) return;
-    _running = true;
+    if (!_runningSpaceIds.add(spaceId)) return;
     var lastShown = DateTime.fromMillisecondsSinceEpoch(0);
     void onProgress() {
       final p = _syncService.progress.value;
@@ -110,7 +113,7 @@ class DocumentSyncBackgroundService {
       await _notifications.showFailed(message);
     } finally {
       _syncService.progress.removeListener(onProgress);
-      _running = false;
+      _runningSpaceIds.remove(spaceId);
     }
   }
 

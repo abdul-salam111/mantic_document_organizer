@@ -115,6 +115,16 @@ class ShareCategoryViewModel extends ChangeNotifier {
     );
   }
 
+  /// Pull-to-refresh calls this, not just [loadAll] -- someone pulling to
+  /// refresh reasonably expects "get the latest," which has to include
+  /// documents, not just membership metadata. Scrolling down to the
+  /// explicit "Sync now" row is still there for a sync with no gesture
+  /// ambiguity, but shouldn't be the ONLY way to trigger one.
+  Future<void> refreshAll() async {
+    await loadAll();
+    await syncNow();
+  }
+
   Future<void> loadAll() async {
     final token = _token;
     final spaceId = _category.spaceId;
