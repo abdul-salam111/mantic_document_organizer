@@ -54,8 +54,25 @@ class DocumentViewerViewModel extends ChangeNotifier {
     return null;
   }
 
+  /// True when this document lives in a shared category the signed-in
+  /// user can only view -- Edit/Delete/Move must stay hidden for it (see
+  /// docs/space_sharing_ux_plan.txt §4). Server-side authorization is the
+  /// real gate; this only avoids showing a control that would just 403.
+  bool get isCurrentCategoryViewerOnly {
+    final categoryId = document?.categoryId;
+    if (categoryId == null) return false;
+    return _categoryUseCases.byId(categoryId)?.isViewerOnly ?? false;
+  }
+
+  /// Also hides the floating "add page" action -- adding content to a
+  /// Viewer-role document is the same "add" permission as any other write.
+  bool get canEditCurrentDocument => !isCurrentCategoryViewerOnly;
+
+  /// Excludes a Viewer-role shared category entirely -- it's never a valid
+  /// "move to" destination (see CategoryItem.isViewerOnly).
   List<CategoryItem> get categories =>
       List<CategoryItem>.of(_categoryUseCases.categories)
+        ..removeWhere((category) => category.isViewerOnly)
         ..sort((a, b) => a.name.compareTo(b.name));
 
   int _pageIndex = 0;

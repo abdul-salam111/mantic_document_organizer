@@ -43,6 +43,7 @@ class CategoryDocumentsView extends StatelessWidget {
             body: SafeArea(
               child: Column(
                 children: [
+                  if (category.isViewerOnly) const _ViewerOnlyBanner(),
                   Padding(
                     padding: const .fromLTRB(10, 16, 10, 0),
                     child: Column(
@@ -92,7 +93,7 @@ class CategoryDocumentsView extends StatelessWidget {
                 ],
               ),
             ),
-            floatingActionButton: vm.isSelecting
+            floatingActionButton: vm.isSelecting || category.isViewerOnly
                 ? null
                 : FloatingActionButton(
                     tooltip: AppLocalizations.of(context).addDocumentTitle,
@@ -146,6 +147,38 @@ class CategoryDocumentsView extends StatelessWidget {
     if (!context.mounted) return;
     AppToastsUtils.success(
       AppLocalizations.of(context).documentsTrashedToast(count),
+    );
+  }
+}
+
+/// Seen once, not a repeatedly-tapped dead button -- per
+/// docs/space_sharing_ux_plan.txt §4, a disabled "+" invites frustrated
+/// taps where an explanatory banner is understood immediately.
+class _ViewerOnlyBanner extends StatelessWidget {
+  const _ViewerOnlyBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: context.textSecondary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Icon(Iconsax.eye, size: 16, color: context.textSecondary),
+          widthBox(8),
+          Expanded(
+            child: Text(
+              'You have view-only access to this category.',
+              style: context.labelSmall.copyWith(color: context.textSecondary),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

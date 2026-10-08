@@ -72,6 +72,7 @@ class DocumentViewerView extends StatelessWidget {
               ),
             ),
             bottomNavigationBar: _DocumentActionBar(
+              canEdit: vm.canEditCurrentDocument,
               onAdd: () => _promptAddPages(context, vm),
               onEdit: () => _openEditor(current),
               onShare: () => _openShareSheet(context, vm, current),
@@ -445,7 +446,12 @@ class _RenameDocumentSheetState extends State<_RenameDocumentSheet> {
 }
 
 /// Scanner-style actions remain available while the user reads attachments.
+/// [canEdit] is false for a document inside a Viewer-role shared category
+/// (see DocumentViewerViewModel.canEditCurrentDocument) -- every mutating
+/// action (add pages, edit, move, rename) is hidden then, keeping only
+/// Share, per docs/space_sharing_ux_plan.txt §4.
 class _DocumentActionBar extends StatelessWidget {
+  final bool canEdit;
   final VoidCallback onAdd;
   final VoidCallback onEdit;
   final VoidCallback onShare;
@@ -453,6 +459,7 @@ class _DocumentActionBar extends StatelessWidget {
   final VoidCallback onRename;
 
   const _DocumentActionBar({
+    required this.canEdit,
     required this.onAdd,
     required this.onEdit,
     required this.onShare,
@@ -472,31 +479,35 @@ class _DocumentActionBar extends StatelessWidget {
         ),
         child: Row(
           children: [
-            _DocumentActionItem(
-              icon: Icons.add_a_photo_outlined,
-              label: l10n.addPagesAction,
-              onTap: onAdd,
-            ),
-            _DocumentActionItem(
-              icon: Iconsax.edit_2,
-              label: l10n.edit,
-              onTap: onEdit,
-            ),
+            if (canEdit)
+              _DocumentActionItem(
+                icon: Icons.add_a_photo_outlined,
+                label: l10n.addPagesAction,
+                onTap: onAdd,
+              ),
+            if (canEdit)
+              _DocumentActionItem(
+                icon: Iconsax.edit_2,
+                label: l10n.edit,
+                onTap: onEdit,
+              ),
             _DocumentActionItem(
               icon: Iconsax.share,
               label: l10n.share,
               onTap: onShare,
             ),
-            _DocumentActionItem(
-              icon: Iconsax.category,
-              label: l10n.move,
-              onTap: onMove,
-            ),
-            _DocumentActionItem(
-              icon: Iconsax.edit,
-              label: l10n.rename,
-              onTap: onRename,
-            ),
+            if (canEdit)
+              _DocumentActionItem(
+                icon: Iconsax.category,
+                label: l10n.move,
+                onTap: onMove,
+              ),
+            if (canEdit)
+              _DocumentActionItem(
+                icon: Iconsax.edit,
+                label: l10n.rename,
+                onTap: onRename,
+              ),
           ],
         ),
       ),

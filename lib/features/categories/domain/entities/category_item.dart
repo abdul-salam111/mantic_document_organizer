@@ -21,6 +21,15 @@ class CategoryItem {
 
   bool get isShared => spaceId != null;
 
+  /// A Viewer can see this category's documents but never add/edit/delete
+  /// them, move documents into it, or rename/delete the category itself --
+  /// enforced server-side; this is only for client-side UI gating (hiding
+  /// actions, excluding this category from a destination picker). Compares
+  /// the raw string rather than importing the sharing feature's `SpaceRole`
+  /// enum, keeping this entity decoupled from sharing entirely (see the
+  /// doc comment above on [myRole]).
+  bool get isViewerOnly => myRole == 'viewer';
+
   CategoryItem copyWith({
     String? id,
     String? name,

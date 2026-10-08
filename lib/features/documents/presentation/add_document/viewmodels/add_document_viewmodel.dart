@@ -90,8 +90,12 @@ class AddDocumentViewModel extends ChangeNotifier {
   final TextEditingController descriptionController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
+  /// Excludes a Viewer-role shared category entirely -- it's shown
+  /// elsewhere (Home, Manage Categories), just never offered as somewhere
+  /// to save a new document.
   List<CategoryItem> get categories =>
       List<CategoryItem>.of(_categoryUseCases.categories)
+        ..removeWhere((category) => category.isViewerOnly)
         ..sort((a, b) => a.name.compareTo(b.name));
 
   CategoryItem? _selectedCategory;
