@@ -234,7 +234,13 @@ class _SignupSheet extends StatelessWidget {
                       height: 52,
                       child: OutlinedButton.icon(
                         onPressed: vm.isAnyLoading ? null : vm.signUpWithApple,
-                        icon: const Icon(Icons.apple),
+                        icon: Image.asset(
+                          AppIcons.apple,
+                          width: 20,
+                          height: 20,
+                          color: IconTheme.of(context).color,
+                          colorBlendMode: BlendMode.srcIn,
+                        ),
                         label: Text(
                           vm.isAppleLoading
                               ? 'Connecting to Apple…'

@@ -9,6 +9,6 @@ class OnboardingViewModel extends ChangeNotifier {
   // (see NavbarView), not from here.
   Future<void> completeOnboarding() async {
     await storage.setValues(StorageKeys.hasSeenOnboarding, 'true');
-    AppNavigator.goNamed(RouteNames.signup);
+    AppNavigator.goNamed(RouteNames.signin);
   }
 }
