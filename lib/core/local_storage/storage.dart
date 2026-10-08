@@ -50,6 +50,11 @@ class StorageKeys {
   // DeepLinkService) -- redeemed right after the next successful sign-in.
   static const String pendingSpaceJoinToken = 'pendingSpaceJoinToken';
   static const String pendingSpaceJoinKind = 'pendingSpaceJoinKind';
+  // Prefix for a per-space key (`'$joinLinkTokenPrefix$spaceId'`) caching
+  // that space's reusable join-link raw token -- the backend only ever
+  // returns it once, right when the link is created (see
+  // ShareCategoryViewModel._ensureJoinLink).
+  static const String joinLinkTokenPrefix = 'joinLinkToken:';
 }
 
 extension LocalStorageGetters on LocalStorage {

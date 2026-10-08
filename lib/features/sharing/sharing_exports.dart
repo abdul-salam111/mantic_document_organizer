@@ -12,3 +12,4 @@ export 'domain/entities/space_entity.dart';
 export 'domain/entities/space_role.dart';
 export 'domain/repositories/sharing_repository.dart';
 export 'domain/usecases/sharing_usecases.dart';
+export 'domain/usecases/share_category_usecase.dart';

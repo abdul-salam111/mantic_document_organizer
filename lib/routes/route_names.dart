@@ -17,6 +17,9 @@ class RouteNames {
   static const String expiringSoon = "expiringSoon";
   static const String bulkImport = "bulkImport";
   static const String bulkImportReview = "bulkImportReview";
+  static const String shareCategory = "shareCategory";
+  static const String joinResult = "joinResult";
+  static const String joinSpaceScan = "joinSpaceScan";
 
   // GENERATED_ROUTE_NAMES_START
 

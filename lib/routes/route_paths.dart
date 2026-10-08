@@ -21,6 +21,9 @@ class RoutePaths {
   static const String expiringSoon = "/expiring-soon";
   static const String bulkImport = "/bulk-import";
   static const String bulkImportReview = "/bulk-import-review";
+  static const String shareCategory = "/share-category";
+  static const String joinResult = "/join-result";
+  static const String joinSpaceScan = "/join-space-scan";
 
   // GENERATED_ROUTE_PATHS_START
 

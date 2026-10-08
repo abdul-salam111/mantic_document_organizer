@@ -60,6 +60,8 @@ import '../background/auto_import_service.dart';
 import '../background/document_sync_background_service.dart';
 import '../local_storage/local_storage_exports.dart';
 
+import '../../features/sharing/presentation/share_category/viewmodel/share_category_viewmodel.dart';
+
 // GENERATED_IMPORTS_START
 
 import '../../features/ai_assistant/ai_assistant_exports.dart';
@@ -208,6 +210,7 @@ Future<void> backupDependencies() async {
       syncService: sl(),
       database: sl(),
       documents: sl(),
+      categories: sl(),
       notifications: sl(),
     ),
   );
@@ -424,9 +427,8 @@ Future<void> aiAssistantDependencies() async {
 
 /// Sharing Feature Dependencies
 ///
-/// No ViewModel registered yet -- the real screens (ShareCategoryView,
-/// JoinSpaceScanView, etc., see docs/space_sharing_ux_plan.txt) land in a
-/// later step; this wires the data/domain layer they'll depend on.
+/// JoinSpaceScanView and JoinResultView are self-contained (no ViewModel)
+/// -- see docs/space_sharing_ux_plan.txt for the full screen inventory.
 Future<void> sharingDependencies() async {
   // DataSource
   sl.registerLazySingleton<IRemoteSharingDataSource>(
@@ -453,8 +455,36 @@ Future<void> sharingDependencies() async {
   sl.registerLazySingleton(() => RevokeJoinLinkUsecase(sl()));
   sl.registerLazySingleton(() => AcceptJoinLinkUsecase(sl()));
 
+  // ShareCategoryUsecase is categories-feature-owned (it writes back onto
+  // a local CategoryItem) but depends on the two sharing usecases above --
+  // registered here rather than in documentStorageDependencies() since it
+  // can't exist until those are, and GetIt's lazy singletons don't care
+  // about registration order either way.
+  sl.registerLazySingleton(() => ShareCategoryUsecase(sl(), sl(), sl()));
+
+  sl.registerFactory<ShareCategoryViewModel>(
+    () => ShareCategoryViewModel(
+      shareCategory: sl(),
+      listMembers: sl(),
+      updateMemberRole: sl(),
+      removeMember: sl(),
+      inviteMember: sl(),
+      listInvitations: sl(),
+      revokeInvitation: sl(),
+      createJoinLink: sl(),
+      listJoinLinks: sl(),
+      revokeJoinLink: sl(),
+      categoryUseCases: sl(),
+      syncBackgroundService: sl(),
+    ),
+  );
+
   sl.registerLazySingleton(
-    () => DeepLinkService(acceptInvitation: sl(), acceptJoinLink: sl()),
+    () => DeepLinkService(
+      acceptInvitation: sl(),
+      acceptJoinLink: sl(),
+      syncBackgroundService: sl(),
+    ),
     dispose: (service) => service.dispose(),
   );
 }

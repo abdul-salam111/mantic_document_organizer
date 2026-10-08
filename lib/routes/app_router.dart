@@ -23,6 +23,11 @@ import '../features/documents/presentation/document_viewer/document_viewer_expor
 import '../features/documents/presentation/trash/trash_exports.dart';
 import '../features/documents/presentation/expiring_soon/expiring_soon_exports.dart';
 import '../features/bulk_import/bulk_import_exports.dart';
+import '../features/sharing/domain/entities/space_entity.dart';
+import '../features/sharing/domain/entities/space_role.dart';
+import '../features/sharing/presentation/join_result/view/join_result_view.dart';
+import '../features/sharing/presentation/join_space_scan/view/join_space_scan_view.dart';
+import '../features/sharing/presentation/share_category/view/share_category_view.dart';
 
 // GENERATED_IMPORTS_START
 
@@ -190,6 +195,25 @@ class AppRoutes {
                 viewModel: state.extra! as BulkImportViewModel,
               )
             : const BulkImportIntroView(),
+      ),
+      GoRoute(
+        path: RoutePaths.shareCategory,
+        name: RouteNames.shareCategory,
+        builder: (context, state) =>
+            ShareCategoryView(category: state.extra as CategoryItem),
+      ),
+      GoRoute(
+        path: RoutePaths.joinResult,
+        name: RouteNames.joinResult,
+        builder: (context, state) {
+          final (space, role) = state.extra as (SpaceEntity, SpaceRole);
+          return JoinResultView(space: space, role: role);
+        },
+      ),
+      GoRoute(
+        path: RoutePaths.joinSpaceScan,
+        name: RouteNames.joinSpaceScan,
+        builder: (context, state) => const JoinSpaceScanView(),
       ),
 
       // GENERATED_ROUTES_START

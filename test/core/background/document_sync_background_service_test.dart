@@ -8,6 +8,7 @@ import 'package:mantic_doc_org/core/notifications/document_sync_notifications.da
 import 'package:mantic_doc_org/core/notifications/notification_plugin.dart';
 import 'package:mantic_doc_org/features/backup/data/services/document_sync_service.dart';
 import 'package:mantic_doc_org/features/backup/domain/entities/sync_progress.dart';
+import 'package:mantic_doc_org/features/categories/domain/usecases/category_usecases.dart';
 import 'package:mantic_doc_org/features/documents/domain/usecases/document_usecases.dart';
 import '../../features/bulk_import/bulk_import_fakes.dart';
 
@@ -24,7 +25,12 @@ class FakeDocumentSyncService extends DocumentSyncService {
   Completer<void>? gate;
 
   @override
-  Future<void> sync({required String token, required String spaceId}) async {
+  Future<void> sync({
+    required String token,
+    required String spaceId,
+    bool isPersonalSpace = true,
+    String? newCategoryRole,
+  }) async {
     syncCalls++;
     lastToken = token;
     lastSpaceId = spaceId;
@@ -100,6 +106,7 @@ void main() {
       syncService: syncService,
       database: database,
       documents: DocumentUseCases(FakeDocuments()),
+      categories: CategoryUseCases(FakeCategories()),
       notifications: notifications,
     );
   });

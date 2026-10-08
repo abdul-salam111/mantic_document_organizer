@@ -16,8 +16,9 @@ class CreateSpaceUsecase
 }
 
 /// Creates a space and its one category together, so a caller doesn't need
-/// to sequence two repository calls itself -- see ShareCategoryUsecase in
-/// the categories feature, which is the only intended caller of this.
+/// to sequence two repository calls itself -- see ShareCategoryUsecase
+/// (same feature, domain/usecases/share_category_usecase.dart), which is
+/// the only intended caller of this.
 class CreateSpaceCategoryUsecase
     implements
         Usecase<

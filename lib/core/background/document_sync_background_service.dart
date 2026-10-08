@@ -4,6 +4,7 @@ import '../database/database_exports.dart';
 import '../notifications/notifications_exports.dart';
 import '../../features/backup/data/services/document_sync_service.dart';
 import '../../features/backup/domain/entities/sync_progress.dart';
+import '../../features/categories/domain/usecases/category_usecases.dart';
 import '../../features/documents/domain/usecases/document_usecases.dart';
 import '../../routes/routes_exports.dart';
 
@@ -18,10 +19,12 @@ class DocumentSyncBackgroundService {
     required DocumentSyncService syncService,
     required AppDatabase database,
     required DocumentUseCases documents,
+    required CategoryUseCases categories,
     required DocumentSyncNotifications notifications,
   }) : _syncService = syncService,
        _database = database,
        _documents = documents,
+       _categories = categories,
        _notifications = notifications {
     _notifications.onOpenTapped = _openBackupSetup;
   }
@@ -29,6 +32,7 @@ class DocumentSyncBackgroundService {
   final DocumentSyncService _syncService;
   final AppDatabase _database;
   final DocumentUseCases _documents;
+  final CategoryUseCases _categories;
   final DocumentSyncNotifications _notifications;
   bool _running = false;
 
@@ -40,6 +44,24 @@ class DocumentSyncBackgroundService {
   Future<void> runBackup({
     required String token,
     required String spaceId,
+    bool queueExistingDocuments = false,
+  }) => runSpaceSync(
+    token: token,
+    spaceId: spaceId,
+    isPersonalSpace: true,
+    queueExistingDocuments: queueExistingDocuments,
+  );
+
+  /// Generalizes [runBackup] to also drive a single shared category's
+  /// space -- same progress/notification pattern, just scoped to that one
+  /// space (see [DocumentSyncService.sync]'s [isPersonalSpace]). Used by the
+  /// Share screen's "Sync now" action and right after a successful
+  /// invitation/join-link accept.
+  Future<void> runSpaceSync({
+    required String token,
+    required String spaceId,
+    required bool isPersonalSpace,
+    String? newCategoryRole,
     bool queueExistingDocuments = false,
   }) async {
     if (_running) return;
@@ -68,9 +90,17 @@ class DocumentSyncBackgroundService {
       if (queueExistingDocuments) {
         await _database.queueExistingDocumentsForSync();
       }
-      await _syncService.sync(token: token, spaceId: spaceId);
-      // Home keeps an in-memory document list -- reload it after a sync so
-      // anything pulled from a restore is visible without reopening the app.
+      await _syncService.sync(
+        token: token,
+        spaceId: spaceId,
+        isPersonalSpace: isPersonalSpace,
+        newCategoryRole: newCategoryRole,
+      );
+      // Home/Manage Categories keep in-memory caches -- reload both after a
+      // sync so anything pulled (a restored document, or a brand-new shared
+      // category on a joining member's first sync) is visible without
+      // reopening the app.
+      await _categories.init();
       await _documents.init();
       await _notifications.showCompleted();
     } catch (_) {

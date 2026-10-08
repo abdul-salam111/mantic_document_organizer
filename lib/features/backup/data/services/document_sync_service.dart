@@ -26,13 +26,42 @@ class DocumentSyncService {
     const SyncProgress.idle(),
   );
 
-  Future<void> sync({required String token, required String spaceId}) async {
+  /// [isPersonalSpace] scopes every step below to only the local categories
+  /// that actually belong to this run -- the personal backup space only
+  /// ever touches categories with no [CategoryItem.spaceId] (today's only
+  /// case, unchanged), while a shared category's space only touches the one
+  /// local category whose `spaceId` matches [spaceId]. Without this, a
+  /// shared-space run would also push every other unsynced personal
+  /// category/document into that family space (and vice versa) -- see
+  /// docs/space_sharing_ux_plan.txt / the sharing technical plan's "sync
+  /// engine generalization" step.
+  ///
+  /// [newCategoryRole] is only consulted when this run discovers a shared
+  /// category it has no local copy of yet (e.g. a member syncing a space
+  /// for the first time after joining) -- it becomes that new local
+  /// category's [CategoryItem.myRole].
+  Future<void> sync({
+    required String token,
+    required String spaceId,
+    bool isPersonalSpace = true,
+    String? newCategoryRole,
+  }) async {
     if (_running) return;
     _running = true;
     progress.value = const SyncProgress(stage: SyncStage.preparing);
     try {
+      final scopedCategoryIds = await _scopedLocalCategoryIds(
+        spaceId: spaceId,
+        isPersonalSpace: isPersonalSpace,
+      );
       progress.value = const SyncProgress(stage: SyncStage.categories);
-      await _syncCategories(token: token, spaceId: spaceId);
+      await _syncCategories(
+        token: token,
+        spaceId: spaceId,
+        isPersonalSpace: isPersonalSpace,
+        newCategoryRole: newCategoryRole,
+        scopedCategoryIds: scopedCategoryIds,
+      );
 
       // A document can be removed directly from Neon (or by a recovery
       // operation) while its local copy and files still exist. Its old sync
@@ -44,9 +73,12 @@ class DocumentSyncService {
       await _requeueLocalDocumentsMissingFromRemote(
         token: token,
         spaceId: spaceId,
+        scopedCategoryIds: scopedCategoryIds,
       );
 
-      final pending = await _database.pendingSyncOperations();
+      final pending = (await _database.pendingSyncOperations())
+          .where((op) => scopedCategoryIds.contains(_categoryIdFromPayload(op)))
+          .toList(growable: false);
       for (var i = 0; i < pending.length; i++) {
         final item = pending[i];
         final id = item['id'] as int;
@@ -92,9 +124,40 @@ class DocumentSyncService {
     }
   }
 
+  Future<Set<String>> _scopedLocalCategoryIds({
+    required String spaceId,
+    required bool isPersonalSpace,
+  }) async {
+    final categories = await _database.fetchCategories();
+    if (isPersonalSpace) {
+      return {
+        uncategorizedCategoryId,
+        ...categories
+            .where((category) => category.spaceId == null)
+            .map((category) => category.id),
+      };
+    }
+    return categories
+        .where((category) => category.spaceId == spaceId)
+        .map((category) => category.id)
+        .toSet();
+  }
+
+  String? _categoryIdFromPayload(Map<String, Object?> operation) {
+    try {
+      final payload = jsonDecode(operation['payload'] as String) as Map;
+      return payload['category_id'] as String?;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> _syncCategories({
     required String token,
     required String spaceId,
+    required bool isPersonalSpace,
+    required String? newCategoryRole,
+    required Set<String> scopedCategoryIds,
   }) async {
     final headers = Options(headers: {'Authorization': 'Bearer $token'});
     final remoteResponse = await _dio.get(
@@ -132,6 +195,8 @@ class DocumentSyncService {
           name: remote['name'] as String,
           iconKey: remote['icon_key'] as String? ?? 'folder',
           colorValue: _colorFromRemote(remote['color']),
+          spaceId: isPersonalSpace ? null : spaceId,
+          myRole: isPersonalSpace ? null : newCategoryRole,
         );
         await _database.upsertCategory(localCategory);
       }
@@ -142,7 +207,8 @@ class DocumentSyncService {
     }
 
     for (final category in await _database.fetchCategories()) {
-      if (category.id == uncategorizedCategoryId ||
+      if (!scopedCategoryIds.contains(category.id) ||
+          category.id == uncategorizedCategoryId ||
           await _database.remoteCategoryIdForLocalId(category.id) != null) {
         continue;
       }
@@ -169,7 +235,10 @@ class DocumentSyncService {
     // `remoteById` instead of PATCHing unconditionally is what stops every
     // category being re-sent (and its revision bumped) on every sync.
     for (final category in await _database.fetchCategories()) {
-      if (category.id == uncategorizedCategoryId) continue;
+      if (!scopedCategoryIds.contains(category.id) ||
+          category.id == uncategorizedCategoryId) {
+        continue;
+      }
       final remoteId = await _database.remoteCategoryIdForLocalId(category.id);
       if (remoteId == null) continue;
       final remote = remoteById[remoteId];
@@ -199,6 +268,7 @@ class DocumentSyncService {
   Future<void> _requeueLocalDocumentsMissingFromRemote({
     required String token,
     required String spaceId,
+    required Set<String> scopedCategoryIds,
   }) async {
     final response = await _dio.get(
       '${ApiEndPoints.baseUrl}spaces/$spaceId/documents',
@@ -209,6 +279,7 @@ class DocumentSyncService {
         .toSet();
 
     for (final document in await _database.fetchDocuments()) {
+      if (!scopedCategoryIds.contains(document.categoryId)) continue;
       final state = await _database.documentSyncState(document.id);
       if (state == null || remoteIds.contains(state['remote_document_id'])) {
         continue;

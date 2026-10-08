@@ -173,6 +173,8 @@ class FakeCategories extends ChangeNotifier implements ICategoryRepository {
     const CategoryItem(id: 'personal', name: 'Personal', iconKey: 'file'),
   ];
   @override
+  Future<void> init() async {}
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
