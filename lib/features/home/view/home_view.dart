@@ -210,6 +210,14 @@ Widget _categoryTileAt(
       isGridView: isGridView,
       colorKey: category.name,
       color: category.colorValue == null ? null : Color(category.colorValue!),
+      isShared: category.isShared,
+      memberCount: vm.memberCountFor(category),
+      onBadgeTap: category.isShared
+          ? () => AppNavigator.pushNamed(
+              RouteNames.shareCategory,
+              extra: category,
+            )
+          : null,
     );
   } else if (index == vm.categories.length) {
     tile = _CategoryTile(
@@ -619,6 +627,9 @@ class _CategoryTile extends StatelessWidget {
   final bool isGridView;
   final String? colorKey;
   final Color? color;
+  final bool isShared;
+  final int? memberCount;
+  final VoidCallback? onBadgeTap;
 
   const _CategoryTile({
     this.id,
@@ -629,6 +640,9 @@ class _CategoryTile extends StatelessWidget {
     this.isGridView = true,
     this.colorKey,
     this.color,
+    this.isShared = false,
+    this.memberCount,
+    this.onBadgeTap,
   });
 
   Color _iconColor(BuildContext context) {
@@ -706,6 +720,12 @@ class _CategoryTile extends StatelessWidget {
             right: 6,
             child: _CountBadge(count: fileCount!, size: 20),
           ),
+        if (isShared && onBadgeTap != null)
+          Positioned(
+            top: 6,
+            left: 6,
+            child: SharedSpaceBadge(memberCount: memberCount, onTap: onBadgeTap!),
+          ),
       ],
     );
   }
@@ -757,6 +777,9 @@ class _CategoryTile extends StatelessWidget {
               ],
             ),
           ),
+          if (isShared && onBadgeTap != null) ...[
+            SharedSpaceBadge(memberCount: memberCount, onTap: onBadgeTap!),
+          ],
           widthBox(8),
           Icon(Iconsax.arrow_right_3, size: 16, color: context.textSecondary),
         ],

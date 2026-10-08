@@ -3,17 +3,32 @@ import 'package:mantic_doc_org/features/categories/domain/usecases/category_usec
 import 'package:mantic_doc_org/features/documents/domain/usecases/document_usecases.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../sharing/domain/usecases/member_count_cache.dart';
+
 class ManageCategoriesViewModel extends ChangeNotifier {
   final CategoryUseCases _categoryUseCases;
   final DocumentUseCases _documentUseCases;
+  final MemberCountCache _memberCountCache;
 
   ManageCategoriesViewModel({
     required CategoryUseCases categoryUseCases,
     required DocumentUseCases documentUseCases,
+    required MemberCountCache memberCountCache,
   }) : _categoryUseCases = categoryUseCases,
-       _documentUseCases = documentUseCases {
+       _documentUseCases = documentUseCases,
+       _memberCountCache = memberCountCache {
     _categoryUseCases.addListener(notifyListeners);
     _documentUseCases.addListener(notifyListeners);
+    _memberCountCache.addListener(notifyListeners);
+  }
+
+  /// Null while the count hasn't arrived yet -- callers show a plain badge
+  /// with no number until then rather than blocking the row on it. See
+  /// MemberCountCache for why this is a shared cache rather than per-row
+  /// state (Home's category tiles show the same badge for the same spaces).
+  int? memberCountFor(CategoryItem category) {
+    final spaceId = category.spaceId;
+    return spaceId == null ? null : _memberCountCache.countFor(spaceId);
   }
 
   String _query = '';
@@ -69,6 +84,7 @@ class ManageCategoriesViewModel extends ChangeNotifier {
   void dispose() {
     _categoryUseCases.removeListener(notifyListeners);
     _documentUseCases.removeListener(notifyListeners);
+    _memberCountCache.removeListener(notifyListeners);
     super.dispose();
   }
 }

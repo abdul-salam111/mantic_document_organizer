@@ -235,7 +235,11 @@ Future<void> documentStorageDependencies() async {
 
 Future<void> homeDependencies() async {
   sl.registerFactory<HomeViewModel>(
-    () => HomeViewModel(categoryUseCases: sl(), documentUseCases: sl()),
+    () => HomeViewModel(
+      categoryUseCases: sl(),
+      documentUseCases: sl(),
+      memberCountCache: sl(),
+    ),
   );
 }
 
@@ -369,6 +373,7 @@ Future<void> manageCategoriesDependencies() async {
     () => ManageCategoriesViewModel(
       categoryUseCases: sl(),
       documentUseCases: sl(),
+      memberCountCache: sl(),
     ),
   );
 }
@@ -455,11 +460,8 @@ Future<void> sharingDependencies() async {
   sl.registerLazySingleton(() => RevokeJoinLinkUsecase(sl()));
   sl.registerLazySingleton(() => AcceptJoinLinkUsecase(sl()));
 
-  // ShareCategoryUsecase is categories-feature-owned (it writes back onto
-  // a local CategoryItem) but depends on the two sharing usecases above --
-  // registered here rather than in documentStorageDependencies() since it
-  // can't exist until those are, and GetIt's lazy singletons don't care
-  // about registration order either way.
+  sl.registerLazySingleton(() => MemberCountCache(sl()));
+
   sl.registerLazySingleton(() => ShareCategoryUsecase(sl(), sl(), sl()));
 
   sl.registerFactory<ShareCategoryViewModel>(
@@ -476,6 +478,7 @@ Future<void> sharingDependencies() async {
       revokeJoinLink: sl(),
       categoryUseCases: sl(),
       syncBackgroundService: sl(),
+      memberCountCache: sl(),
     ),
   );
 

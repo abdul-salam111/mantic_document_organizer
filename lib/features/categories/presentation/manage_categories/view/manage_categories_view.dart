@@ -10,6 +10,7 @@ import '../../../../../core/utils/utils_exports.dart';
 import '../../../../../core/widgets/widgets_exports.dart';
 import '../../../../../routes/routes_exports.dart';
 import '../../../../home/home_exports.dart';
+import '../../../../sharing/domain/entities/space_role.dart';
 import '../viewmodel/manage_categories_viewmodel.dart';
 
 class ManageCategoriesView extends StatelessWidget {
@@ -70,6 +71,7 @@ class ManageCategoriesView extends StatelessWidget {
                                   child: _CategoryRow(
                                     category: category,
                                     fileCount: vm.documentCountFor(category.id),
+                                    memberCount: vm.memberCountFor(category),
                                     isSelecting: vm.isSelecting,
                                     isSelected: vm.isSelected(category.id),
                                     onTap: () {
@@ -79,6 +81,10 @@ class ManageCategoriesView extends StatelessWidget {
                                     },
                                     onLongPress: () =>
                                         vm.toggleSelection(category.id),
+                                    onShare: () => AppNavigator.pushNamed(
+                                      RouteNames.shareCategory,
+                                      extra: category,
+                                    ),
                                     onEdit: () => AppNavigator.pushNamed(
                                       RouteNames.addCategory,
                                       extra: category,
@@ -178,23 +184,32 @@ class ManageCategoriesView extends StatelessWidget {
 class _CategoryRow extends StatelessWidget {
   final CategoryItem category;
   final int fileCount;
+  final int? memberCount;
   final bool isSelecting;
   final bool isSelected;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
+  final VoidCallback onShare;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const _CategoryRow({
     required this.category,
     required this.fileCount,
+    required this.memberCount,
     required this.isSelecting,
     required this.isSelected,
     required this.onTap,
     required this.onLongPress,
+    required this.onShare,
     required this.onEdit,
     required this.onDelete,
   });
+
+  /// Only the owner of a shared category can rename/delete it (Editor can
+  /// add/edit documents, but category management itself stays owner-only
+  /// per the backend's authorization rules) -- see the UX plan §4.
+  bool get _canManage => !category.isShared || category.myRole == SpaceRole.owner.value;
 
   @override
   Widget build(BuildContext context) {
@@ -267,19 +282,58 @@ class _CategoryRow extends StatelessWidget {
               ),
             ),
             if (!isSelecting) ...[
-              IconButton(
-                tooltip: AppLocalizations.of(context).editCategory,
+              if (category.isShared) ...[
+                SharedSpaceBadge(memberCount: memberCount, onTap: onShare),
+                widthBox(4),
+              ],
+              PopupMenuButton<_RowAction>(
                 icon: Icon(
-                  Iconsax.edit_2,
+                  Iconsax.more,
                   size: 20,
                   color: context.textSecondary,
                 ),
-                onPressed: onEdit,
-              ),
-              IconButton(
-                tooltip: AppLocalizations.of(context).deleteCategory,
-                icon: Icon(Iconsax.trash, size: 20, color: context.error),
-                onPressed: onDelete,
+                onSelected: (action) => switch (action) {
+                  _RowAction.edit => onEdit(),
+                  _RowAction.share => onShare(),
+                  _RowAction.delete => onDelete(),
+                },
+                itemBuilder: (context) => [
+                  if (_canManage)
+                    PopupMenuItem(
+                      value: _RowAction.edit,
+                      child: Row(
+                        children: [
+                          Icon(Iconsax.edit_2, size: 18, color: context.textSecondary),
+                          widthBox(10),
+                          Text(AppLocalizations.of(context).editCategory),
+                        ],
+                      ),
+                    ),
+                  PopupMenuItem(
+                    value: _RowAction.share,
+                    child: Row(
+                      children: [
+                        Icon(Iconsax.share, size: 18, color: context.textSecondary),
+                        widthBox(10),
+                        const Text('Share'),
+                      ],
+                    ),
+                  ),
+                  if (_canManage)
+                    PopupMenuItem(
+                      value: _RowAction.delete,
+                      child: Row(
+                        children: [
+                          Icon(Iconsax.trash, size: 18, color: context.error),
+                          widthBox(10),
+                          Text(
+                            AppLocalizations.of(context).deleteCategory,
+                            style: TextStyle(color: context.error),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
               ),
             ],
           ],
@@ -288,3 +342,5 @@ class _CategoryRow extends StatelessWidget {
     );
   }
 }
+
+enum _RowAction { edit, share, delete }

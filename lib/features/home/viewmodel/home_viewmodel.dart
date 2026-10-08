@@ -4,17 +4,23 @@ import 'package:mantic_doc_org/features/documents/domain/entities/document_item.
 import 'package:mantic_doc_org/features/documents/domain/usecases/document_usecases.dart';
 import 'package:flutter/material.dart';
 
+import '../../sharing/domain/usecases/member_count_cache.dart';
+
 class HomeViewModel extends ChangeNotifier {
   final CategoryUseCases _categoryUseCases;
   final DocumentUseCases _documentUseCases;
+  final MemberCountCache _memberCountCache;
 
   HomeViewModel({
     required CategoryUseCases categoryUseCases,
     required DocumentUseCases documentUseCases,
+    required MemberCountCache memberCountCache,
   }) : _categoryUseCases = categoryUseCases,
-       _documentUseCases = documentUseCases {
+       _documentUseCases = documentUseCases,
+       _memberCountCache = memberCountCache {
     _categoryUseCases.addListener(notifyListeners);
     _documentUseCases.addListener(notifyListeners);
+    _memberCountCache.addListener(notifyListeners);
   }
 
   bool isGridView = true;
@@ -36,6 +42,13 @@ class HomeViewModel extends ChangeNotifier {
   int documentCountFor(String categoryId) =>
       _documentUseCases.countForCategory(categoryId);
 
+  /// Null for an unshared category, or while a shared one's count hasn't
+  /// loaded yet -- see MemberCountCache.
+  int? memberCountFor(CategoryItem category) {
+    final spaceId = category.spaceId;
+    return spaceId == null ? null : _memberCountCache.countFor(spaceId);
+  }
+
   /// Newest first, capped to a reasonable preview length for the
   /// horizontal strip — real documents only, no placeholder/dummy entries,
   /// so this is empty until something's actually been added.
@@ -51,6 +64,7 @@ class HomeViewModel extends ChangeNotifier {
   void dispose() {
     _categoryUseCases.removeListener(notifyListeners);
     _documentUseCases.removeListener(notifyListeners);
+    _memberCountCache.removeListener(notifyListeners);
     super.dispose();
   }
 }

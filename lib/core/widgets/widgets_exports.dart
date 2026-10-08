@@ -16,6 +16,7 @@ export 'buttons/custom_button.dart';
 export 'feedback/loading_indicator.dart';
 export 'feedback/loading_popup.dart';
 export 'feedback/pending_sync_badge.dart';
+export 'feedback/shared_space_badge.dart';
 export 'inputs/custom_dropdown_textfield.dart';
 export 'inputs/custom_searchfield.dart';
 export 'inputs/custom_textfield.dart';

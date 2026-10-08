@@ -12,6 +12,7 @@ import '../../../domain/entities/join_link_entity.dart';
 import '../../../domain/entities/member_entity.dart';
 import '../../../domain/entities/pending_invitation_entity.dart';
 import '../../../domain/entities/space_role.dart';
+import '../../../domain/usecases/member_count_cache.dart';
 import '../../../domain/usecases/share_category_usecase.dart';
 import '../../../domain/usecases/sharing_usecases.dart';
 
@@ -31,6 +32,7 @@ class ShareCategoryViewModel extends ChangeNotifier {
   final RevokeJoinLinkUsecase _revokeJoinLink;
   final CategoryUseCases _categoryUseCases;
   final DocumentSyncBackgroundService _syncBackgroundService;
+  final MemberCountCache _memberCountCache;
 
   ShareCategoryViewModel({
     required ShareCategoryUsecase shareCategory,
@@ -45,6 +47,7 @@ class ShareCategoryViewModel extends ChangeNotifier {
     required RevokeJoinLinkUsecase revokeJoinLink,
     required CategoryUseCases categoryUseCases,
     required DocumentSyncBackgroundService syncBackgroundService,
+    required MemberCountCache memberCountCache,
   }) : _shareCategory = shareCategory,
        _listMembers = listMembers,
        _updateMemberRole = updateMemberRole,
@@ -56,7 +59,8 @@ class ShareCategoryViewModel extends ChangeNotifier {
        _listJoinLinks = listJoinLinks,
        _revokeJoinLink = revokeJoinLink,
        _categoryUseCases = categoryUseCases,
-       _syncBackgroundService = syncBackgroundService;
+       _syncBackgroundService = syncBackgroundService,
+       _memberCountCache = memberCountCache;
 
   /// A fresh [ShareCategoryViewModel] starts with an empty placeholder --
   /// call this immediately after creating it (see ShareCategoryView),
@@ -126,6 +130,7 @@ class ShareCategoryViewModel extends ChangeNotifier {
       },
       onSuccess: (value) => value,
     );
+    _memberCountCache.setCount(spaceId, members.length);
 
     if (isOwner) {
       final invitationsResult = await _listInvitations((
@@ -274,6 +279,7 @@ class ShareCategoryViewModel extends ChangeNotifier {
         members = members
             .where((member) => member.userId != userId)
             .toList(growable: false);
+        _memberCountCache.invalidate(spaceId);
         notifyListeners();
       },
     );
