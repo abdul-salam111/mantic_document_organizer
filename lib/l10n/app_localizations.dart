@@ -822,6 +822,12 @@ abstract class AppLocalizations {
   /// **'Images aren\'t accepted here — use Camera or Gallery instead'**
   String get filesImagesNotAllowed;
 
+  /// No description provided for @galleryImportFailedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not import the selected photos. Open them in Photos and make sure they are available on this device, then try again or choose another photo.'**
+  String get galleryImportFailedToast;
+
   /// Add Document screen error toast when the document scanner fails
   ///
   /// In en, this message translates to:

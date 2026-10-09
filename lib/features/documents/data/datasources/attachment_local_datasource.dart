@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:content_resolver/content_resolver.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_doc_scanner/flutter_doc_scanner.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -129,7 +130,18 @@ class DeviceAttachmentDataSource implements AttachmentLocalDataSource {
     // text to stay sharp/legible, which a lossy JPEG re-encode pass
     // directly works against. Leaving it unset keeps the picked image at
     // its original quality, same as the camera scan path below.
-    final picked = await ImagePicker().pickMultiImage();
+    List<XFile> picked;
+    try {
+      picked = await ImagePicker().pickMultiImage();
+    } on PlatformException catch (error) {
+      // PHPicker can report `invalid_image` when Photos cannot export an
+      // asset, such as one that has not downloaded from iCloud. This is a
+      // recoverable picker outcome, not an app exception.
+      if (error.code == 'invalid_image') {
+        return const AttachmentSelection(galleryFailed: true);
+      }
+      rethrow;
+    }
     if (picked.isEmpty) return const AttachmentSelection();
     final dir = await _attachmentsDirectory();
     final newAttachments = <AttachmentItem>[];

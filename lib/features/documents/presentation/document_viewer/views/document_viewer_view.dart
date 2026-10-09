@@ -180,7 +180,15 @@ class DocumentViewerView extends StatelessWidget {
     Navigator.of(context).pop();
 
     if (selection == null) {
-      AppToastsUtils.error(AppLocalizations.of(context).operationFailedToast);
+      AppToastsUtils.error(
+        source == .gallery
+            ? AppLocalizations.of(context).galleryImportFailedToast
+            : AppLocalizations.of(context).operationFailedToast,
+      );
+    } else if (selection.galleryFailed) {
+      AppToastsUtils.error(
+        AppLocalizations.of(context).galleryImportFailedToast,
+      );
     } else if (selection.scanFailed) {
       AppToastsUtils.error(AppLocalizations.of(context).scanFailedToast);
     } else if (selection.skippedImages) {

@@ -10,10 +10,12 @@ class AttachmentItem {
 class AttachmentSelection {
   final List<AttachmentItem> items;
   final bool scanFailed;
+  final bool galleryFailed;
   final bool skippedImages;
   const AttachmentSelection({
     this.items = const [],
     this.scanFailed = false,
+    this.galleryFailed = false,
     this.skippedImages = false,
   });
 }

@@ -343,8 +343,10 @@ class AddDocumentViewModel extends ChangeNotifier {
     return selection.scanFailed;
   }
 
-  Future<void> pickFromGallery() async {
-    _acceptAttachments(await _processing.pickFromGallery());
+  Future<bool> pickFromGallery() async {
+    final selection = await _processing.pickFromGallery();
+    _acceptAttachments(selection);
+    return selection.galleryFailed;
   }
 
   Future<bool> pickFile() async {

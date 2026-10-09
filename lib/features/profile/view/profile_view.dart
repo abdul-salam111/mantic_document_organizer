@@ -22,15 +22,18 @@ class ProfileView extends StatelessWidget {
         appBar: CustomAppBar(
           title: AppLocalizations.of(context).profileTitle,
           onBackPressed: () => context.read<NavbarViewModel>().selectTab(0),
+          backgroundColor: context.background,
+          foregroundColor: context.textPrimary,
         ),
+        backgroundColor: context.background,
         body: SafeArea(
           child: Consumer<ProfileViewModel>(
             builder: (context, vm, _) {
               return ListView(
                 padding: const .all(16),
                 children: [
-                  _ProfileHeaderCard(vm: vm),
-                  heightBox(16),
+                  _ProfileHeader(vm: vm),
+                  heightBox(24),
                   _StatsRow(vm: vm),
                   heightBox(24),
                   if (AppConstants.bulkImportEnabled) ...[
@@ -208,10 +211,14 @@ class ProfileView extends StatelessWidget {
   }
 }
 
-class _ProfileHeaderCard extends StatelessWidget {
+/// Flat, avatar-centric header — deliberately not a solid brand-colored
+/// card, so it doesn't double up with [CustomAppBar]'s own primary-colored
+/// bar on other screens. Sits directly on the page background like a
+/// native iOS/Material profile header: big avatar, name, status line.
+class _ProfileHeader extends StatelessWidget {
   final ProfileViewModel vm;
 
-  const _ProfileHeaderCard({required this.vm});
+  const _ProfileHeader({required this.vm});
 
   String? get _initials {
     final name = vm.userName?.trim();
@@ -227,94 +234,70 @@ class _ProfileHeaderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final initials = vm.isSignedIn ? _initials : null;
 
-    return Container(
-      width: double.infinity,
-      padding: const .fromLTRB(20, 24, 20, 20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: .topLeft,
-          end: .bottomRight,
-          colors: [context.primaryDark, context.primary, context.primaryLight],
+    return Column(
+      children: [
+        Container(
+          width: 88,
+          height: 88,
+          alignment: .center,
+          decoration: BoxDecoration(
+            shape: .circle,
+            color: context.primary.withValues(alpha: 0.12),
+            border: Border.all(
+              color: context.primary.withValues(alpha: 0.35),
+              width: 2,
+            ),
+          ),
+          child: initials != null
+              ? Text(
+                  initials,
+                  style: context.titleLarge.copyWith(
+                    color: context.primary,
+                    fontWeight: .bold,
+                    fontSize: 28,
+                  ),
+                )
+              : Icon(Iconsax.user, size: 36, color: context.primary),
         ),
-        borderRadius: .circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: context.primary.withValues(alpha: 0.35),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+        heightBox(14),
+        Text(
+          vm.isSignedIn
+              ? (vm.userName ?? AppLocalizations.of(context).account)
+              : AppLocalizations.of(context).guest,
+          style: context.titleLarge.copyWith(
+            color: context.textPrimary,
+            fontWeight: .bold,
           ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 72,
-            height: 72,
-            alignment: .center,
-            decoration: BoxDecoration(
-              shape: .circle,
-              color: context.white.withValues(alpha: 0.15),
-              border: Border.all(
-                color: context.white.withValues(alpha: 0.4),
-                width: 1.5,
-              ),
-            ),
-            child: initials != null
-                ? Text(
-                    initials,
-                    style: context.titleLarge.copyWith(
-                      color: context.white,
-                      fontWeight: .bold,
-                    ),
-                  )
-                : Icon(Iconsax.user, size: 32, color: context.white),
-          ),
-          heightBox(14),
+        ),
+        heightBox(4),
+        if (vm.isSignedIn)
           Text(
-            vm.isSignedIn
-                ? (vm.userName ?? AppLocalizations.of(context).account)
-                : AppLocalizations.of(context).guest,
-            style: context.titleMedium.copyWith(
-              color: context.white,
-              fontWeight: .bold,
-            ),
-          ),
-          heightBox(6),
-          if (vm.isSignedIn)
-            Text(
-              vm.userEmail ?? '',
-              textAlign: .center,
-              style: context.labelSmall.copyWith(
-                color: context.white.withValues(alpha: 0.85),
+            vm.userEmail ?? '',
+            textAlign: .center,
+            style: context.bodySmall.copyWith(color: context.textSecondary),
+          )
+        else
+          Row(
+            mainAxisSize: .min,
+            children: [
+              Icon(
+                Iconsax.security_safe,
+                size: 13,
+                color: context.textSecondary,
               ),
-            )
-          else
-            Row(
-              mainAxisSize: .min,
-              crossAxisAlignment: .start,
-              children: [
-                Padding(
-                  padding: const .only(top: 2),
-                  child: Icon(
-                    Iconsax.security_safe,
-                    size: 12,
-                    color: context.white.withValues(alpha: 0.85),
+              widthBox(6),
+              Flexible(
+                child: Text(
+                  AppLocalizations.of(context).localOnlyStatus,
+                  textAlign: .center,
+                  style: context.bodySmall.copyWith(
+                    color: context.textSecondary,
                   ),
                 ),
-                widthBox(6),
-                Flexible(
-                  child: Text(
-                    AppLocalizations.of(context).localOnlyStatus,
-                    textAlign: .center,
-                    style: context.labelSmall.copyWith(
-                      color: context.white.withValues(alpha: 0.85),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-        ],
-      ),
+              ),
+            ],
+          ),
+      ],
     );
   }
 }
@@ -329,7 +312,7 @@ class _StatsRow extends StatelessWidget {
     return Container(
       padding: const .symmetric(vertical: 16),
       decoration: BoxDecoration(
-        color: context.surfaceElevated,
+        color: context.categoryCardSurface,
         borderRadius: .circular(16),
         boxShadow: [
           BoxShadow(
@@ -433,7 +416,7 @@ class _ProfileMenuTile extends StatelessWidget {
       child: Container(
         padding: const .symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: context.surfaceElevated,
+          color: context.categoryCardSurface,
           borderRadius: .circular(12),
           boxShadow: isDestructive
               ? null

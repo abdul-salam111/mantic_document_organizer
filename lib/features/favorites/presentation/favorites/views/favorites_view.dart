@@ -25,7 +25,10 @@ class FavoritesView extends StatelessWidget {
         appBar: CustomAppBar(
           title: AppLocalizations.of(context).favoritesTitle,
           onBackPressed: () => context.read<NavbarViewModel>().selectTab(0),
+          backgroundColor: context.background,
+          foregroundColor: context.textPrimary,
         ),
+        backgroundColor: context.background,
         body: SafeArea(
           child: Consumer<FavoritesViewModel>(
             builder: (context, vm, _) {

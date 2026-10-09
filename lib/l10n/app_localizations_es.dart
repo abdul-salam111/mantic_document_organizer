@@ -441,6 +441,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Las imágenes no se aceptan aquí — usa la cámara o la galería';
 
   @override
+  String get galleryImportFailedToast =>
+      'No se pudieron importar las fotos seleccionadas. Ábrelas en Fotos y comprueba que estén disponibles en este dispositivo. Después, vuelve a intentarlo o elige otra foto.';
+
+  @override
   String get scanFailedToast => 'Error al escanear — inténtalo de nuevo';
 
   @override

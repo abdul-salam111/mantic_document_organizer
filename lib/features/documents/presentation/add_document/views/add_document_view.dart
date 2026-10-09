@@ -80,7 +80,14 @@ class AddDocumentView extends StatelessWidget {
                   );
                 }
               case AttachmentSource.gallery:
-                await vm.pickFromGallery();
+                final failed = await vm.pickFromGallery();
+                if (failed && providerContext.mounted) {
+                  AppToastsUtils.error(
+                    AppLocalizations.of(
+                      providerContext,
+                    ).galleryImportFailedToast,
+                  );
+                }
               case AttachmentSource.file:
                 final skippedImages = await vm.pickFile();
                 if (skippedImages && providerContext.mounted) {
@@ -221,7 +228,14 @@ class _AttachmentSection extends StatelessWidget {
                     ? AppIcons.galleryIos
                     : AppIcons.galleryAndroid,
                 label: AppLocalizations.of(context).gallery,
-                onTap: vm.pickFromGallery,
+                onTap: () async {
+                  final failed = await vm.pickFromGallery();
+                  if (failed && context.mounted) {
+                    AppToastsUtils.error(
+                      AppLocalizations.of(context).galleryImportFailedToast,
+                    );
+                  }
+                },
               ),
             ),
             widthBox(10),

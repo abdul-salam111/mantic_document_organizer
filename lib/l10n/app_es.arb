@@ -129,6 +129,7 @@
   "gallery": "Galería",
   "files": "Archivos",
   "filesImagesNotAllowed": "Las imágenes no se aceptan aquí — usa la cámara o la galería",
+  "galleryImportFailedToast": "No se pudieron importar las fotos seleccionadas. Ábrelas en Fotos y comprueba que estén disponibles en este dispositivo. Después, vuelve a intentarlo o elige otra foto.",
   "scanFailedToast": "Error al escanear — inténtalo de nuevo",
   "documentCreatedToast": "\"{name}\" agregado",
   "documentUpdatedToast": "\"{name}\" actualizado",

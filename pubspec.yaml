@@ -48,7 +48,9 @@ dependencies:
   cached_network_image: ^3.4.1
   freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
-  image_picker: ^1.2.1
+  image_picker: ^1.2.4
+  # Pin the iOS implementation because it contains the latest PHPicker fixes.
+  image_picker_ios: ^0.8.13+10
   file_picker: ^13.1.0
   # Gallery enumeration for Bulk Import's automatic discovery (asset
   # metadata + permission request); not used by Add Document's pickers.

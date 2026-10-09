@@ -129,6 +129,7 @@
   "gallery": "المعرض",
   "files": "الملفات",
   "filesImagesNotAllowed": "الصور غير مقبولة هنا — استخدم الكاميرا أو المعرض",
+  "galleryImportFailedToast": "تعذر استيراد الصور المحددة. افتحها في تطبيق الصور وتأكد من توفرها على هذا الجهاز، ثم حاول مرة أخرى أو اختر صورة أخرى.",
   "scanFailedToast": "فشل المسح — يرجى المحاولة مرة أخرى",
   "documentCreatedToast": "تمت إضافة \"{name}\"",
   "documentUpdatedToast": "تم تحديث \"{name}\"",

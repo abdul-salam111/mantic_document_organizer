@@ -437,6 +437,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'الصور غير مقبولة هنا — استخدم الكاميرا أو المعرض';
 
   @override
+  String get galleryImportFailedToast =>
+      'تعذر استيراد الصور المحددة. افتحها في تطبيق الصور وتأكد من توفرها على هذا الجهاز، ثم حاول مرة أخرى أو اختر صورة أخرى.';
+
+  @override
   String get scanFailedToast => 'فشل المسح — يرجى المحاولة مرة أخرى';
 
   @override

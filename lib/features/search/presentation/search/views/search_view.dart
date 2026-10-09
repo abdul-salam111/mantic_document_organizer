@@ -69,7 +69,10 @@ class _SearchViewState extends State<SearchView> {
         appBar: CustomAppBar(
           title: AppLocalizations.of(context).allDocsTitle,
           onBackPressed: () => context.read<NavbarViewModel>().selectTab(0),
+          backgroundColor: context.background,
+          foregroundColor: context.textPrimary,
         ),
+        backgroundColor: context.background,
         body: SafeArea(
           child: Consumer<SearchViewModel>(
             builder: (context, vm, _) {
