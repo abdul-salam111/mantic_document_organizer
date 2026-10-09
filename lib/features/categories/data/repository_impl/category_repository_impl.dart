@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../../domain/entities/builtin_categories.dart';
 import '../../domain/entities/category_item.dart';
 import '../../domain/repositories/category_repository.dart';
 import '../datasources/category_local_datasource.dart';
@@ -19,100 +20,13 @@ class CategoryRepositoryImpl extends ChangeNotifier
 
   CategoryRepositoryImpl(this._db);
 
-  static const List<CategoryItem> _builtInCategories = [
-    CategoryItem(
-      id: 'bank',
-      name: 'Bank',
-      iconKey: 'buildingColumns',
-      colorValue: 0xFF4CAF50,
-    ),
-    CategoryItem(
-      id: 'business_card',
-      name: 'Business Card',
-      iconKey: 'solidAddressCard',
-      colorValue: 0xFF3B82F6,
-    ),
-    CategoryItem(
-      id: 'contracts',
-      name: 'Contracts',
-      iconKey: 'fileContract',
-      colorValue: 0xFF3927AD,
-    ),
-    CategoryItem(
-      id: 'driving_license',
-      name: 'Driving License',
-      iconKey: 'idCardClip',
-      colorValue: 0xFF197DCA,
-    ),
-    CategoryItem(
-      id: 'education',
-      name: 'Education',
-      iconKey: 'graduationCap',
-      colorValue: 0xFFC5B5E8,
-    ),
-    CategoryItem(
-      id: 'electricity_gas',
-      name: 'Electricity/Gas',
-      iconKey: 'boltLightning',
-      colorValue: 0xFFFFC542,
-    ),
-    CategoryItem(
-      id: 'id_card',
-      name: 'ID Card',
-      iconKey: 'solidIdCard',
-      colorValue: 0xFF197DCA,
-    ),
-    CategoryItem(
-      id: 'insurance',
-      name: 'Insurance',
-      iconKey: 'shieldHalved',
-      colorValue: 0xFF5B47C9,
-    ),
-    CategoryItem(
-      id: 'invoices',
-      name: 'Invoices',
-      iconKey: 'fileInvoice',
-      colorValue: 0xFFFFC542,
-    ),
-    CategoryItem(
-      id: 'medical',
-      name: 'Medical',
-      iconKey: 'stethoscope',
-      colorValue: 0xFFAB2017,
-    ),
-    CategoryItem(
-      id: 'passports',
-      name: 'Passports',
-      iconKey: 'passport',
-      colorValue: 0xFF197DCA,
-    ),
-    CategoryItem(
-      id: 'products',
-      name: 'Products',
-      iconKey: 'boxesStacked',
-      colorValue: 0xFF5B47C9,
-    ),
-    CategoryItem(
-      id: 'tax_documents',
-      name: 'Tax Documents',
-      iconKey: 'fileInvoiceDollar',
-      colorValue: 0xFF4CAF50,
-    ),
-    CategoryItem(
-      id: 'tickets',
-      name: 'Tickets',
-      iconKey: 'ticket',
-      colorValue: 0xFF3B82F6,
-    ),
-  ];
-
   final List<CategoryItem> _categories = [];
 
   @override
   List<CategoryItem> get categories => List.unmodifiable(_categories);
   @override
   Future<void> init() async {
-    await _db.seedBuiltInCategoriesIfEmpty(_builtInCategories);
+    await _db.seedBuiltInCategoriesIfEmpty(builtInCategories);
     _categories
       ..clear()
       ..addAll(await _db.fetchCategories());

@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/database/app_database.dart';
+import '../../../categories/domain/entities/builtin_categories.dart';
 import '../../../categories/domain/entities/category_item.dart';
 import '../../../documents/domain/entities/document_item.dart';
 import '../../domain/entities/sync_progress.dart';
@@ -190,13 +191,42 @@ class DocumentSyncService {
     };
     final localCategories = await _database.fetchCategories();
     for (final remote in remoteCategories) {
+      // A built-in category is never a real row -- the server synthesizes
+      // one entry per built-in on every response (see
+      // docs/adr/0002-global-builtin-categories.md in the backend repo).
+      // This device already has the exact same built-in seeded locally
+      // under the same id, so there's nothing to create or link here.
+      if (remote['builtin_key'] != null) continue;
       final remoteId = remote['id'] as String;
+      final promotedFromKey = remote['promoted_from_builtin_key'] as String?;
       var localId = await _database.localCategoryIdForRemoteId(remoteId);
       CategoryItem? localCategory;
       if (localId != null) {
         localCategory = localCategories
             .where((category) => category.id == localId)
             .firstOrNull;
+      }
+      // A category promoted from a built-in (Phase 2 of the same ADR) has
+      // an unambiguous local counterpart: this device's own built-in row
+      // of the same slug. Matching on that instead of falling through to
+      // the name/icon heuristic below means a rename that promoted it
+      // elsewhere (e.g. "Bank" -> "Banking" on another device) still finds
+      // it rather than creating a duplicate local category. The fields are
+      // synced onto it immediately -- left stale, the backfill loop below
+      // would see a mismatch against this same response and push the old
+      // built-in default straight back over whatever the edit just changed.
+      if (localCategory == null && promotedFromKey != null) {
+        final builtIn = localCategories
+            .where((category) => category.id == promotedFromKey)
+            .firstOrNull;
+        if (builtIn != null) {
+          localCategory = builtIn.copyWith(
+            name: remote['name'] as String,
+            iconKey: remote['icon_key'] as String? ?? builtIn.iconKey,
+            colorValue: _colorFromRemote(remote['color']) ?? builtIn.colorValue,
+          );
+          await _database.upsertCategory(localCategory);
+        }
       }
       localCategory ??= localCategories
           .where(
@@ -228,13 +258,27 @@ class DocumentSyncService {
           await _database.remoteCategoryIdForLocalId(category.id) != null) {
         continue;
       }
+      // An untouched built-in has no row to create -- it's referenced
+      // directly by its fixed id/key, never pushed. See
+      // docs/adr/0002-global-builtin-categories.md. The moment it's been
+      // renamed/recolored/re-iconed away from that shipped default, it's
+      // promoted into a real row instead (Phase 2 of the same ADR) --
+      // falls through to the create call below with the extra field set.
+      if (isBuiltInCategoryId(category.id) &&
+          !builtInCategoryDivergesFromDefault(category)) {
+        continue;
+      }
+      final data = <String, Object?>{
+        'name': category.name,
+        'icon_key': category.iconKey,
+        'color': category.colorValue?.toRadixString(16),
+      };
+      if (isBuiltInCategoryId(category.id)) {
+        data['promoted_from_builtin_key'] = category.id;
+      }
       final response = await _dio.post(
         '${ApiEndPoints.baseUrl}spaces/$spaceId/categories',
-        data: {
-          'name': category.name,
-          'icon_key': category.iconKey,
-          'color': category.colorValue?.toRadixString(16),
-        },
+        data: data,
         options: headers,
       );
       final remote = Map<String, dynamic>.from(response.data as Map);
@@ -380,10 +424,17 @@ class DocumentSyncService {
       ).toLocal();
       final expiry = remote['expiry_date'] as String?;
       final remoteCategoryId = remote['category_id'] as String?;
-      final localCategoryId = remoteCategoryId == null
-          ? uncategorizedCategoryId
-          : await _database.localCategoryIdForRemoteId(remoteCategoryId) ??
-                uncategorizedCategoryId;
+      final remoteBuiltinKey = remote['builtin_category_key'] as String?;
+      final String localCategoryId;
+      if (remoteBuiltinKey != null) {
+        localCategoryId = remoteBuiltinKey;
+      } else if (remoteCategoryId == null) {
+        localCategoryId = uncategorizedCategoryId;
+      } else {
+        localCategoryId =
+            await _database.localCategoryIdForRemoteId(remoteCategoryId) ??
+            uncategorizedCategoryId;
+      }
       final localCategory = (await _database.fetchCategories())
           .where((category) => category.id == localCategoryId)
           .firstOrNull;
@@ -554,10 +605,26 @@ class DocumentSyncService {
       payload['file_paths'] as List? ?? const [],
     );
     final localCategoryId = payload['category_id'] as String?;
-    payload['category_id'] =
-        localCategoryId == null || localCategoryId == uncategorizedCategoryId
+    final mappedRemoteCategoryId = localCategoryId == null
         ? null
         : await _database.remoteCategoryIdForLocalId(localCategoryId);
+    if (localCategoryId != null &&
+        isBuiltInCategoryId(localCategoryId) &&
+        mappedRemoteCategoryId == null) {
+      // Still an untouched built-in -- referenced directly by its fixed
+      // key, not a remote row id -- see
+      // docs/adr/0002-global-builtin-categories.md. Once it's been
+      // promoted (Phase 2 of the same ADR), it has a remote mapping like
+      // any custom category and falls through to the branch below instead.
+      payload['category_id'] = null;
+      payload['builtin_category_key'] = localCategoryId;
+    } else {
+      payload['category_id'] =
+          localCategoryId == null || localCategoryId == uncategorizedCategoryId
+          ? null
+          : mappedRemoteCategoryId;
+      payload['builtin_category_key'] = null;
+    }
     payload.remove('file_paths');
     payload['expiry_date'] = (payload['expiry_date'] as String?)
         ?.split('T')
