@@ -7,10 +7,12 @@ import 'package:mantic_doc_org/features/categories/domain/usecases/category_usec
 import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
 import 'package:mantic_doc_org/features/documents/domain/usecases/document_usecases.dart';
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 
 import '../../../../../core/background/document_sync_background_service.dart';
+import '../../../../../core/utils/document_pdf_exporter.dart';
 import '../../../../../core/utils/shared_space_sync.dart';
 
 enum TagError { limitReached, tooLong, duplicate }
@@ -372,11 +374,64 @@ class AddDocumentViewModel extends ChangeNotifier {
     if (!_disposed) super.notifyListeners();
   }
 
+  /// Collapses 2+ image-type attachments into a single PDF before saving,
+  /// so a multi-page scan (several photos of one physical document) is
+  /// stored as the one record it represents instead of that many separate
+  /// image rows. A lone image, or an attachment that's already something
+  /// else (an imported PDF/docx), passes through untouched -- there's
+  /// nothing to collapse, and real PDF byte streams can't be merged by
+  /// this library (same limitation [DocumentPdfExporter] documents).
+  Future<void> _mergeImageAttachmentsForStorage() async {
+    final imageAttachments = _attachments
+        .where((a) => a.type == AttachmentType.image)
+        .toList();
+    if (imageAttachments.length < 2) return;
+
+    final combinedOcr = [
+      for (final a in imageAttachments)
+        if (_ocrTextByPath[a.path] case final text?) text,
+    ].where((t) => t.trim().isNotEmpty).join('\n\n');
+
+    final mergedPath = await DocumentPdfExporter.mergeForStorage([
+      for (final a in imageAttachments) a.path,
+    ]);
+
+    for (final a in imageAttachments) {
+      _ocrTextByPath.remove(a.path);
+      try {
+        await File(a.path).delete();
+      } catch (_) {
+        // Best-effort cleanup -- a missing/locked source file isn't worth
+        // failing the save over, it's just now-orphaned temp storage.
+      }
+    }
+    if (combinedOcr.isNotEmpty) _ocrTextByPath[mergedPath] = combinedOcr;
+
+    var inserted = false;
+    final merged = <AttachmentItem>[];
+    for (final a in _attachments) {
+      if (a.type != AttachmentType.image) {
+        merged.add(a);
+        continue;
+      }
+      if (!inserted) {
+        merged.add(
+          AttachmentItem(path: mergedPath, type: AttachmentType.file),
+        );
+        inserted = true;
+      }
+    }
+    _attachments
+      ..clear()
+      ..addAll(merged);
+  }
+
   Future<void> submit() async {
     if (_isSaving) return;
     _isSaving = true;
     notifyListeners();
     try {
+      await _mergeImageAttachmentsForStorage();
       final category = _selectedCategory;
       final original = _editingDocument;
       final item = DocumentItem(

@@ -88,6 +88,31 @@ class DocumentPdfExporter {
     return file.path;
   }
 
+  /// Merges [imagePaths] into a single PDF written into the app's
+  /// permanent attachment storage (`<app documents>/documents/`, same
+  /// folder [AttachmentLocalDataSource] persists picked files into) --
+  /// for collapsing a multi-page scan's separate image files into the
+  /// one PDF it's actually saved as. Unlike [export]/[combine], this
+  /// result is meant to be kept, not shared, so it's written next to the
+  /// other persisted attachments instead of the temp directory.
+  static Future<String> mergeForStorage(List<String> imagePaths) async {
+    final pdfDocument = pw.Document();
+    for (final path in imagePaths) {
+      await _addImagePage(pdfDocument, path);
+    }
+
+    final appDocuments = await getApplicationDocumentsDirectory();
+    final dir = Directory(p.join(appDocuments.path, 'documents'));
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+    final file = File(
+      p.join(dir.path, 'merged_${DateTime.now().microsecondsSinceEpoch}.pdf'),
+    );
+    await file.writeAsBytes(await pdfDocument.save());
+    return file.path;
+  }
+
   /// Exports every page in [paths] as its own separate single-page PDF
   /// file — the share sheet's "Export Each Page as PDF" action. A real PDF
   /// attachment is split page-by-page the same way [combine] merges one in:
