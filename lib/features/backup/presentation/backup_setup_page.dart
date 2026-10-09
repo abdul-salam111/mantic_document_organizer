@@ -14,6 +14,7 @@ import '../../../core/shared/shared_exports.dart';
 import '../../../core/theme/theme_exports.dart';
 import '../../../core/utils/utils_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
+import '../../categories/domain/usecases/category_usecases.dart';
 import '../domain/entities/backup_space.dart';
 import '../domain/entities/sync_progress.dart';
 import '../domain/usecases/backup_usecases.dart';
@@ -62,25 +63,57 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
     }
   }
 
-  /// Kicks off the backup and returns immediately -- the sync itself runs
-  /// in the background (via DocumentSyncBackgroundService), with progress
-  /// and completion/failure surfaced through a notification, so there's no
-  /// need to stay on this page and wait. [_SyncStatusCard] below still
-  /// reflects live progress reactively if the user does stay.
+  /// One button for everything: your personal backup space (if Drive is
+  /// connected) plus every shared category you belong to, instead of
+  /// needing a separate "Sync now" tap per shared category's own Share
+  /// screen. Each space still runs through its own correctly-scoped
+  /// DocumentSyncService.sync() call -- a shared space never sees your
+  /// personal documents and vice versa (see that method's own doc
+  /// comment) -- this just fires all of them together. Returns
+  /// immediately -- every sync runs in the background (via
+  /// DocumentSyncBackgroundService), with progress and completion/failure
+  /// surfaced through a notification per space, so there's no need to
+  /// stay on this page and wait. [_SyncStatusCard] below still reflects
+  /// the personal space's live progress reactively if the user does stay.
   Future<void> _backUpNow() async {
     final token = SessionController.instance.userToken;
-    final space = _space;
-    if (token == null || space == null || !space.isDriveConnected) return;
+    if (token == null) return;
     if (!await _canSyncOnCurrentConnection()) return;
-    AppToastsUtils.info('Backing up in the background…');
-    unawaited(
-      sl<DocumentSyncBackgroundService>().runBackup(
-        token: token,
-        spaceId: space.id,
-        queueExistingDocuments: true,
-      ),
-    );
+
+    final space = _space;
+    final sharedSpaceIds = sl<CategoryUseCases>().categories
+        .map((category) => category.spaceId)
+        .whereType<String>()
+        .toSet();
+    if ((space == null || !space.isDriveConnected) && sharedSpaceIds.isEmpty) {
+      return;
+    }
+
+    AppToastsUtils.info('Syncing in the background…');
+    final syncService = sl<DocumentSyncBackgroundService>();
+    if (space != null && space.isDriveConnected) {
+      unawaited(
+        syncService.runBackup(
+          token: token,
+          spaceId: space.id,
+          queueExistingDocuments: true,
+        ),
+      );
+    }
+    for (final spaceId in sharedSpaceIds) {
+      unawaited(
+        syncService.runSpaceSync(
+          token: token,
+          spaceId: spaceId,
+          isPersonalSpace: false,
+        ),
+      );
+    }
   }
+
+  bool get _hasSharedCategories => sl<CategoryUseCases>().categories.any(
+    (category) => category.spaceId != null,
+  );
 
   /// Checks the "Use Mobile Data" setting against the current connection
   /// type before syncing — when the setting is off, syncing/uploading/
@@ -140,7 +173,7 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
     if (!mounted || _space?.isDriveConnected != true) return;
     await storage.setValues(StorageKeys.backupEnabled, 'true');
     AppToastsUtils.success(
-      'Google Drive connected. Tap Back up now when you are ready.',
+      'Google Drive connected. Tap Sync now when you are ready.',
     );
   }
 
@@ -215,27 +248,38 @@ class _BackupSetupPageState extends State<BackupSetupPage> {
               ),
               if (_space != null) ...[
                 heightBox(28),
-                if (!_space!.isDriveConnected)
+                if (_space!.isDriveConnected || _hasSharedCategories) ...[
+                  CustomButton(
+                    text: 'Sync now',
+                    icon: Icons.sync_outlined,
+                    onPressed: _backUpNow,
+                  ),
+                  if (!_space!.isDriveConnected) ...[
+                    heightBox(10),
+                    Center(
+                      child: TextButton.icon(
+                        onPressed: _loading ? null : _connect,
+                        icon: const Icon(Icons.cloud_outlined, size: 18),
+                        label: const Text('Connect Google Drive for backup'),
+                      ),
+                    ),
+                  ] else ...[
+                    heightBox(6),
+                    Center(
+                      child: TextButton.icon(
+                        onPressed: () =>
+                            AppNavigator.goNamed(RouteNames.home),
+                        icon: const Icon(Icons.home_outlined, size: 18),
+                        label: const Text('Go to Home'),
+                      ),
+                    ),
+                  ],
+                ] else
                   CustomButton(
                     text: 'Connect Google Drive',
                     isLoading: _loading,
                     onPressed: _loading ? null : _connect,
-                  )
-                else ...[
-                  CustomButton(
-                    text: 'Back up now',
-                    icon: Icons.cloud_upload_outlined,
-                    onPressed: _backUpNow,
                   ),
-                  heightBox(6),
-                  Center(
-                    child: TextButton.icon(
-                      onPressed: () => AppNavigator.goNamed(RouteNames.home),
-                      icon: const Icon(Icons.home_outlined, size: 18),
-                      label: const Text('Go to Home'),
-                    ),
-                  ),
-                ],
               ],
             ],
           ),
