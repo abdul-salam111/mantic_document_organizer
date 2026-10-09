@@ -103,6 +103,16 @@ class ManageCategoriesView extends StatelessWidget {
                 ],
               ),
             ),
+            floatingActionButton: vm.isSelecting
+                ? null
+                : FloatingActionButton(
+                    tooltip: AppLocalizations.of(context).addCategory,
+                    backgroundColor: context.primary,
+                    foregroundColor: context.white,
+                    onPressed: () =>
+                        AppNavigator.pushNamed(RouteNames.addCategory),
+                    child: const Icon(Iconsax.add),
+                  ),
           );
         },
       ),

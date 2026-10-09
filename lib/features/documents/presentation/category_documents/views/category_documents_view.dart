@@ -44,6 +44,16 @@ class CategoryDocumentsView extends StatelessWidget {
                     onBackPressed: () => Navigator.of(context).pop(),
                     backgroundColor: context.background,
                     foregroundColor: context.textPrimary,
+                    actions: [
+                      IconButton(
+                        tooltip: 'Share',
+                        icon: Icon(Iconsax.share, color: context.textPrimary),
+                        onPressed: () => AppNavigator.pushNamed(
+                          RouteNames.shareCategory,
+                          extra: category,
+                        ),
+                      ),
+                    ],
                   ),
             body: SafeArea(
               child: Column(
