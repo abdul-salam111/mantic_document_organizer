@@ -186,6 +186,9 @@ class _CategoryTile extends StatelessWidget {
     required this.onTap,
   });
 
+  static const double _iconBoxSize = 56;
+  static const double _iconBoxRadius = 16;
+
   @override
   Widget build(BuildContext context) {
     final color =
@@ -198,26 +201,38 @@ class _CategoryTile extends StatelessWidget {
       label: category.name,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(_iconBoxRadius),
         child: Stack(
           children: [
-            Container(
+            SizedBox(
               width: double.infinity,
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: selected
-                    ? context.primary.withValues(alpha: 0.09)
-                    : context.surfaceElevated,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: selected ? context.primary : context.border,
-                  width: selected ? 1.5 : 1,
-                ),
-              ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  FaIcon(iconForKey(category.iconKey), size: 22, color: color),
+                  Container(
+                    width: _iconBoxSize,
+                    height: _iconBoxSize,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: context.categoryCardSurface,
+                      borderRadius: BorderRadius.circular(_iconBoxRadius),
+                      border: selected
+                          ? Border.all(color: context.primary, width: 2)
+                          : null,
+                      boxShadow: [
+                        BoxShadow(
+                          color: context.shadow,
+                          blurRadius: 5,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: FaIcon(
+                      iconForKey(category.iconKey),
+                      size: 24,
+                      color: color,
+                    ),
+                  ),
                   heightBox(6),
                   Text(
                     category.name,
@@ -233,8 +248,8 @@ class _CategoryTile extends StatelessWidget {
             ),
             if (selected)
               Positioned(
-                top: 6,
-                right: 6,
+                top: 0,
+                right: 0,
                 child: Container(
                   width: 20,
                   height: 20,

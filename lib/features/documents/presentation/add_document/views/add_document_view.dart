@@ -143,9 +143,7 @@ class AddDocumentView extends StatelessWidget {
                 top: false,
                 child: Container(
                   padding: const .symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                   
-                  ),
+                  decoration: BoxDecoration(),
                   child: CustomButton(
                     isLoading: vm.isSaving,
                     text: vm.isEditing
@@ -164,7 +162,7 @@ class AddDocumentView extends StatelessWidget {
                       // on top of that in-flight push corrupts the
                       // navigator's route lifecycle.
                       final title = vm.titleController.text.trim();
-                      
+
                       final message = editingDocument != null
                           ? AppLocalizations.of(
                               context,
