@@ -99,11 +99,20 @@ class DocumentSyncService {
         try {
           await _syncDocument(item, token: token, spaceId: spaceId);
           await _database.completeSyncOperation(id);
-        } catch (_) {
+        } catch (error, stackTrace) {
           // Keep going: one stuck/failing item (e.g. a Drive-side folder
           // that no longer exists) must not block every other queued
           // document — including brand-new ones — from ever being
           // attempted, since this queue is processed oldest-first forever.
+          // This used to swallow the error completely -- a failing item
+          // (e.g. the document record upserts fine but its attachment
+          // upload then throws) retried forever with zero visibility into
+          // why, which is exactly what made a stuck "pending sync" badge
+          // look like it was doing nothing on every retry.
+          debugPrint(
+            '[DocumentSyncService] sync failed for outbox item $id '
+            '(${item['entity_type']}/${item['entity_id']}): $error\n$stackTrace',
+          );
           await _database.recordSyncFailure(id);
         }
       }
