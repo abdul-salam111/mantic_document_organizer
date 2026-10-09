@@ -1,5 +1,6 @@
 import '../../../../core/constants/constants_exports.dart';
 import '../../../../core/shared/shared_exports.dart';
+import '../../domain/entities/backup_space.dart';
 
 class BackupSpaceModel {
   final String id;
@@ -38,7 +39,7 @@ class BackupRemoteDataSourceImpl extends BaseRemoteDatasource
   Future<BackupSpaceModel> createPersonalSpace(String token) => post(
     url: ApiEndPoints.spaces,
     authToken: token,
-    body: const {'name': 'My backup'},
+    body: const {'name': personalBackupSpaceName},
     parser: (json) =>
         BackupSpaceModel.fromJson(Map<String, dynamic>.from(json as Map)),
   );

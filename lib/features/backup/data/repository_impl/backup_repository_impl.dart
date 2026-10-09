@@ -16,26 +16,30 @@ class BackupRepositoryImpl extends BaseRepository implements IBackupRepository {
       return Failure(error);
     }
     final existing = (spaces as Success<List<BackupSpaceModel>>).value;
-    BackupSpaceModel? space;
+
+    // The saved id is only trusted if it still genuinely names the
+    // personal backup space. A Space can also be a shared category (see
+    // ShareCategoryUsecase) -- matching by id alone let a previous bug
+    // save one of those here by mistake (e.g. right after sharing a
+    // category, before this device ever had a real personal space),
+    // silently uploading personal, unshared documents into a space other
+    // people can join. Re-checking the name heals a device that already
+    // has the wrong id saved, instead of trusting it forever.
     for (final item in existing) {
-      if (item.id == savedSpaceId) {
-        space = item;
-        break;
-      }
-    }
-    if (space != null) {
-      return Success(_toEntity(space));
-    }
-    // Secure storage is intentionally cleared on uninstall. Reuse the
-    // account's existing active backup space on a new device instead of
-    // creating an empty "My backup" space and restoring from the wrong one.
-    for (final item in existing) {
-      if (item.storageStatus.toLowerCase() == 'active') {
+      if (item.id == savedSpaceId && item.name == personalBackupSpaceName) {
         return Success(_toEntity(item));
       }
     }
-    if (existing.isNotEmpty) {
-      return Success(_toEntity(existing.first));
+    // Secure storage is intentionally cleared on uninstall. Reuse the
+    // account's existing personal backup space on a new device instead of
+    // creating a second "My backup" and restoring from the wrong one --
+    // matched by name, not "any active space": a shared category's space
+    // is just as "active" once its owner has Drive connected, so that
+    // used to match here too.
+    for (final item in existing) {
+      if (item.name == personalBackupSpaceName) {
+        return Success(_toEntity(item));
+      }
     }
     final created = await execute(
       call: () => remote.createPersonalSpace(token),
