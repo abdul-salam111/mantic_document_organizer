@@ -163,6 +163,7 @@ class AddDocumentView extends StatelessWidget {
                       // on top of that in-flight push corrupts the
                       // navigator's route lifecycle.
                       final title = vm.titleController.text.trim();
+                      
                       final message = editingDocument != null
                           ? AppLocalizations.of(
                               context,

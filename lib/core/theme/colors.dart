@@ -126,7 +126,7 @@ class AppColors {
   static const Color textDisabledLight = grey300;
 
   /// Dark theme text
-  static const Color textPrimaryDark = white;
+  static const Color textPrimaryDark = grey200;
   static const Color textSecondaryDark = grey300;
   static const Color textDisabledDark = grey600;
 

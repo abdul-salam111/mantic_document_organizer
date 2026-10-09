@@ -176,9 +176,11 @@ class HomeView extends StatelessWidget {
                       ),
                     ),
                   ),
-                  SliverPadding(
-                    padding: const .fromLTRB(10, 6, 10, 0),
-                    sliver: SliverToBoxAdapter(child: _CategorySection(vm: vm)),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const .symmetric(horizontal: 10),
+                      child: _CategorySection(vm: vm),
+                    ),
                   ),
                   const SliverToBoxAdapter(child: SizedBox(height: 24)),
                 ],
@@ -329,11 +331,11 @@ class _CategoryGrid extends StatelessWidget {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 10,
-        childAspectRatio: 1.1,
+        mainAxisSpacing: 0,
+        crossAxisSpacing: 0,
+        childAspectRatio: 1,
       ),
       itemCount: vm.categories.length + 2,
       itemBuilder: (context, index) => _categoryTileAt(
@@ -432,13 +434,12 @@ class _RecentFileCard extends StatelessWidget {
         height: _height,
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          color: context.surfaceElevated,
+          color: context.categoryCardSurface,
           borderRadius: .circular(14),
-          border: Border.all(color: context.border.withValues(alpha: 0.4)),
           boxShadow: [
             BoxShadow(
               color: context.shadow,
-              blurRadius: 6,
+              blurRadius: 5,
               offset: const Offset(0, 2),
             ),
           ],
@@ -680,29 +681,32 @@ class _CategoryTile extends StatelessWidget {
   Widget _buildGrid(BuildContext context) {
     return Stack(
       children: [
-        Container(
+        SizedBox(
           width: .infinity,
-          padding: .all(8),
-          decoration: BoxDecoration(
-            color: isAddNew ? context.transparent : context.categoryCardSurface,
-            borderRadius: .circular(10),
-            border: isAddNew
-                ? Border.all(color: context.border, width: 1.5)
-                : null,
-            boxShadow: isAddNew
-                ? null
-                : [
+          child: Column(
+            mainAxisAlignment: .center,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                alignment: .center,
+                decoration: BoxDecoration(
+                  color: context.categoryCardSurface,
+                  borderRadius: .circular(16),
+                  boxShadow: [
                     BoxShadow(
                       color: context.shadow,
                       blurRadius: 5,
                       offset: const Offset(0, 2),
                     ),
                   ],
-          ),
-          child: Column(
-            mainAxisAlignment: .center,
-            children: [
-              FaIcon(iconForKey(iconKey), size: 30, color: _iconColor(context)),
+                ),
+                child: FaIcon(
+                  iconForKey(iconKey),
+                  size: 24,
+                  color: _iconColor(context),
+                ),
+              ),
               heightBox(6),
               Text(
                 name,
@@ -716,15 +720,18 @@ class _CategoryTile extends StatelessWidget {
         ),
         if (_showBadge)
           Positioned(
-            top: 6,
-            right: 6,
+            top: 12,
+            right: 20,
             child: _CountBadge(count: fileCount!, size: 20),
           ),
         if (isShared && onBadgeTap != null)
           Positioned(
             top: 6,
             left: 6,
-            child: SharedSpaceBadge(memberCount: memberCount, onTap: onBadgeTap!),
+            child: SharedSpaceBadge(
+              memberCount: memberCount,
+              onTap: onBadgeTap!,
+            ),
           ),
       ],
     );

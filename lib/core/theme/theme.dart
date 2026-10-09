@@ -1,10 +1,24 @@
 // lib/core/theme/app_themes.dart
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'colors.dart';
 
 class AppThemes {
   AppThemes._(); // Private constructor
+
+  // The default Material 3 Android transition (ZoomPageTransitionsBuilder)
+  // can render a one-frame flash of the outgoing route's opaque AppBar
+  // color across the whole screen on some devices/GPUs while it scales --
+  // very visible here since CustomAppBar uses a saturated solid
+  // AppColors.primary rather than a neutral background. Fade is a lighter
+  // compositing operation that doesn't exhibit this.
+  static const _pageTransitionsTheme = PageTransitionsTheme(
+    builders: {
+      TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
+      TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+    },
+  );
 
   // ============================================
   // LIGHT THEME
@@ -14,6 +28,7 @@ class AppThemes {
     useMaterial3: true,
     brightness: Brightness.light,
     scaffoldBackgroundColor: AppColors.backgroundLight,
+    pageTransitionsTheme: _pageTransitionsTheme,
     colorScheme: ColorScheme.light(
       primary: AppColors.primary,
       onPrimary: AppColors.white,
@@ -143,6 +158,7 @@ class AppThemes {
     useMaterial3: true,
     brightness: Brightness.dark,
     scaffoldBackgroundColor: AppColors.backgroundDark,
+    pageTransitionsTheme: _pageTransitionsTheme,
 
     colorScheme: ColorScheme.dark(
       primary: AppColors.primary,

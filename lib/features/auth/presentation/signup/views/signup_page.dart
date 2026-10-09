@@ -226,7 +226,7 @@ class _SignupSheet extends StatelessWidget {
                         ),
                         autofillHints: const [AutofillHints.newPassword],
                       ),
-                       SizedBox(height:   buttonGap),
+                      SizedBox(height: buttonGap),
                       Consumer<SignupViewModel>(
                         builder: (context, vm, _) => CustomButton(
                           radius: 12,

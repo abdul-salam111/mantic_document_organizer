@@ -72,7 +72,12 @@ class CustomButton extends StatelessWidget {
         minimumSize: WidgetStatePropertyAll(size),
       ),
       child: isLoading
-          ? const LoadingIndicator(size: 30)
+          // LoadingIndicator centers itself in the available space. Bound
+          // that space so a bottomNavigationBar button cannot fill the screen.
+          ? const SizedBox.square(
+              dimension: 30,
+              child: LoadingIndicator(size: 30),
+            )
           : Row(
               mainAxisSize: MainAxisSize.min,
               children: [

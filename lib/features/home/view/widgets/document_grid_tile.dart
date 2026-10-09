@@ -55,7 +55,7 @@ class DocumentGridTile extends StatelessWidget {
       child: Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          color: context.surfaceElevated,
+          color: context.categoryCardSurface,
           borderRadius: .circular(16),
           border: Border.all(
             color: isSelected ? context.primary : context.border,
