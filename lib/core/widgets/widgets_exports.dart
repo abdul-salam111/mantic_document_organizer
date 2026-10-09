@@ -13,6 +13,7 @@ export 'appbar/selection_appbar.dart';
 export 'branding/app_logo.dart';
 export 'branding/curved_text.dart';
 export 'buttons/custom_button.dart';
+export 'buttons/social_sign_in_button.dart';
 export 'feedback/loading_indicator.dart';
 export 'feedback/loading_popup.dart';
 export 'feedback/pending_sync_badge.dart';

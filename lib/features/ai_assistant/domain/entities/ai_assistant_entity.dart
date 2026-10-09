@@ -6,7 +6,7 @@
 /// doc comment on `aiAssistantDependencies()` in injection_container.dart
 /// and on `AiAssistantViewModel`): this feature's real domain type is
 /// `ChatMessage` (chat_message.dart), and its real "backend" is the
-/// OpenRouter call inside `AiChatService` (lib/core/ai), not this REST
+/// Groq call inside `AiChatService` (lib/core/ai), not this REST
 /// layer. Kept registered/compiling for consistency with how
 /// documents/add_document leave their own unused REST scaffolding intact.
 class AiAssistantEntity {

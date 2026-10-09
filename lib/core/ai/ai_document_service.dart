@@ -13,8 +13,8 @@ import '../networks/network_manager/dio_helper.dart';
 /// inclusion decision for a candidate found in the photo library, not just
 /// a suggestion.
 /// Organizes a document's OCR'd text into a title/category/summary/expiry
-/// suggestion via an AI model, routed through OpenRouter
-/// (https://openrouter.ai) so the underlying model is swappable via
+/// suggestion via an AI model, routed through Groq
+/// (https://console.groq.com) so the underlying model is swappable via
 /// [_model] without changing this integration. Reuses the existing
 /// [DioHelper] rather than a separate HTTP client — its Bearer-auth
 /// support and cached connectivity check (throwing [NoInternetException]
@@ -33,13 +33,11 @@ class AiDocumentService {
 
   /// A fast/cheap model is plenty for this — it's summarizing a few
   /// hundred words of OCR text into a handful of fields, not reasoning at
-  /// length. Verify this slug is still current at openrouter.ai/models if
-  /// requests start failing; OpenRouter model slugs shift as providers
-  /// release new versions.
-  static const String _model = 'google/gemini-2.5-flash';
+  /// length. Verify this slug is still current at
+  /// https://console.groq.com/docs/models if requests start failing.
+  static const String _model = 'openai/gpt-oss-20b';
 
-  static const String _endpoint =
-      'https://openrouter.ai/api/v1/chat/completions';
+  static const String _endpoint = 'https://api.groq.com/openai/v1/chat/completions';
 
   String _systemPrompt(List<String> availableCategories) =>
       '''You are Dockitly's document-organizing assistant. Convert OCR text into accurate, editable document suggestions for a personal document manager. The text may come from a deliberately imported document or an ordinary photo discovered in a gallery. You receive text only, not the image.
@@ -106,7 +104,7 @@ ${jsonEncode(availableCategories)}''';
     final text = ocrText.trim();
     if (text.isEmpty) return null;
 
-    final apiKey = dotenv.env['OPENROUTER_API_KEY'];
+    final apiKey = dotenv.env['GROQ_API_KEY'];
     if (apiKey == null || apiKey.isEmpty || apiKey == 'your_key_here') {
       return null;
     }
@@ -123,11 +121,14 @@ ${jsonEncode(availableCategories)}''';
             {'role': 'user', 'content': text},
           ],
           'response_format': {'type': 'json_object'},
-          // Without an explicit cap, OpenRouter reserves the model's full
-          // context window (tens of thousands of tokens) against the
-          // account's credit balance before the call even starts, which
-          // fails with a 402 on a low-balance/free-tier key. The response
-          // here is always a small JSON object, so this is plenty.
+          // openai/gpt-oss-20b is a reasoning model — its thinking tokens
+          // count against max_tokens before the actual answer does. "low"
+          // keeps that budget mostly for the answer; this is a short
+          // extraction task, not multi-step reasoning.
+          'reasoning_effort': 'low',
+          // The response here is always a small JSON object, so this is
+          // plenty — caps latency/cost rather than letting the model
+          // ramble.
           'max_tokens': 2000,
         },
       );

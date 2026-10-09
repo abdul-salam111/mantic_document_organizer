@@ -30,7 +30,7 @@ class AiChatAnswer {
 /// Answers natural-language questions about the user's documents by
 /// sending a compact catalog of them (title/category/tags/description/
 /// expiry, with a short OCR fallback when a description is missing) to an
-/// AI model via OpenRouter, alongside the question and recent conversation
+/// AI model via Groq, alongside the question and recent conversation
 /// history. Same integration shape as
 /// [AiDocumentService]: reuses [DioHelper] (Bearer auth, offline detection
 /// via its cached connectivity check), and collapses every failure mode —
@@ -45,11 +45,10 @@ class AiChatService {
 
   /// Same fast/cheap model as [AiDocumentService] — a short, direct answer
   /// doesn't need a larger/slower model. Verify this slug is still current
-  /// at openrouter.ai/models if requests start failing.
-  static const String _model = 'google/gemini-2.5-flash';
+  /// at https://console.groq.com/docs/models if requests start failing.
+  static const String _model = 'openai/gpt-oss-20b';
 
-  static const String _endpoint =
-      'https://openrouter.ai/api/v1/chat/completions';
+  static const String _endpoint = 'https://api.groq.com/openai/v1/chat/completions';
 
   /// How much of a document's raw OCR text to fall back to when its
   /// AI-written [DocumentItem.description] is empty (added before AI
@@ -137,7 +136,7 @@ ${jsonEncode(catalog)}''';
     final trimmedQuestion = question.trim();
     if (trimmedQuestion.isEmpty) return null;
 
-    final apiKey = dotenv.env['OPENROUTER_API_KEY'];
+    final apiKey = dotenv.env['GROQ_API_KEY'];
     if (apiKey == null || apiKey.isEmpty || apiKey == 'your_key_here') {
       return null;
     }
@@ -161,9 +160,13 @@ ${jsonEncode(catalog)}''';
             {'role': 'user', 'content': trimmedQuestion},
           ],
           'response_format': {'type': 'json_object'},
+          // openai/gpt-oss-20b is a reasoning model — its thinking tokens
+          // count against max_tokens before the actual answer does. "low"
+          // keeps that budget mostly for the answer; this is a short
+          // lookup/extraction task, not multi-step reasoning.
+          'reasoning_effort': 'low',
           // A chat answer is a sentence or two, not a report — keep this
-          // capped the same way AiDocumentService does, so a low-credit
-          // key can't hit the same 402 an uncapped request did before.
+          // capped the same way AiDocumentService does.
           'max_tokens': 800,
         },
       );

@@ -35,6 +35,7 @@ class CustomTextFormField extends StatefulWidget {
   final Iterable<String>? autofillHints;
   final bool showBorder;
   final bool isCollapsed;
+  final bool isDense;
   final EdgeInsetsGeometry? contentPadding;
   final BoxConstraints? constraints;
 
@@ -74,6 +75,7 @@ class CustomTextFormField extends StatefulWidget {
     this.autofillHints,
     this.showBorder = true,
     this.isCollapsed = false,
+    this.isDense = false,
     this.contentPadding,
     this.floatingLabel = false,
     this.constraints,
@@ -165,6 +167,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
           autofillHints: widget.autofillHints,
           decoration: InputDecoration(
             isCollapsed: widget.isCollapsed,
+            isDense: widget.isDense,
             constraints: widget.constraints,
             label: widget.floatingLabel ? labelRichText() : null,
             floatingLabelBehavior: widget.floatingLabel

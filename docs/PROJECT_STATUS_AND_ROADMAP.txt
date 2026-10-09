@@ -40,7 +40,7 @@ not started:
   Category at all.
 - AI embeddings and similar-document clustering (Phase 3) — AI chat search,
   auto-summaries, auto-categorization, and deadline detection are already
-  live via OpenRouter; embeddings/clustering specifically are not built.
+  live via Groq; embeddings/clustering specifically are not built.
 - Backup/sync/Google Drive (Phase 1's optional backup + Phase 4's full sync):
   no google_sign_in, no Drive SDK, nothing.
 - Shared vaults, voice notes (Phase 4): not started, expected at this stage.

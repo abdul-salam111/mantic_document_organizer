@@ -102,6 +102,14 @@ class _SigninSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    // Below this width (the smallest logical screen size this app
+    // targets), the field captions compete too much with the hint text
+    // for vertical space — drop them and rely on the hint + prefix icon.
+    final showFieldLabels = context.screenWidth >= 360;
+    // On a tall screen (e.g. the iPhone 17 Pro Max simulator at 956pt vs.
+    // the Tecno reference device's 800dp), give the fields more breathing
+    // room between each other too.
+    final fieldGap = context.screenHeight > 800 ? 20.0 : 14.0;
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 640),
       child: Material(
@@ -145,16 +153,21 @@ class _SigninSheet extends StatelessWidget {
                     fillColor: context.surfaceElevated,
                     borderColor: context.grey300,
                     controller: emailController,
-                    label: 'Email address',
+                    label: showFieldLabels ? 'Email address' : null,
                     validator: Validator.validateEmail,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 10,
+                    ),
                     autofillHints: const [
                       AutofillHints.username,
                       AutofillHints.email,
                     ],
                   ),
-                  const SizedBox(height: 18),
+                  SizedBox(height: fieldGap),
                   CustomTextFormField(
                     hintText: 'Enter your password',
                     prefixIcon: Iconsax.lock,
@@ -162,16 +175,22 @@ class _SigninSheet extends StatelessWidget {
                     borderColor: context.grey300,
                     controller: passwordController,
                     obscureText: true,
-                    label: 'Password',
+                    label: showFieldLabels ? 'Password' : null,
                     validator: Validator.validatePassword,
                     keyboardType: TextInputType.visiblePassword,
                     textInputAction: TextInputAction.done,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 10,
+                    ),
                     autofillHints: const [AutofillHints.password],
                   ),
-                  const SizedBox(height: 26),
+                  const SizedBox(height: 22),
                   Consumer<SigninViewModel>(
                     builder: (context, vm, _) => CustomButton(
                       radius: 12,
+                      size: const Size(double.infinity, 44),
                       onPressed: vm.isAnyLoading ? null : () => onSubmit(vm),
                       isLoading: vm.isEmailLoading,
                       text: 'Sign In',
@@ -195,60 +214,35 @@ class _SigninSheet extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Consumer<SigninViewModel>(
-                    builder: (context, vm, _) {
-                      final loading = vm.isGoogleLoading;
-                      return SizedBox(
-                        height: 52,
-                        child: OutlinedButton.icon(
-                          onPressed: vm.isAnyLoading
-                              ? null
-                              : vm.signInWithGoogle,
-                          icon: loading
-                              ? const SizedBox.square(
-                                  dimension: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : Image.asset(
-                                  AppIcons.google,
-                                  width: 20,
-                                  height: 20,
-                                ),
-                          label: Text(
-                            loading
-                                ? 'Connecting to Google…'
-                                : 'Continue with Google',
+                    builder: (context, vm, _) => Row(
+                      children: [
+                        Expanded(
+                          child: SocialSignInButton(
+                            icon: AppIcons.google,
+                            label: 'Continue with Google',
+                            loading: vm.isGoogleLoading,
+                            onPressed: vm.isAnyLoading
+                                ? null
+                                : vm.signInWithGoogle,
                           ),
                         ),
-                      );
-                    },
-                  ),
-                  if (Platform.isIOS) ...[
-                    const SizedBox(height: 12),
-                    Consumer<SigninViewModel>(
-                      builder: (context, vm, _) => SizedBox(
-                        height: 52,
-                        child: OutlinedButton.icon(
-                          onPressed: vm.isAnyLoading
-                              ? null
-                              : vm.signInWithApple,
-                          icon: Image.asset(
-                            AppIcons.apple,
-                            width: 20,
-                            height: 20,
-                            color: IconTheme.of(context).color,
-                            colorBlendMode: BlendMode.srcIn,
+                        if (Platform.isIOS) ...[
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: SocialSignInButton(
+                              icon: AppIcons.apple,
+                              label: 'Continue with Apple',
+                              loading: vm.isAppleLoading,
+                              tintIcon: true,
+                              onPressed: vm.isAnyLoading
+                                  ? null
+                                  : vm.signInWithApple,
+                            ),
                           ),
-                          label: Text(
-                            vm.isAppleLoading
-                                ? 'Connecting to Apple…'
-                                : 'Continue with Apple',
-                          ),
-                        ),
-                      ),
+                        ],
+                      ],
                     ),
-                  ],
+                  ),
                   const SizedBox(height: 14),
                   TextButton(
                     onPressed: () => AppNavigator.goNamed(RouteNames.signup),
