@@ -495,14 +495,6 @@ Future<void> sharingDependencies() async {
     ),
     dispose: (service) => service.dispose(),
   );
-
-  sl.registerLazySingleton(
-    () => SharedSpacesResumeSync(
-      categoryUseCases: sl(),
-      syncBackgroundService: sl(),
-    ),
-    dispose: (service) => service.dispose(),
-  );
 }
 
 // GENERATED_DEPENDENCIES_END
