@@ -8,7 +8,6 @@ import '../../../core/security/security_exports.dart';
 import '../../../core/theme/theme_exports.dart';
 import '../../../core/utils/utils_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
-import '../../../routes/routes_exports.dart';
 import '../viewmodel/settings_viewmodel.dart';
 
 class SettingsView extends StatelessWidget {
@@ -137,25 +136,6 @@ class SettingsView extends StatelessWidget {
                   ],
                 );
               },
-            ),
-
-            heightBox(28),
-            _SectionHeader(AppLocalizations.of(context).categories),
-            heightBox(10),
-            _SettingsCard(
-              children: [
-                _SettingsRow(
-                  icon: Iconsax.add_square,
-                  label: AppLocalizations.of(context).addCategory,
-                  onTap: () => AppNavigator.pushNamed(RouteNames.addCategory),
-                ),
-                _SettingsRow(
-                  icon: Iconsax.category,
-                  label: AppLocalizations.of(context).manageCategories,
-                  onTap: () =>
-                      AppNavigator.pushNamed(RouteNames.manageCategories),
-                ),
-              ],
             ),
 
             heightBox(28),

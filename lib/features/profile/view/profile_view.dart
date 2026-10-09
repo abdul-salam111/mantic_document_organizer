@@ -68,11 +68,11 @@ class ProfileView extends StatelessWidget {
                   ),
                   heightBox(10),
                   _ProfileMenuTile(
-                    icon: Iconsax.scan_barcode,
+                    icon: Iconsax.category,
                     iconColor: context.primary,
-                    label: 'Join a shared category',
-                    subtitle: 'Scan a QR code someone shared with you',
-                    onTap: () => AppNavigator.pushNamed(RouteNames.joinSpaceScan),
+                    label: AppLocalizations.of(context).manageCategories,
+                    subtitle: 'Add, edit, or join shared categories',
+                    onTap: () => _showManageCategoriesSheet(context),
                   ),
                   if (vm.isSignedIn) ...[
                     heightBox(20),
@@ -135,6 +135,76 @@ class ProfileView extends StatelessWidget {
     if (confirmed == true && context.mounted) {
       await viewModel.signOut();
     }
+  }
+
+  Future<void> _showManageCategoriesSheet(BuildContext context) {
+    return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: context.surfaceElevated,
+      shape: const RoundedRectangleBorder(
+        borderRadius: .vertical(top: .circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: const .fromLTRB(16, 12, 16, 24),
+          child: Column(
+            mainAxisSize: .min,
+            crossAxisAlignment: .stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: sheetContext.border,
+                    borderRadius: .circular(99),
+                  ),
+                ),
+              ),
+              heightBox(16),
+              Text(
+                'Categories',
+                style: sheetContext.titleMedium.copyWith(fontWeight: .w700),
+              ),
+              heightBox(16),
+              _ProfileMenuTile(
+                icon: Iconsax.add_square,
+                iconColor: sheetContext.primary,
+                label: AppLocalizations.of(sheetContext).addCategory,
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  AppNavigator.pushNamed(RouteNames.addCategory);
+                },
+              ),
+              heightBox(10),
+              _ProfileMenuTile(
+                icon: Iconsax.category,
+                iconColor: sheetContext.primary,
+                label: AppLocalizations.of(sheetContext).manageCategories,
+                subtitle: 'Rename, delete, or reorganize your categories',
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  AppNavigator.pushNamed(RouteNames.manageCategories);
+                },
+              ),
+              heightBox(10),
+              _ProfileMenuTile(
+                icon: Iconsax.scan_barcode,
+                iconColor: sheetContext.primary,
+                label: 'Join a shared category',
+                subtitle: 'Scan a QR code someone shared with you',
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  AppNavigator.pushNamed(RouteNames.joinSpaceScan);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
