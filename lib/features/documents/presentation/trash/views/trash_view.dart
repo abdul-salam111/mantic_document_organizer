@@ -23,11 +23,14 @@ class TrashView extends StatelessWidget {
           return Scaffold(
             appBar: CustomAppBar(
               title: AppLocalizations.of(context).trash,
+              onBackPressed: () => Navigator.of(context).pop(),
+              backgroundColor: context.background,
+              foregroundColor: context.textPrimary,
               actions: [
                 if (vm.documents.isNotEmpty)
                   IconButton(
                     tooltip: AppLocalizations.of(context).emptyTrash,
-                    icon: Icon(Iconsax.trash, color: context.white),
+                    icon: Icon(Iconsax.trash, color: context.textPrimary),
                     onPressed: () => _confirmEmptyTrash(context, vm),
                   ),
               ],

@@ -35,6 +35,9 @@ class AddCategoryView extends StatelessWidget {
           title: category == null
               ? AppLocalizations.of(context).newCategory
               : AppLocalizations.of(context).editCategory,
+          onBackPressed: () => Navigator.of(context).pop(),
+          backgroundColor: context.background,
+          foregroundColor: context.textPrimary,
         ),
         body: SafeArea(
           child: Consumer<AddCategoryViewModel>(

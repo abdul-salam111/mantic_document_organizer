@@ -1,4 +1,3 @@
-import 'package:mantic_doc_org/core/utils/persist_action.dart';
 import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
 import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
 import 'package:flutter/material.dart';
@@ -142,13 +141,6 @@ class HomeView extends StatelessWidget {
                                           beginOffset: const Offset(0.12, 0),
                                           child: _RecentFileCard(
                                             document: document,
-                                            onToggleFavorite: () =>
-                                                persistAction(
-                                                  context,
-                                                  () => vm.toggleFavorite(
-                                                    document,
-                                                  ),
-                                                ),
                                           ),
                                         );
                                       },
@@ -415,12 +407,8 @@ Color categoryIconColor(BuildContext context, String categoryName) {
 /// recognized faster by color+icon than read as text at this size.
 class _RecentFileCard extends StatelessWidget {
   final DocumentItem document;
-  final VoidCallback onToggleFavorite;
 
-  const _RecentFileCard({
-    required this.document,
-    required this.onToggleFavorite,
-  });
+  const _RecentFileCard({required this.document});
 
   static const double _height = 80;
 
@@ -470,14 +458,6 @@ class _RecentFileCard extends StatelessWidget {
                       Positioned(
                         top: 4,
                         right: 4,
-                        child: _RecentFileFavoriteBadge(
-                          isFavorite: document.isFavorite,
-                          onTap: onToggleFavorite,
-                        ),
-                      ),
-                      Positioned(
-                        right: 4,
-                        bottom: 4,
                         child: PendingSyncBadge(
                           documentId: document.id,
                           size: 21,
@@ -524,46 +504,6 @@ class _RecentFileCard extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Sits directly on top of the cover image, so it needs a dark scrim
-/// behind it (not the flat soft-fill [DocumentListTile]'s favorite button
-/// uses) to stay legible against arbitrary photo content.
-class _RecentFileFavoriteBadge extends StatelessWidget {
-  final bool isFavorite;
-  final VoidCallback onTap;
-
-  const _RecentFileFavoriteBadge({
-    required this.isFavorite,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: isFavorite
-          ? AppLocalizations.of(context).removeFromFavorites
-          : AppLocalizations.of(context).addToFavorites,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: .circular(12),
-        child: Container(
-          width: 24,
-          height: 24,
-          alignment: .center,
-          decoration: BoxDecoration(
-            color: context.black.withValues(alpha: 0.45),
-            shape: .circle,
-          ),
-          child: Icon(
-            isFavorite ? Iconsax.heart5 : Iconsax.heart,
-            size: 14,
-            color: isFavorite ? context.errorAccent : context.white,
-          ),
         ),
       ),
     );

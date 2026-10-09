@@ -27,7 +27,12 @@ class SettingsView extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => sl<SettingsViewModel>(),
       child: Scaffold(
-        appBar: CustomAppBar(title: AppLocalizations.of(context).settings),
+        appBar: CustomAppBar(
+          title: AppLocalizations.of(context).settings,
+          onBackPressed: () => Navigator.of(context).pop(),
+          backgroundColor: context.background,
+          foregroundColor: context.textPrimary,
+        ),
         body: ListView(
           padding: const .fromLTRB(16, 20, 16, 32),
           children: [

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/di/di_exports.dart';
 import '../../../../../core/localization/localization_exports.dart';
+import '../../../../../core/theme/theme_exports.dart';
 import '../../../../../core/utils/utils_exports.dart';
 import '../../../../../core/widgets/widgets_exports.dart';
 import '../../../../../routes/routes_exports.dart';
@@ -26,6 +27,9 @@ class ExpiringSoonView extends StatelessWidget {
           return Scaffold(
             appBar: CustomAppBar(
               title: AppLocalizations.of(context).expiringSoonTitle,
+              onBackPressed: () => Navigator.of(context).pop(),
+              backgroundColor: context.background,
+              foregroundColor: context.textPrimary,
             ),
             body: SafeArea(
               child: documents.isEmpty

@@ -99,7 +99,12 @@ class _ShareCategoryViewState extends State<ShareCategoryView> {
       value: _vm,
       child: Consumer<ShareCategoryViewModel>(
         builder: (context, vm, _) => Scaffold(
-          appBar: CustomAppBar(title: vm.category.name),
+          appBar: CustomAppBar(
+            title: vm.category.name,
+            onBackPressed: () => Navigator.of(context).pop(),
+            backgroundColor: context.background,
+            foregroundColor: context.textPrimary,
+          ),
           body: SafeArea(
             child: vm.isPreparing
                 ? const Center(child: LoadingIndicator())

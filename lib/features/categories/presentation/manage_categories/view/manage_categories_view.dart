@@ -31,6 +31,9 @@ class ManageCategoriesView extends StatelessWidget {
                   )
                 : CustomAppBar(
                     title: AppLocalizations.of(context).manageCategories,
+                    onBackPressed: () => Navigator.of(context).pop(),
+                    backgroundColor: context.background,
+                    foregroundColor: context.textPrimary,
                   ),
             body: SafeArea(
               child: Column(

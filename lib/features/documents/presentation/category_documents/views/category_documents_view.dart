@@ -39,7 +39,12 @@ class CategoryDocumentsView extends StatelessWidget {
                     onClose: vm.clearSelection,
                     onDelete: () => _confirmTrashSelected(context, vm),
                   )
-                : CustomAppBar(title: category.name),
+                : CustomAppBar(
+                    title: category.name,
+                    onBackPressed: () => Navigator.of(context).pop(),
+                    backgroundColor: context.background,
+                    foregroundColor: context.textPrimary,
+                  ),
             body: SafeArea(
               child: Column(
                 children: [
