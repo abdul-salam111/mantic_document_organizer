@@ -108,6 +108,9 @@ class AddDocumentView extends StatelessWidget {
                 title: editingDocument != null
                     ? AppLocalizations.of(context).editDocumentTitle
                     : AppLocalizations.of(context).addDocumentTitle,
+                onBackPressed: () => Navigator.of(context).pop(),
+                backgroundColor: context.background,
+                foregroundColor: context.textPrimary,
               ),
               body: SafeArea(
                 bottom: false,

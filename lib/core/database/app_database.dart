@@ -3,6 +3,7 @@ import 'package:mantic_doc_org/features/documents/domain/entities/document_item.
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
 class AppDatabase {
@@ -21,6 +22,34 @@ class AppDatabase {
     }
     return db;
   }
+
+  /// [AttachmentLocalDataSource] always copies a picked file into
+  /// `<app documents>/documents/<filename>` and hands back that full
+  /// absolute path, which is what every in-memory [DocumentItem] carries.
+  /// Writing that absolute string straight into `document_attachments.path`
+  /// is wrong on iOS: the app's sandbox container directory (the prefix
+  /// before `.../documents/`) includes a UUID segment that isn't
+  /// guaranteed stable across reinstalls/restores, unlike Android's
+  /// package-name-keyed directory. A document added in one container and
+  /// read back after that UUID changes would point at a path that no
+  /// longer exists — silently, since every `Image.file`/`FileImage` call
+  /// site here has an `errorBuilder` that swallows the failure into a
+  /// placeholder icon with no logging.
+  ///
+  /// Fixed by storing only the portion from `documents/` onward (stable
+  /// across container changes) and re-joining it with a freshly resolved
+  /// documents directory on every read via [_resolveAttachmentPath] —
+  /// without ever changing what [AttachmentLocalDataSource] itself
+  /// returns, so the immediate post-pick preview (same session, before
+  /// any DB round-trip) keeps getting a directly usable absolute path.
+  String _attachmentStorageSuffix(String path) {
+    const marker = 'documents/';
+    final index = path.lastIndexOf(marker);
+    return index == -1 ? path : path.substring(index);
+  }
+
+  String _resolveAttachmentPath(String storedPath, String documentsDirPath) =>
+      join(documentsDirPath, _attachmentStorageSuffix(storedPath));
 
   Future<void> init() async {
     final path = join(await getDatabasesPath(), 'mantic.db');
@@ -293,10 +322,14 @@ class AppDatabase {
       whereArgs: [id],
       orderBy: 'sort_order ASC',
     );
+    final documentsDir = await getApplicationDocumentsDirectory();
     return _documentFromRow(
       rows.first,
       tags: const [],
-      filePaths: [for (final row in attachments) row['path'] as String],
+      filePaths: [
+        for (final row in attachments)
+          _resolveAttachmentPath(row['path'] as String, documentsDir.path),
+      ],
     );
   }
 
@@ -547,6 +580,7 @@ class AppDatabase {
       'document_attachments',
       orderBy: 'sort_order ASC',
     );
+    final documentsDir = await getApplicationDocumentsDirectory();
 
     final tagsByDocument = <String, List<String>>{};
     for (final row in tagRows) {
@@ -557,7 +591,7 @@ class AppDatabase {
     final attachmentsByDocument = <String, List<String>>{};
     for (final row in attachmentRows) {
       (attachmentsByDocument[row['document_id'] as String] ??= []).add(
-        row['path'] as String,
+        _resolveAttachmentPath(row['path'] as String, documentsDir.path),
       );
     }
 
@@ -601,7 +635,7 @@ class AppDatabase {
       for (var i = 0; i < document.filePaths.length; i++) {
         await txn.insert('document_attachments', {
           'document_id': document.id,
-          'path': document.filePaths[i],
+          'path': _attachmentStorageSuffix(document.filePaths[i]),
           'sort_order': i,
         });
       }
@@ -638,7 +672,7 @@ class AppDatabase {
         for (var i = 0; i < document.filePaths.length; i++) {
           await txn.insert('document_attachments', {
             'document_id': document.id,
-            'path': document.filePaths[i],
+            'path': _attachmentStorageSuffix(document.filePaths[i]),
             'sort_order': i,
           });
         }

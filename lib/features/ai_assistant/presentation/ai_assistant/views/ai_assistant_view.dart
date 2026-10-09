@@ -97,6 +97,9 @@ class _AiAssistantViewState extends State<AiAssistantView>
         child: Scaffold(
           appBar: CustomAppBar(
             title: AppLocalizations.of(context).aiAssistantTitle,
+            onBackPressed: () => Navigator.of(context).pop(),
+            backgroundColor: context.background,
+            foregroundColor: context.textPrimary,
           ),
           body: SafeArea(
             child: Consumer<AiAssistantViewModel>(

@@ -48,16 +48,11 @@ class _FilePreviewViewState extends State<FilePreviewView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
+      appBar: CustomAppBar(
+        title: '${_currentIndex + 1} / ${widget.filePaths.length}',
+        onBackPressed: () => Navigator.of(context).pop(),
         backgroundColor: Colors.black,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: widget.filePaths.length > 1
-            ? Text(
-                '${_currentIndex + 1} / ${widget.filePaths.length}',
-                style: const TextStyle(color: Colors.white),
-              )
-            : null,
+        foregroundColor: Colors.white,
       ),
       // PhotoViewGallery — not a hand-rolled PageView+InteractiveViewer —
       // owns both the swipe-between-files paging and each page's

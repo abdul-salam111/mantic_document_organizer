@@ -48,6 +48,9 @@ class DocumentViewerView extends StatelessWidget {
                   )
                 : CustomAppBar(
                     title: current.title,
+                    onBackPressed: () => Navigator.of(context).pop(),
+                    backgroundColor: context.background,
+                    foregroundColor: context.textPrimary,
                     actions: [
                       IconButton(
                         tooltip: current.isFavorite
@@ -57,7 +60,7 @@ class DocumentViewerView extends StatelessWidget {
                           current.isFavorite ? Iconsax.heart5 : Iconsax.heart,
                           color: current.isFavorite
                               ? context.errorAccent
-                              : context.white,
+                              : context.textPrimary,
                         ),
                         onPressed: () =>
                             persistAction(context, vm.toggleFavorite),
