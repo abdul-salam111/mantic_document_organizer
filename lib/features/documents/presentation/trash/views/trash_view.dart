@@ -42,31 +42,44 @@ class TrashView extends StatelessWidget {
                       title: AppLocalizations.of(context).trashEmptyTitle,
                       subtitle: AppLocalizations.of(context).trashEmptySubtitle,
                     )
-                  : StaggeredReveal(
-                      itemCount: vm.documents.length,
-                      builder: (context, reveal) => ListView.separated(
-                        padding: const .fromLTRB(10, 10, 10, 20),
-                        itemCount: vm.documents.length,
-                        separatorBuilder: (context, index) => heightBox(10),
-                        itemBuilder: (context, index) {
-                          final document = vm.documents[index];
-                          return StaggeredRevealItem(
-                            reveal: reveal,
+                  : Column(
+                      children: [
+                        const _RetentionInfoBanner(),
+                        Expanded(
+                          child: StaggeredReveal(
                             itemCount: vm.documents.length,
-                            index: index,
-                            child: _TrashDocumentTile(
-                              document: document,
-                              accentColor: categoryIconColor(
-                                context,
-                                document.category,
-                              ),
-                              onRestore: () => _restore(context, vm, document),
-                              onDeleteForever: () =>
-                                  _confirmDeleteForever(context, vm, document),
+                            builder: (context, reveal) => ListView.separated(
+                              padding: const .fromLTRB(10, 10, 10, 20),
+                              itemCount: vm.documents.length,
+                              separatorBuilder: (context, index) =>
+                                  heightBox(10),
+                              itemBuilder: (context, index) {
+                                final document = vm.documents[index];
+                                return StaggeredRevealItem(
+                                  reveal: reveal,
+                                  itemCount: vm.documents.length,
+                                  index: index,
+                                  child: _TrashDocumentTile(
+                                    document: document,
+                                    accentColor: categoryIconColor(
+                                      context,
+                                      document.category,
+                                    ),
+                                    onRestore: () =>
+                                        _restore(context, vm, document),
+                                    onDeleteForever: () =>
+                                        _confirmDeleteForever(
+                                          context,
+                                          vm,
+                                          document,
+                                        ),
+                                  ),
+                                );
+                              },
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        ),
+                      ],
                     ),
             ),
           );
@@ -158,10 +171,44 @@ class TrashView extends StatelessWidget {
   }
 }
 
-/// Same visual language as [DocumentListTile] (accent bar, cover
-/// thumbnail) but with restore/delete-forever actions instead of a
-/// favorite toggle, and no [onTap] — a trashed document doesn't route
-/// into document_viewer, whose edit/rename/move actions don't apply to it.
+/// Short-lived banner reminding the user why these documents are here and
+/// that they won't stay forever — trash has no other context clue for that
+/// once the empty-state subtitle is no longer showing. Hardcoded English
+/// like [_ViewerOnlyBanner] in category_documents_view, same precedent.
+class _RetentionInfoBanner extends StatelessWidget {
+  const _RetentionInfoBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final days = DocumentUseCases.trashRetentionPeriod.inDays;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: context.textSecondary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Icon(Iconsax.info_circle, size: 16, color: context.textSecondary),
+          widthBox(8),
+          Expanded(
+            child: Text(
+              'Items in trash are permanently deleted after $days days.',
+              style: context.labelSmall.copyWith(color: context.textSecondary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Same visual language as [DocumentListTile] (card surface, accent bar,
+/// cover thumbnail) but with a full-width restore/delete-forever action
+/// row instead of a favorite toggle, and no [onTap] — a trashed document
+/// doesn't route into document_viewer, whose edit/rename/move actions
+/// don't apply to it.
 class _TrashDocumentTile extends StatelessWidget {
   final DocumentItem document;
   final Color accentColor;
@@ -180,7 +227,7 @@ class _TrashDocumentTile extends StatelessWidget {
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: context.surfaceElevated,
+        color: context.categoryCardSurface,
         borderRadius: .circular(16),
         border: Border.all(color: context.border),
         boxShadow: [
@@ -198,71 +245,125 @@ class _TrashDocumentTile extends StatelessWidget {
             Container(width: 4, color: accentColor),
             Expanded(
               child: Padding(
-                padding: const .all(8),
-                child: Row(
+                padding: const .all(10),
+                child: Column(
                   crossAxisAlignment: .start,
                   children: [
-                    DocumentCoverThumbnail(
-                      document: document,
-                      color: accentColor,
-                      width: 76,
-                      height: 76,
-                      borderRadius: 12,
-                      iconSize: 26,
-                    ),
-                    widthBox(12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: .start,
-                        children: [
-                          Text(
-                            document.title,
-                            maxLines: 1,
-                            overflow: .ellipsis,
-                            style: context.bodyMedium.copyWith(
-                              fontWeight: .w700,
-                            ),
-                          ),
-                          heightBox(4),
-                          Text(
-                            document.category,
-                            maxLines: 1,
-                            overflow: .ellipsis,
-                            style: context.labelSmall.copyWith(
-                              color: context.textSecondary,
-                            ),
-                          ),
-                          heightBox(8),
-                          _RetentionBadge(deletedAt: document.deletedAt!),
-                        ],
-                      ),
-                    ),
-                    Column(
-                      mainAxisSize: .min,
+                    Row(
+                      crossAxisAlignment: .start,
                       children: [
-                        IconButton(
-                          tooltip: AppLocalizations.of(context).restore,
-                          icon: Icon(
-                            Iconsax.rotate_left,
-                            size: 20,
-                            color: context.primary,
-                          ),
-                          onPressed: onRestore,
+                        DocumentCoverThumbnail(
+                          document: document,
+                          color: accentColor,
+                          width: 64,
+                          height: 64,
+                          borderRadius: 12,
+                          iconSize: 22,
                         ),
-                        IconButton(
-                          tooltip: AppLocalizations.of(
-                            context,
-                          ).deleteForeverTitle,
-                          icon: Icon(
-                            Iconsax.trash,
-                            size: 20,
-                            color: context.errorAccent,
+                        widthBox(12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: .start,
+                            children: [
+                              Text(
+                                document.title,
+                                maxLines: 1,
+                                overflow: .ellipsis,
+                                style: context.bodyMedium.copyWith(
+                                  fontWeight: .w700,
+                                ),
+                              ),
+                              heightBox(4),
+                              Text(
+                                document.category,
+                                maxLines: 1,
+                                overflow: .ellipsis,
+                                style: context.labelSmall.copyWith(
+                                  color: context.textSecondary,
+                                ),
+                              ),
+                              heightBox(8),
+                              _RetentionBadge(deletedAt: document.deletedAt!),
+                            ],
                           ),
-                          onPressed: onDeleteForever,
+                        ),
+                      ],
+                    ),
+                    heightBox(12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _TrashActionButton(
+                            icon: Iconsax.rotate_left,
+                            label: AppLocalizations.of(context).restore,
+                            color: context.primary,
+                            onTap: onRestore,
+                          ),
+                        ),
+                        widthBox(8),
+                        Expanded(
+                          child: _TrashActionButton(
+                            icon: Iconsax.trash,
+                            label: AppLocalizations.of(
+                              context,
+                            ).deleteForeverTitle,
+                            color: context.errorAccent,
+                            onTap: onDeleteForever,
+                          ),
                         ),
                       ],
                     ),
                   ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A labeled pill action (not a bare icon button) so Restore/Delete Forever
+/// read as deliberate, clearly-tappable choices instead of two ambiguous
+/// icons crammed into a corner.
+class _TrashActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _TrashActionButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: .circular(10),
+      child: Container(
+        padding: const .symmetric(vertical: 9),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: .circular(10),
+        ),
+        child: Row(
+          mainAxisAlignment: .center,
+          children: [
+            Icon(icon, size: 16, color: color),
+            widthBox(6),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: .ellipsis,
+                style: context.labelSmall.copyWith(
+                  color: color,
+                  fontWeight: .w700,
                 ),
               ),
             ),
