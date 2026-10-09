@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:provider/provider.dart';
 import 'core/background/auto_import_service.dart';
 import 'core/database/database_exports.dart';
@@ -69,6 +70,11 @@ void main() {
       // triggered by AutoImportConsentSheet right after the user grants
       // permission. Must never block runApp().
       unawaited(sl<AutoImportService>().maybeRunInitialScan());
+      // Pre-compiles the liquid glass shader so the first lens on screen
+      // (e.g. the Add Document source buttons) renders real refraction
+      // immediately instead of the frosted fallback it otherwise shows
+      // while compiling asynchronously on first use.
+      await LiquidGlassShaders.ensureLoaded();
       runApp(const MyApp());
     },
     // Errors from uncaught async code (e.g. a Future that's never

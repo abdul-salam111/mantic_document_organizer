@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 
 import '../../../../../core/constants/constants_exports.dart';
 import '../../../../../core/di/di_exports.dart';
@@ -203,7 +204,7 @@ class _AttachmentSection extends StatelessWidget {
           children: [
             Expanded(
               child: _SourceButton(
-                icon: Iconsax.camera,
+                iconAsset: AppIcons.camera,
                 label: AppLocalizations.of(context).camera,
                 onTap: () async {
                   final failed = await vm.pickFromCamera();
@@ -218,7 +219,9 @@ class _AttachmentSection extends StatelessWidget {
             widthBox(10),
             Expanded(
               child: _SourceButton(
-                icon: Iconsax.gallery,
+                iconAsset: Platform.isIOS
+                    ? AppIcons.galleryIos
+                    : AppIcons.galleryAndroid,
                 label: AppLocalizations.of(context).gallery,
                 onTap: vm.pickFromGallery,
               ),
@@ -226,7 +229,7 @@ class _AttachmentSection extends StatelessWidget {
             widthBox(10),
             Expanded(
               child: _SourceButton(
-                icon: Iconsax.document,
+                iconAsset: AppIcons.filesIos,
                 label: AppLocalizations.of(context).files,
                 onTap: () async {
                   final skippedImages = await vm.pickFile();
@@ -317,7 +320,7 @@ class AttachmentSourceSheet extends StatelessWidget {
               children: [
                 Expanded(
                   child: _SourceButton(
-                    icon: Iconsax.camera,
+                    iconAsset: AppIcons.camera,
                     label: AppLocalizations.of(context).camera,
                     onTap: () =>
                         Navigator.of(context).pop(AttachmentSource.camera),
@@ -326,7 +329,9 @@ class AttachmentSourceSheet extends StatelessWidget {
                 widthBox(10),
                 Expanded(
                   child: _SourceButton(
-                    icon: Iconsax.gallery,
+                    iconAsset: Platform.isIOS
+                        ? AppIcons.galleryIos
+                        : AppIcons.galleryAndroid,
                     label: AppLocalizations.of(context).gallery,
                     onTap: () =>
                         Navigator.of(context).pop(AttachmentSource.gallery),
@@ -335,7 +340,7 @@ class AttachmentSourceSheet extends StatelessWidget {
                 widthBox(10),
                 Expanded(
                   child: _SourceButton(
-                    icon: Iconsax.document,
+                    iconAsset: AppIcons.filesIos,
                     label: AppLocalizations.of(context).files,
                     onTap: () =>
                         Navigator.of(context).pop(AttachmentSource.file),
@@ -375,42 +380,102 @@ class _OcrAiStatusLine extends StatelessWidget {
 }
 
 class _SourceButton extends StatelessWidget {
-  final IconData icon;
+  final String iconAsset;
   final String label;
   final VoidCallback onTap;
 
   const _SourceButton({
-    required this.icon,
+    required this.iconAsset,
     required this.label,
     required this.onTap,
   });
 
+  static const double _size = 56;
+  static const double _radius = 16;
+
   @override
   Widget build(BuildContext context) {
+    final dark = context.isDark;
+    final white = context.white;
+    final accent = context.primary;
     return InkWell(
       onTap: onTap,
-      borderRadius: .circular(12),
-      child: Container(
-        padding: const .symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: context.surfaceElevated,
-          borderRadius: .circular(12),
-          border: Border.all(color: context.border),
-        ),
-        child: Column(
-          mainAxisSize: .min,
-          children: [
-            Icon(icon, color: context.primary, size: 22),
-            heightBox(6),
-            Text(
-              label,
-              style: context.labelSmall.copyWith(
-                color: context.primary,
-                fontWeight: .w600,
-              ),
+      borderRadius: .circular(_radius),
+      child: Column(
+        mainAxisSize: .min,
+        children: [
+          SizedBox.square(
+            dimension: _size,
+            child: Stack(
+              children: [
+                // Painted directly behind the lens so it has something
+                // colorful to refract/blur/tint — a flat single-color
+                // backdrop would blur to the same flat color and the glass
+                // would read as invisible.
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: .circular(_radius),
+                    gradient: LinearGradient(
+                      begin: .topLeft,
+                      end: .bottomRight,
+                      colors: [
+                        accent.withValues(alpha: dark ? 0.55 : 0.4),
+                        accent.withValues(alpha: dark ? 0.22 : 0.16),
+                      ],
+                    ),
+                  ),
+                ),
+                LiquidGlassLens(
+                  style: LiquidGlassStyle(
+                    shape: const LiquidGlassShape.continuousRoundedRectangle(
+                      cornerRadius: _radius,
+                      clipQuality: .exact,
+                      borderWidth: 1.1,
+                      lightDirection: 125,
+                      lightIntensity: 1.25,
+                      borderType: OpticalBorder(
+                        borderSaturation: 0.35,
+                        ambientIntensity: 0.25,
+                        lightSpread: 0.25,
+                      ),
+                    ),
+                    appearance: LiquidGlassAppearance(
+                      blur: const LiquidGlassBlur(sigmaX: 6, sigmaY: 6),
+                      color: white.withValues(alpha: dark ? 0.16 : 0.12),
+                      shadow: LiquidGlassShadow(
+                        blur: 8,
+                        opacity: dark ? 0.3 : 0.12,
+                        cornerRadius: _radius,
+                      ),
+                    ),
+                    refraction: const LiquidGlassRefraction(
+                      refractionType: OpticalRefraction(
+                        refraction: 1.46,
+                        refractionWidth: 9,
+                        depth: 0.16,
+                      ),
+                      chromaticAberration: 0.002,
+                    ),
+                  ),
+                  // The icon is the lens's child, not part of the backdrop,
+                  // so it's drawn crisp on top instead of being blurred.
+                  child: Center(
+                    child: Image.asset(iconAsset, width: 44, height: 44),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          heightBox(6),
+          Text(
+            label,
+            textAlign: .center,
+            style: context.labelMedium.copyWith(
+              color: context.textSecondary,
+              fontWeight: .w600,
+            ),
+          ),
+        ],
       ),
     );
   }

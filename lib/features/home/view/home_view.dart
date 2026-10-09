@@ -94,7 +94,7 @@ class HomeView extends StatelessWidget {
                               ),
                             ],
                           ),
-                          heightBox(14),
+                          heightBox(vm.recentFiles.isNotEmpty ? 14 : 20),
                           if (vm.recentFiles.isNotEmpty) ...[
                             Row(
                               children: [
@@ -172,6 +172,7 @@ class HomeView extends StatelessWidget {
                               ),
                             ],
                           ),
+                          heightBox(10),
                         ],
                       ),
                     ),
@@ -328,14 +329,15 @@ class _CategoryGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+  
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 0,
-        crossAxisSpacing: 0,
-        childAspectRatio: 1,
+        crossAxisCount: 4,
+        mainAxisSpacing: context.screenWidth > 380 ? 15 : 15,
+        crossAxisSpacing: context.screenWidth > 380 ? 20 : 15,
+        childAspectRatio:0.78,
       ),
       itemCount: vm.categories.length + 2,
       itemBuilder: (context, index) => _categoryTileAt(
@@ -684,11 +686,12 @@ class _CategoryTile extends StatelessWidget {
         SizedBox(
           width: .infinity,
           child: Column(
-            mainAxisAlignment: .center,
+            mainAxisAlignment: .start,
+
             children: [
               Container(
-                width: 56,
-                height: 56,
+                width: context.screenWidth > 380 ? 65 : 56,
+                height: context.screenWidth > 380 ? 65 : 56,
                 alignment: .center,
                 decoration: BoxDecoration(
                   color: context.categoryCardSurface,
@@ -703,14 +706,14 @@ class _CategoryTile extends StatelessWidget {
                 ),
                 child: FaIcon(
                   iconForKey(iconKey),
-                  size: 24,
+                  size: context.screenWidth > 380 ? 30 : 24,
                   color: _iconColor(context),
                 ),
               ),
               heightBox(6),
               Text(
                 name,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: .ellipsis,
                 textAlign: .center,
                 style: context.bodySmall.copyWith(fontWeight: .w600),
@@ -720,18 +723,8 @@ class _CategoryTile extends StatelessWidget {
         ),
         if (_showBadge)
           Positioned(
-            top: 12,
-            right: 20,
+            right: 6,
             child: _CountBadge(count: fileCount!, size: 20),
-          ),
-        if (isShared && onBadgeTap != null)
-          Positioned(
-            top: 6,
-            left: 6,
-            child: SharedSpaceBadge(
-              memberCount: memberCount,
-              onTap: onBadgeTap!,
-            ),
           ),
       ],
     );
@@ -784,9 +777,6 @@ class _CategoryTile extends StatelessWidget {
               ],
             ),
           ),
-          if (isShared && onBadgeTap != null) ...[
-            SharedSpaceBadge(memberCount: memberCount, onTap: onBadgeTap!),
-          ],
           widthBox(8),
           Icon(Iconsax.arrow_right_3, size: 16, color: context.textSecondary),
         ],
