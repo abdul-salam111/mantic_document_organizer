@@ -95,10 +95,28 @@ class DocumentPdfExporter {
   /// one PDF it's actually saved as. Unlike [export]/[combine], this
   /// result is meant to be kept, not shared, so it's written next to the
   /// other persisted attachments instead of the temp directory.
+  ///
+  /// Unlike [_addImagePage]'s usual per-image aspect ratio, every page here
+  /// shares the *same* page size (taken from the first image). The in-app
+  /// PDF viewer (pdfx's `PdfViewPinch`, see `PdfZoomView`) assumes every
+  /// page is sized like page 1 until it individually re-measures each one,
+  /// so a page whose real size differs renders briefly cropped/mis-scaled
+  /// against that wrong assumption. Images that don't match the first
+  /// page's aspect ratio are letterboxed (`BoxFit.contain`) instead of
+  /// stretched to fill it.
   static Future<String> mergeForStorage(List<String> imagePaths) async {
     final pdfDocument = pw.Document();
+    PdfPageFormat? format;
     for (final path in imagePaths) {
-      await _addImagePage(pdfDocument, path);
+      final image = pw.MemoryImage(await File(path).readAsBytes());
+      format ??= _pageFormatFor(image);
+      pdfDocument.addPage(
+        pw.Page(
+          pageFormat: format,
+          margin: pw.EdgeInsets.zero,
+          build: (context) => pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain)),
+        ),
+      );
     }
 
     final appDocuments = await getApplicationDocumentsDirectory();
