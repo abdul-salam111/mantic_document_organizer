@@ -1,5 +1,6 @@
 // Barrel export for lib/core/utils — toasts, currency/date/number
 // formatting, generic extensions, validators, and misc widget/type helpers.
+export 'app_review_utils.dart';
 export 'apptoast_utils.dart';
 export 'currency_utils.dart';
 export 'date_utils.dart';

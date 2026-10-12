@@ -64,6 +64,7 @@ dependencies:
   go_router: 17.3.0
   local_auth: ^3.0.2
   share_plus: ^13.3.0
+  in_app_review: ^2.0.9
   flutter_colorpicker: ^1.1.0
   flutter_doc_scanner: ^0.0.21
   content_resolver: ^0.3.6
