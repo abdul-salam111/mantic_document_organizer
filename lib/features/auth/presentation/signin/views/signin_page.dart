@@ -60,7 +60,20 @@ class _SigninPageState extends State<SigninPage> {
                   left: 24,
                   right: 24,
                   child: Column(
-                    children: [const AppLogo(height: 120, width: 120)],
+                    children: [
+                      const AppLogo(height: 120, width: 120),
+                      if (context.screenWidth > 400) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          'Dockitly',
+                          style: context.headlineSmall.copyWith(
+                            color: context.textPrimary,
+                            fontWeight: .w800,
+                            letterSpacing: 0.4,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
                 Align(
