@@ -14,4 +14,5 @@ abstract interface class IAuthRepository {
     required String code,
   });
   Future<Result<void>> resendVerificationEmail({required String email});
+  Future<Result<void>> deleteAccount({required String accessToken});
 }

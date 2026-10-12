@@ -14,14 +14,17 @@ class ProfileViewModel extends ChangeNotifier {
   final CategoryUseCases _categoryUseCases;
   final DocumentUseCases _documentUseCases;
   final SignoutUsecase _signoutUsecase;
+  final DeleteAccountUsecase _deleteAccountUsecase;
 
   ProfileViewModel({
     required CategoryUseCases categoryUseCases,
     required DocumentUseCases documentUseCases,
     required SignoutUsecase signoutUsecase,
+    required DeleteAccountUsecase deleteAccountUsecase,
   }) : _categoryUseCases = categoryUseCases,
        _documentUseCases = documentUseCases,
-       _signoutUsecase = signoutUsecase {
+       _signoutUsecase = signoutUsecase,
+       _deleteAccountUsecase = deleteAccountUsecase {
     _categoryUseCases.addListener(notifyListeners);
     _documentUseCases.addListener(notifyListeners);
     _loadSession();
@@ -32,6 +35,8 @@ class ProfileViewModel extends ChangeNotifier {
   bool get isSignedIn => _isSignedIn;
   bool _isSigningOut = false;
   bool get isSigningOut => _isSigningOut;
+  bool _isDeletingAccount = false;
+  bool get isDeletingAccount => _isDeletingAccount;
 
   String? get userName => SessionController.instance.userDetails.name;
   String? get userEmail => SessionController.instance.userDetails.email;
@@ -78,6 +83,29 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners();
     // Signup/login is mandatory — signing out leaves the app, it doesn't
     // drop into a local-only in-app state.
+    AppNavigator.goNamed(RouteNames.signin);
+  }
+
+  Future<void> deleteAccount() async {
+    if (_isDeletingAccount) return;
+    final accessToken = SessionController.instance.userToken;
+    if (accessToken == null || accessToken.isEmpty) return;
+
+    _isDeletingAccount = true;
+    notifyListeners();
+
+    final result = await _deleteAccountUsecase(accessToken);
+    if (result case Failure<void>(:final error)) {
+      _isDeletingAccount = false;
+      notifyListeners();
+      AppToastsUtils.error(error.message);
+      return;
+    }
+
+    await SessionController.instance.clearSession();
+    _isSignedIn = false;
+    _isDeletingAccount = false;
+    notifyListeners();
     AppNavigator.goNamed(RouteNames.signin);
   }
 

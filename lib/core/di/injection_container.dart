@@ -162,6 +162,9 @@ Future<void> authDependencies() async {
   sl.registerLazySingleton<SignoutUsecase>(
     () => SignoutUsecase(repository: sl()),
   );
+  sl.registerLazySingleton<DeleteAccountUsecase>(
+    () => DeleteAccountUsecase(repository: sl()),
+  );
   sl.registerLazySingleton<SocialSigninUsecase>(
     () => SocialSigninUsecase(repository: sl()),
   );
@@ -288,6 +291,7 @@ Future<void> profileDependencies() async {
       categoryUseCases: sl(),
       documentUseCases: sl(),
       signoutUsecase: sl(),
+      deleteAccountUsecase: sl(),
     ),
   );
 }

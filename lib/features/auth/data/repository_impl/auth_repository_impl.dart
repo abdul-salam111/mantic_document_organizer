@@ -108,6 +108,13 @@ class AuthRepositoryImpl extends BaseRepository implements IAuthRepository {
     );
   }
 
+  @override
+  Future<Result<void>> deleteAccount({required String accessToken}) {
+    return execute(
+      call: () => dataSource.deleteAccount(accessToken: accessToken),
+    );
+  }
+
   Future<Result<AuthEntity>> _completeSocialSignIn(
     Future<AuthTokenPairModel> Function() exchangeToken,
   ) async {

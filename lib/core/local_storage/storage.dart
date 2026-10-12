@@ -22,6 +22,17 @@ class LocalStorage {
     await _storage.delete(key: key);
     return true;
   }
+
+  /// Deletes every stored key starting with [prefix] -- for keys stored
+  /// per-suffix (e.g. `StorageKeys.joinLinkTokenPrefix` + a space id) where
+  /// the set of suffixes isn't tracked anywhere else, so there's no single
+  /// key to pass to [clearValues].
+  Future<void> clearKeysWithPrefix(String prefix) async {
+    final all = await _storage.readAll();
+    for (final key in all.keys) {
+      if (key.startsWith(prefix)) await _storage.delete(key: key);
+    }
+  }
 }
 
 // Global getter

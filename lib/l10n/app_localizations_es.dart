@@ -153,6 +153,20 @@ class AppLocalizationsEs extends AppLocalizations {
   String get signOut => 'Cerrar sesión';
 
   @override
+  String get deleteAccount => 'Eliminar cuenta';
+
+  @override
+  String get deleteAccountSubtitle =>
+      'Elimina permanentemente tu cuenta y tus datos';
+
+  @override
+  String get deleteAccountDialogTitle => '¿Eliminar cuenta?';
+
+  @override
+  String get deleteAccountDialogMessage =>
+      'Esto elimina permanentemente tu cuenta. Las categorías compartidas que posees dejarán de compartirse con todos sus miembros y se desconectará tu copia de seguridad de Google Drive. Los documentos ya guardados en este dispositivo no se verán afectados y permanecerán aquí.';
+
+  @override
   String get statDocuments => 'Documentos';
 
   @override

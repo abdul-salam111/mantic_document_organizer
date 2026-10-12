@@ -88,6 +88,15 @@ class ProfileView extends StatelessWidget {
                       isDestructive: true,
                       onTap: () => _confirmSignOut(context, vm),
                     ),
+                    heightBox(10),
+                    _ProfileMenuTile(
+                      icon: Iconsax.trash,
+                      iconColor: context.errorAccent,
+                      label: AppLocalizations.of(context).deleteAccount,
+                      subtitle: AppLocalizations.of(context).deleteAccountSubtitle,
+                      isDestructive: true,
+                      onTap: () => _confirmDeleteAccount(context, vm),
+                    ),
                   ],
                   heightBox(24),
                   if (vm.appVersion != null)
@@ -137,6 +146,37 @@ class ProfileView extends StatelessWidget {
     );
     if (confirmed == true && context.mounted) {
       await viewModel.signOut();
+    }
+  }
+
+  Future<void> _confirmDeleteAccount(
+    BuildContext context,
+    ProfileViewModel viewModel,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: context.surfaceElevated,
+        title: Text(l10n.deleteAccountDialogTitle),
+        content: Text(l10n.deleteAccountDialogMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(
+              l10n.deleteAccount,
+              style: TextStyle(color: context.error),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) {
+      await viewModel.deleteAccount();
     }
   }
 

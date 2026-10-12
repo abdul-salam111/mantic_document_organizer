@@ -16,6 +16,7 @@ abstract interface class IRemoteAuthDataSource {
   Future<UserModel> verifyEmail({required String email, required String code});
   Future<void> resendVerificationEmail({required String email});
   Future<UserModel> currentUser({required String accessToken});
+  Future<void> deleteAccount({required String accessToken});
 }
 
 class RemoteAuthDataSourceImpl extends BaseRemoteDatasource
@@ -99,4 +100,13 @@ class RemoteAuthDataSourceImpl extends BaseRemoteDatasource
     parser: (json) =>
         UserModel.fromJson(Map<String, dynamic>.from(json as Map)),
   );
+
+  @override
+  Future<void> deleteAccount({required String accessToken}) async {
+    await dioHelper.deleteApi(
+      url: ApiEndPoints.currentUser,
+      authToken: accessToken,
+      isAuthRequired: true,
+    );
+  }
 }

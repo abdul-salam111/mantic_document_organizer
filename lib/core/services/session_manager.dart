@@ -61,6 +61,16 @@ class SessionController {
     await storage.clearValues(StorageKeys.refreshToken);
     await storage.clearValues(StorageKeys.userId);
     await storage.clearValues(StorageKeys.userDetails);
+    // These are account-scoped too (tied to a signed-in session setting up
+    // backup/joining a space), so they'd otherwise silently leak into the
+    // next signed-in session on this device -- most relevant to account
+    // deletion, but a real pre-existing gap in plain sign-out as well.
+    await storage.clearValues(StorageKeys.backupSpaceId);
+    await storage.clearValues(StorageKeys.backupEnabled);
+    await storage.clearValues(StorageKeys.pendingBackupSetup);
+    await storage.clearValues(StorageKeys.pendingSpaceJoinToken);
+    await storage.clearValues(StorageKeys.pendingSpaceJoinKind);
+    await storage.clearKeysWithPrefix(StorageKeys.joinLinkTokenPrefix);
     islogin = false;
     userToken = null;
     userId = null;

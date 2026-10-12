@@ -151,6 +151,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get signOut => 'تسجيل الخروج';
 
   @override
+  String get deleteAccount => 'حذف الحساب';
+
+  @override
+  String get deleteAccountSubtitle => 'حذف حسابك وبياناتك نهائيًا';
+
+  @override
+  String get deleteAccountDialogTitle => 'حذف الحساب؟';
+
+  @override
+  String get deleteAccountDialogMessage =>
+      'سيؤدي هذا إلى حذف حسابك نهائيًا. ستتوقف أي فئات مشتركة تملكها عن مشاركتها مع جميع أعضائها، وسيتم فصل النسخ الاحتياطي على Google Drive. المستندات المحفوظة مسبقًا على هذا الجهاز لن تتأثر وستبقى هنا.';
+
+  @override
   String get statDocuments => 'المستندات';
 
   @override

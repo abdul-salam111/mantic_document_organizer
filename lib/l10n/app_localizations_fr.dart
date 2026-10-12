@@ -153,6 +153,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get signOut => 'Déconnexion';
 
   @override
+  String get deleteAccount => 'Supprimer le compte';
+
+  @override
+  String get deleteAccountSubtitle =>
+      'Supprime définitivement votre compte et vos données';
+
+  @override
+  String get deleteAccountDialogTitle => 'Supprimer le compte ?';
+
+  @override
+  String get deleteAccountDialogMessage =>
+      'Cette action supprime définitivement votre compte. Les catégories partagées que vous possédez ne seront plus partagées avec leurs membres, et votre sauvegarde Google Drive sera déconnectée. Les documents déjà enregistrés sur cet appareil ne sont pas affectés et restent ici.';
+
+  @override
   String get statDocuments => 'Documents';
 
   @override

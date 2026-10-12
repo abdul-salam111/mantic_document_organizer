@@ -336,6 +336,30 @@ abstract class AppLocalizations {
   /// **'Sign Out'**
   String get signOut;
 
+  /// Profile menu entry, shown when signed in; also the confirm button label
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account'**
+  String get deleteAccount;
+
+  /// Profile menu entry subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete your account and data'**
+  String get deleteAccountSubtitle;
+
+  /// Delete-account confirmation dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account?'**
+  String get deleteAccountDialogTitle;
+
+  /// Delete-account confirmation dialog body
+  ///
+  /// In en, this message translates to:
+  /// **'This permanently deletes your account. Any shared categories you own will stop being shared with everyone in them, and your Google Drive backup will be disconnected. Documents already saved on this device are not affected and stay right here.'**
+  String get deleteAccountDialogMessage;
+
   /// Profile stats row label
   ///
   /// In en, this message translates to:

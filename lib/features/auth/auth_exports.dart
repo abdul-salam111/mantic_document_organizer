@@ -18,6 +18,7 @@ export 'domain/entities/auth_entity.dart';
 export 'domain/repositories/auth_repository.dart';
 export 'domain/usecases/signin_usecase.dart';
 export 'domain/usecases/signout_usecase.dart';
+export 'domain/usecases/delete_account_usecase.dart';
 export 'domain/usecases/social_signin_usecase.dart';
 export 'domain/usecases/signup_usecase.dart';
 export 'domain/usecases/email_verification_usecases.dart';
