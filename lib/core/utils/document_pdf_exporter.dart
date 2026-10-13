@@ -23,12 +23,6 @@ import 'document_page_rasterizer.dart';
 class DocumentPdfExporter {
   const DocumentPdfExporter._();
 
-  /// Height of the visual gap inserted between two files in the combined
-  /// PDF, in PDF points (1 pt = 1/72 inch). 15 px at the PDF library's
-  /// default 72 dpi maps 1:1 to points, so 15 here == 15 px on screen at
-  /// 100% zoom.
-  static const double _fileGap = 15;
-
   /// Builds the combined PDF in the app's temp directory and returns its
   /// path. Throws [StateError] if [document] has no image pages to
   /// rasterize (callers should only offer this action when one exists).
@@ -38,9 +32,11 @@ class DocumentPdfExporter {
       throw StateError('${document.title} has no image pages to export');
     }
 
+    final images = await _loadImages(imagePaths);
+    final pageWidth = _sharedPageWidth(images);
     final pdfDocument = pw.Document();
-    for (final path in imagePaths) {
-      await _addImagePage(pdfDocument, path);
+    for (final image in images) {
+      _addImagePage(pdfDocument, image, pageWidth: pageWidth);
     }
 
     final directory = await getTemporaryDirectory();
@@ -56,13 +52,9 @@ class DocumentPdfExporter {
   /// — no library here can merge real PDF byte streams) so a selection
   /// mixing scanned photos and an existing PDF attachment still produces
   /// one combined file.
-  ///
-  /// A [_fileGap]-point blank page is inserted between each source file so
-  /// two adjacent files don't visually butt up against each other.
   static Future<String> combine(List<String> paths, String title) async {
     // Drop any source file that rasterized to zero pages (unsupported type,
-    // unreadable PDF) — otherwise an empty group would produce a gap page
-    // sitting next to nothing.
+    // unreadable PDF).
     final grouped = (await DocumentPageRasterizer.toImagePathsGrouped(paths))
         .where((group) => group.isNotEmpty)
         .toList(growable: false);
@@ -71,15 +63,13 @@ class DocumentPdfExporter {
       throw StateError('No pages to export');
     }
 
+    final imagePaths = [for (final group in grouped) ...group];
+    final images = await _loadImages(imagePaths);
+    final pageWidth = _sharedPageWidth(images);
+
     final pdfDocument = pw.Document();
-    for (var i = 0; i < grouped.length; i++) {
-      for (final imagePath in grouped[i]) {
-        await _addImagePage(pdfDocument, imagePath);
-      }
-      // Gap between files, not after the last one.
-      if (i < grouped.length - 1) {
-        _addGapPage(pdfDocument, _fileGap);
-      }
+    for (final image in images) {
+      _addImagePage(pdfDocument, image, pageWidth: pageWidth);
     }
 
     final directory = await getTemporaryDirectory();
@@ -106,7 +96,12 @@ class DocumentPdfExporter {
     final files = <String>[];
     for (var i = 0; i < imagePaths.length; i++) {
       final pdfDocument = pw.Document();
-      await _addImagePage(pdfDocument, imagePaths[i]);
+      final image = pw.MemoryImage(await File(imagePaths[i]).readAsBytes());
+      _addImagePage(
+        pdfDocument,
+        image,
+        pageWidth: _soloPageWidth(image),
+      );
       final file = File(
         p.join(directory.path, '${sanitized}_page_${i + 1}.pdf'),
       );
@@ -116,53 +111,81 @@ class DocumentPdfExporter {
     return files;
   }
 
-  /// Adds a blank page [gap] points tall, with the same width as A4 so it
-  /// reads as a separator strip rather than a full sheet. This is the
-  /// simplest way to force a visual gap between two files in the `pdf`
-  /// package — pages are independent canvases, so there's no "draw
-  /// something between page N and page N+1" API; a thin blank page is
-  /// the idiomatic equivalent.
-  static void _addGapPage(pw.Document pdfDocument, double gap) {
-    pdfDocument.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat(PdfPageFormat.a4.width, gap),
-        margin: pw.EdgeInsets.zero,
-        build: (context) => pw.SizedBox(),
-      ),
-    );
+  /// Reads every path's bytes once up front, so [export]/[combine] can
+  /// settle on one shared page width before any page gets added — see
+  /// [_sharedPageWidth].
+  static Future<List<pw.MemoryImage>> _loadImages(List<String> paths) async {
+    return [
+      for (final path in paths) pw.MemoryImage(await File(path).readAsBytes()),
+    ];
   }
 
-  /// Adds [path] as its own full-bleed page, sized to *its* aspect ratio
-  /// instead of being letterboxed onto a fixed A4 canvas — the look scanner
-  /// apps like CamScanner give a multi-photo PDF, where every page's shape
-  /// just follows whatever was scanned (a wide receipt gets a wide page, a
-  /// tall ID card gets a tall one) rather than all pages sharing one
-  /// generic paper size with blank margins around the actual content.
-  static Future<void> _addImagePage(pw.Document pdfDocument, String path) async {
-    final image = pw.MemoryImage(await File(path).readAsBytes());
+  /// Adds [image] as a full-bleed page at [pageWidth], with its height
+  /// following its own aspect ratio — the look scanner apps like
+  /// CamScanner give a multi-photo PDF, with no blank margins around the
+  /// actual content.
+  ///
+  /// Every page sharing the same [pageWidth] (see [_sharedPageWidth])
+  /// matters as much as the full-bleed look itself: two photos of the same
+  /// physical document (e.g. an ID card's front and back) are rarely
+  /// captured at pixel-identical crops, so sizing each page to *its own*
+  /// aspect ratio independently used to give pages slightly different
+  /// widths — which a PDF viewer centers, so adjacent pages' left/right
+  /// edges visibly didn't line up when scrolling. A shared width keeps
+  /// every page's edges aligned; only the height (which a reader expects
+  /// to vary page to page) still follows each image.
+  static void _addImagePage(
+    pw.Document pdfDocument,
+    pw.MemoryImage image, {
+    required double pageWidth,
+  }) {
     pdfDocument.addPage(
       pw.Page(
-        pageFormat: _pageFormatFor(image),
+        pageFormat: PdfPageFormat(pageWidth, _heightFor(image, pageWidth)),
         margin: pw.EdgeInsets.zero,
         build: (context) => pw.Image(image, fit: pw.BoxFit.fill),
       ),
     );
   }
 
-  /// A page format matching [image]'s own aspect ratio, scaled so its
-  /// longer edge matches A4's — keeping multi-page output at a familiar,
-  /// printable scale — rather than [PdfPageFormat.a4]'s fixed portrait
-  /// rectangle every image used to be centered/letterboxed onto regardless
-  /// of its actual shape.
-  static PdfPageFormat _pageFormatFor(pw.MemoryImage image) {
+  /// The common page width for a whole [export]/[combine] job: the widest
+  /// of every page's own width, each scaled so that *that* image's longer
+  /// edge matches A4's (keeping the overall output at a familiar,
+  /// printable scale) — i.e. the same per-image scale [exportEachPage]
+  /// uses via [_soloPageWidth], just taken as a max across the whole set
+  /// instead of applied independently per page.
+  static double _sharedPageWidth(List<pw.MemoryImage> images) {
+    var widest = 0.0;
+    for (final image in images) {
+      final width = _soloPageWidth(image);
+      if (width > widest) widest = width;
+    }
+    return widest > 0 ? widest : PdfPageFormat.a4.width;
+  }
+
+  /// [image]'s own width, scaled so its longer edge matches A4's — used
+  /// directly by [exportEachPage] (each page is its own standalone file,
+  /// so there's no shared width to match) and as the per-candidate input
+  /// to [_sharedPageWidth].
+  static double _soloPageWidth(pw.MemoryImage image) {
     final width = image.width;
     final height = image.height;
     if (width == null || height == null || width <= 0 || height <= 0) {
-      return PdfPageFormat.a4;
+      return PdfPageFormat.a4.width;
     }
     final longEdge = width > height ? width : height;
-    final scale = PdfPageFormat.a4.height / longEdge;
-    return PdfPageFormat(width * scale, height * scale);
+    return width * PdfPageFormat.a4.height / longEdge;
+  }
+
+  /// [image]'s height once scaled to [pageWidth], preserving its own
+  /// aspect ratio.
+  static double _heightFor(pw.MemoryImage image, double pageWidth) {
+    final width = image.width;
+    final height = image.height;
+    if (width == null || height == null || width <= 0 || height <= 0) {
+      return pageWidth * PdfPageFormat.a4.height / PdfPageFormat.a4.width;
+    }
+    return pageWidth * height / width;
   }
 
   static String _sanitize(String title) {
