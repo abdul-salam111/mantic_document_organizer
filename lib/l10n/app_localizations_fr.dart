@@ -742,6 +742,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get aiAssistantInputHint => 'Posez une question sur vos documents...';
 
   @override
+  String get aiAssistantMicTooltip => 'Posez votre question à voix haute';
+
+  @override
+  String get aiAssistantMicListeningTooltip =>
+      'Écoute en cours — appuyez pour arrêter';
+
+  @override
+  String get micUnavailableToast =>
+      'Impossible d\'accéder au microphone. Vérifiez l\'autorisation du microphone dans les réglages.';
+
+  @override
   String get aiAssistantEmptyTitle =>
       'Posez-moi une question sur vos documents';
 

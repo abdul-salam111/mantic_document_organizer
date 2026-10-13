@@ -1224,6 +1224,24 @@ abstract class AppLocalizations {
   /// **'Ask about your documents...'**
   String get aiAssistantInputHint;
 
+  /// AI Assistant screen mic button tooltip, before recording starts
+  ///
+  /// In en, this message translates to:
+  /// **'Speak your question'**
+  String get aiAssistantMicTooltip;
+
+  /// AI Assistant screen mic button tooltip, while recording
+  ///
+  /// In en, this message translates to:
+  /// **'Listening — tap to stop'**
+  String get aiAssistantMicListeningTooltip;
+
+  /// Error toast when speech-to-text can't start (permission denied or no recognizer on this device)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t access the microphone. Check the app\'s microphone permission in Settings.'**
+  String get micUnavailableToast;
+
   /// AI Assistant screen empty-state heading, shown before the first message
   ///
   /// In en, this message translates to:

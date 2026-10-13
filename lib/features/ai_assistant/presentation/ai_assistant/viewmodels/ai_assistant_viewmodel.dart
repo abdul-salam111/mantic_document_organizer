@@ -3,17 +3,21 @@ import 'package:mantic_doc_org/features/documents/domain/usecases/document_useca
 import 'package:flutter/material.dart';
 
 import '../../../../../core/ai/ai_exports.dart';
+import '../../../../../core/speech/speech_to_text_service.dart';
 import '../../../domain/entities/chat_message.dart';
 
 class AiAssistantViewModel extends ChangeNotifier {
   final DocumentUseCases _documentUseCases;
   final AiChatService _aiChatService;
+  final SpeechToTextService _speechToText;
 
   AiAssistantViewModel({
     required DocumentUseCases documentUseCases,
     required AiChatService aiChatService,
+    required SpeechToTextService speechToText,
   }) : _documentUseCases = documentUseCases,
-       _aiChatService = aiChatService;
+       _aiChatService = aiChatService,
+       _speechToText = speechToText;
 
   /// Set once by the view right after creation (from AppLocalizations) —
   /// keeps this ViewModel free of BuildContext, same reason
@@ -23,6 +27,38 @@ class AiAssistantViewModel extends ChangeNotifier {
   String failureText = '';
 
   final TextEditingController inputController = TextEditingController();
+
+  bool _isListening = false;
+  bool get isListening => _isListening;
+
+  /// Starts listening and fills [inputController] with the recognized
+  /// text as it's heard — never auto-sends, the user still taps Send.
+  /// Returns false if listening couldn't even start (mic/speech
+  /// permission denied, or no recognizer on this device) so the view can
+  /// show an error toast; relies on [SpeechToTextService.startListening]'s
+  /// contract that its `onDone` callback fires exactly once per attempt,
+  /// including synchronously on a failed start, so [_isListening] already
+  /// reflects success/failure by the time this returns.
+  Future<bool> startListening() async {
+    if (_isListening) return true;
+    _isListening = true;
+    notifyListeners();
+    await _speechToText.startListening(
+      onResult: (text) {
+        inputController.text = text;
+        inputController.selection = TextSelection.collapsed(
+          offset: text.length,
+        );
+      },
+      onDone: () {
+        _isListening = false;
+        notifyListeners();
+      },
+    );
+    return _isListening;
+  }
+
+  Future<void> stopListening() => _speechToText.stopListening();
 
   final List<ChatMessage> _messages = [];
   List<ChatMessage> get messages => List.unmodifiable(_messages);
@@ -101,5 +137,11 @@ class AiAssistantViewModel extends ChangeNotifier {
       if (document.id == id) return document;
     }
     return null;
+  }
+
+  @override
+  void dispose() {
+    _speechToText.cancelListening();
+    super.dispose();
   }
 }

@@ -734,6 +734,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get aiAssistantInputHint => 'اسأل عن مستنداتك...';
 
   @override
+  String get aiAssistantMicTooltip => 'تحدث بسؤالك';
+
+  @override
+  String get aiAssistantMicListeningTooltip => 'جارٍ الاستماع — اضغط للإيقاف';
+
+  @override
+  String get micUnavailableToast =>
+      'تعذّر الوصول إلى الميكروفون. تحقق من إذن الميكروفون للتطبيق في الإعدادات.';
+
+  @override
   String get aiAssistantEmptyTitle => 'اسألني أي شيء عن مستنداتك';
 
   @override

@@ -199,6 +199,9 @@
 
   "aiAssistantTitle": "Pregunta a Dockitly",
   "aiAssistantInputHint": "Pregunta sobre tus documentos...",
+  "aiAssistantMicTooltip": "Habla tu pregunta",
+  "aiAssistantMicListeningTooltip": "Escuchando — toca para detener",
+  "micUnavailableToast": "No se pudo acceder al micrófono. Comprueba el permiso de micrófono de la app en Ajustes.",
   "aiAssistantEmptyTitle": "Pregúntame lo que quieras sobre tus documentos",
   "aiAssistantEmptySubtitle": "Puedo revisar lo que has escaneado y encontrar la respuesta — prueba una de estas o escribe tu propia pregunta.",
   "aiAssistantExample1": "¿Cuándo caduca mi tarjeta de identidad?",

@@ -26,6 +26,7 @@ import '../localization/localization_exports.dart';
 import '../networks/networks_exports.dart';
 import '../notifications/notifications_exports.dart';
 import '../ocr/ocr_exports.dart';
+import '../speech/speech_to_text_service.dart';
 import '../sharing/sharing_exports.dart';
 import '../security/security_exports.dart';
 import '../theme/theme_exports.dart';
@@ -150,6 +151,10 @@ Future<void> coreDependencies() async {
   );
   sl.registerLazySingleton(() => ShareIntentService());
   sl.registerLazySingleton(() => GallerySaverService());
+  sl.registerLazySingleton(
+    () => SpeechToTextService(),
+    dispose: (service) => service.dispose(),
+  );
 }
 
 Future<void> authDependencies() async {
@@ -449,7 +454,11 @@ Future<void> aiAssistantDependencies() async {
   // navigating away from and back into the AI Assistant screen keeps the
   // running conversation instead of starting a fresh one every time.
   sl.registerLazySingleton<AiAssistantViewModel>(
-    () => AiAssistantViewModel(documentUseCases: sl(), aiChatService: sl()),
+    () => AiAssistantViewModel(
+      documentUseCases: sl(),
+      aiChatService: sl(),
+      speechToText: sl(),
+    ),
   );
 }
 

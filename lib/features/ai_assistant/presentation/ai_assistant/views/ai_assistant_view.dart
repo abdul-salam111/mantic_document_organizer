@@ -75,6 +75,17 @@ class _AiAssistantViewState extends State<AiAssistantView>
     if (mounted) _scrollToBottom();
   }
 
+  Future<void> _toggleMic(AiAssistantViewModel vm) async {
+    if (vm.isListening) {
+      await vm.stopListening();
+      return;
+    }
+    final started = await vm.startListening();
+    if (!started && mounted) {
+      AppToastsUtils.error(AppLocalizations.of(context).micUnavailableToast);
+    }
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
@@ -128,6 +139,7 @@ class _AiAssistantViewState extends State<AiAssistantView>
                       vm: vm,
                       focusNode: _inputFocusNode,
                       onSend: () => _send(vm),
+                      onToggleMic: () => _toggleMic(vm),
                       examples: vm.messages.isEmpty ? examples : const [],
                     ),
                   ],
@@ -334,6 +346,7 @@ class _InputBar extends StatelessWidget {
   final AiAssistantViewModel vm;
   final FocusNode focusNode;
   final VoidCallback onSend;
+  final VoidCallback onToggleMic;
 
   /// Shown as a horizontally-scrollable chip strip directly above the text
   /// field — empty once the conversation has started (these are starter
@@ -344,6 +357,7 @@ class _InputBar extends StatelessWidget {
     required this.vm,
     required this.focusNode,
     required this.onSend,
+    required this.onToggleMic,
     required this.examples,
   });
 
@@ -427,11 +441,56 @@ class _InputBar extends StatelessWidget {
                     ),
                   ),
                   widthBox(10),
+                  _MicButton(vm: vm, onTap: onToggleMic),
+                  widthBox(10),
                   _SendButton(vm: vm, onTap: onSend),
                 ],
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Toggles [AiAssistantViewModel.startListening]/[stopListening] — filled
+/// with [context.primary] and switched to the bold mic glyph while
+/// recording so it reads as "active", same treatment [_FavoriteButton]
+/// (home feature) gives its own outline/bold icon swap.
+class _MicButton extends StatelessWidget {
+  final AiAssistantViewModel vm;
+  final VoidCallback onTap;
+
+  const _MicButton({required this.vm, required this.onTap});
+
+  static const double _size = 40;
+
+  @override
+  Widget build(BuildContext context) {
+    final isListening = vm.isListening;
+    return Tooltip(
+      message: isListening
+          ? AppLocalizations.of(context).aiAssistantMicListeningTooltip
+          : AppLocalizations.of(context).aiAssistantMicTooltip,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: _size,
+        height: _size,
+        decoration: BoxDecoration(
+          color: isListening ? context.errorAccent : context.surfaceElevated,
+          shape: .circle,
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: .circular(_size / 2),
+          child: Center(
+            child: Icon(
+              isListening ? Iconsax.microphone5 : Iconsax.microphone,
+              size: 19,
+              color: isListening ? context.white : context.textSecondary,
+            ),
+          ),
         ),
       ),
     );

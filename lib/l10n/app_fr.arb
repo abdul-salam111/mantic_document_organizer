@@ -199,6 +199,9 @@
 
   "aiAssistantTitle": "Demander à Dockitly",
   "aiAssistantInputHint": "Posez une question sur vos documents...",
+  "aiAssistantMicTooltip": "Posez votre question à voix haute",
+  "aiAssistantMicListeningTooltip": "Écoute en cours — appuyez pour arrêter",
+  "micUnavailableToast": "Impossible d'accéder au microphone. Vérifiez l'autorisation du microphone dans les réglages.",
   "aiAssistantEmptyTitle": "Posez-moi une question sur vos documents",
   "aiAssistantEmptySubtitle": "Je peux parcourir ce que vous avez numérisé et trouver la réponse — essayez l'une de ces questions, ou posez la vôtre.",
   "aiAssistantExample1": "Quand ma carte d'identité expire-t-elle ?",
