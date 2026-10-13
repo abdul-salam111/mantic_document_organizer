@@ -70,30 +70,22 @@ class AddDocumentViewModel extends ChangeNotifier {
   bool _isLoadingAttachments = false;
   bool get isLoadingAttachments => _isLoadingAttachments;
 
-  /// Matches the filename [DocumentPdfExporter.mergeForStorage] writes
-  /// (`'merged_${...}.pdf'`) -- used to tell "a multi-photo scan we merged
-  /// into a PDF ourselves" apart from "a real PDF the user attached as-is
-  /// via Files" in [startEditing]. Splitting the former back into its
-  /// pages for editing is safe (it's re-merged the same way on save); doing
-  /// that to the latter would be wrong whenever more than one such PDF is
-  /// attached -- [_mergeImageAttachmentsForStorage] would then combine
-  /// pages from unrelated PDFs into a single file on save, since it can't
-  /// tell which image-type attachment came from which original PDF.
-  bool _isOwnMergedPdf(String path) =>
-      path.replaceAll('\\', '/').split('/').last.startsWith('merged_');
-
   /// Prefills every field from an existing document. Called once by the
   /// view right after creation, mirroring [preselectCategory].
   ///
-  /// A PDF we created by merging scanned photos (see [_isOwnMergedPdf]) is
-  /// split back into one image attachment per internal page (via
-  /// [DocumentPageRasterizer]) rather than kept as that single merged file
-  /// -- otherwise it would show as one opaque "page" here with no way to
+  /// When the document has exactly one PDF attachment, it's split back
+  /// into one image attachment per internal page (via
+  /// [DocumentPageRasterizer]) rather than kept as that single file --
+  /// otherwise it would show as one opaque "page" here with no way to
   /// reorder/delete its individual pages. On save,
   /// [_mergeImageAttachmentsForStorage] re-merges them the same way a fresh
-  /// multi-photo capture would, so this round-trips correctly even if
-  /// nothing was actually changed. A PDF the user attached directly (via
-  /// Files) is left as a single file attachment, same as before.
+  /// multi-photo capture would, so this round-trips correctly whether it's
+  /// a scan we merged ourselves or a real PDF the user attached via Files,
+  /// even if nothing was actually changed. A document with *more than one*
+  /// PDF attachment is left untouched -- splitting every one of them would
+  /// make [_mergeImageAttachmentsForStorage] combine pages from unrelated
+  /// PDFs into a single file on save, since it can't tell which image
+  /// attachment came from which original PDF.
   Future<void> startEditing(DocumentItem document) async {
     _editingDocument = document;
     titleController.text = document.title;
@@ -109,9 +101,10 @@ class AddDocumentViewModel extends ChangeNotifier {
     _isLoadingAttachments = true;
     notifyListeners();
 
+    final splitPdfPages = document.filePaths.where(isPdfPath).length == 1;
     final attachments = <AttachmentItem>[];
     for (final path in document.filePaths) {
-      if (isPdfPath(path) && _isOwnMergedPdf(path)) {
+      if (isPdfPath(path) && splitPdfPages) {
         final pages = await DocumentPageRasterizer.toImagePaths([path]);
         attachments.addAll([
           for (final page in pages)
