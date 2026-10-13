@@ -3,17 +3,26 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:pdfx/pdfx.dart';
 
-/// Renders one page of a PDF file as a small raster thumbnail. Kept
-/// deliberately low-resolution (see [_renderWidth]) since this only ever
-/// needs to fill a card-sized box, not a full-screen preview (that's
-/// document_viewer's job) — opening/rendering/closing the document on
-/// every build would be wasteful, so the render is done once and cached
-/// in state.
+/// Renders one page of a PDF file as a raster thumbnail, at [renderWidth]
+/// (default [_defaultRenderWidth] -- deliberately low-res, for a
+/// card-sized box). Pass a larger [renderWidth] for a bigger display box
+/// (e.g. full device width) -- the default would upscale and look
+/// pixelated at that size. Opening/rendering/closing the document on every
+/// build would be wasteful, so the render is done once and cached in
+/// state.
 class PdfPageThumbnail extends StatefulWidget {
   final String path;
   final int pageNumber;
   final Widget fallback;
   final BoxFit fit;
+  final double renderWidth;
+
+  /// Called once the document is opened for rendering, with its total page
+  /// count -- for callers that want to show e.g. a "N pages" badge next to
+  /// a single-page thumbnail without opening the document a second time.
+  final ValueChanged<int>? onPagesCount;
+
+  static const double _defaultRenderWidth = 160;
 
   const PdfPageThumbnail({
     super.key,
@@ -21,6 +30,8 @@ class PdfPageThumbnail extends StatefulWidget {
     required this.fallback,
     this.pageNumber = 1,
     this.fit = BoxFit.cover,
+    this.renderWidth = _defaultRenderWidth,
+    this.onPagesCount,
   });
 
   @override
@@ -28,8 +39,6 @@ class PdfPageThumbnail extends StatefulWidget {
 }
 
 class _PdfPageThumbnailState extends State<PdfPageThumbnail> {
-  static const double _renderWidth = 160;
-
   late Future<Uint8List?> _page = _render();
 
   @override
@@ -39,7 +48,8 @@ class _PdfPageThumbnailState extends State<PdfPageThumbnail> {
     // reuses this State for whatever now occupies this slot — recompute
     // rather than keep showing the previous page's already-rendered image.
     if (oldWidget.path != widget.path ||
-        oldWidget.pageNumber != widget.pageNumber) {
+        oldWidget.pageNumber != widget.pageNumber ||
+        oldWidget.renderWidth != widget.renderWidth) {
       _page = _render();
     }
   }
@@ -47,10 +57,11 @@ class _PdfPageThumbnailState extends State<PdfPageThumbnail> {
   Future<Uint8List?> _render() async {
     try {
       final document = await PdfDocument.openFile(widget.path);
+      widget.onPagesCount?.call(document.pagesCount);
       final page = await document.getPage(widget.pageNumber);
-      final scale = _renderWidth / page.width;
+      final scale = widget.renderWidth / page.width;
       final image = await page.render(
-        width: _renderWidth,
+        width: widget.renderWidth,
         height: page.height * scale,
       );
       await page.close();

@@ -11,7 +11,18 @@ class PdfZoomView extends StatefulWidget {
   final String path;
   final Widget fallback;
 
-  const PdfZoomView({super.key, required this.path, required this.fallback});
+  /// Called whenever the page centered in the viewport changes, with the
+  /// document's total page count alongside it -- the only way to surface a
+  /// real "page N of M" indicator, since [path] may be a multi-page PDF and
+  /// this widget owns the only [PdfControllerPinch] that knows that count.
+  final void Function(int page, int? pagesCount)? onPageChanged;
+
+  const PdfZoomView({
+    super.key,
+    required this.path,
+    required this.fallback,
+    this.onPageChanged,
+  });
 
   @override
   State<PdfZoomView> createState() => _PdfZoomViewState();
@@ -32,6 +43,8 @@ class _PdfZoomViewState extends State<PdfZoomView> {
   Widget build(BuildContext context) {
     return PdfViewPinch(
       controller: _controller,
+      onPageChanged: (page) =>
+          widget.onPageChanged?.call(page, _controller.pagesCount),
       builders: PdfViewPinchBuilders<DefaultBuilderOptions>(
         options: const DefaultBuilderOptions(),
         documentLoaderBuilder: (context) =>

@@ -38,6 +38,13 @@ class _FilePreviewViewState extends State<FilePreviewView> {
   late int _currentIndex = widget.initialIndex;
   final _processing = sl<DocumentProcessingUseCases>();
 
+  // The current PDF page/total, reported live by PdfZoomView as the user
+  // scrolls through a multi-page PDF -- null whenever the current file
+  // isn't a PDF, or hasn't reported in yet right after a swipe, so the
+  // title falls back to the plain file counter below.
+  int? _pdfPage;
+  int? _pdfPagesCount;
+
   @override
   void dispose() {
     _pageController.dispose();
@@ -46,10 +53,14 @@ class _FilePreviewViewState extends State<FilePreviewView> {
 
   @override
   Widget build(BuildContext context) {
+    final showPdfPageCount =
+        isPdfPath(_currentPath) && _pdfPage != null && _pdfPagesCount != null;
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: CustomAppBar(
-        title: '${_currentIndex + 1} / ${widget.filePaths.length}',
+        title: showPdfPageCount
+            ? '$_pdfPage / $_pdfPagesCount'
+            : '${_currentIndex + 1} / ${widget.filePaths.length}',
         onBackPressed: () => Navigator.of(context).pop(),
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
@@ -64,9 +75,14 @@ class _FilePreviewViewState extends State<FilePreviewView> {
       body: PhotoViewGallery.builder(
         pageController: _pageController,
         itemCount: widget.filePaths.length,
-        onPageChanged: (index) => setState(() => _currentIndex = index),
+        onPageChanged: (index) => setState(() {
+          _currentIndex = index;
+          _pdfPage = null;
+          _pdfPagesCount = null;
+        }),
         backgroundDecoration: const BoxDecoration(color: Colors.black),
-        builder: (context, index) => _buildPageOptions(widget.filePaths[index]),
+        builder: (context, index) =>
+            _buildPageOptions(widget.filePaths[index], index),
       ),
       bottomNavigationBar: _FilePreviewActionBar(
         onShare: () => _share(context),
@@ -90,7 +106,7 @@ class _FilePreviewViewState extends State<FilePreviewView> {
     }
   }
 
-  PhotoViewGalleryPageOptions _buildPageOptions(String path) {
+  PhotoViewGalleryPageOptions _buildPageOptions(String path, int index) {
     // pdfx's PdfViewPinch already owns its own pinch-zoom/pan/multi-page
     // gestures, so this page opts out of PhotoView's own gesture handling
     // (disableGestures) rather than fight it for the same pointers, and
@@ -98,7 +114,22 @@ class _FilePreviewViewState extends State<FilePreviewView> {
     if (isPdfPath(path)) {
       return PhotoViewGalleryPageOptions.customChild(
         disableGestures: true,
-        child: PdfZoomView(path: path, fallback: _UnsupportedFile(path: path)),
+        child: PdfZoomView(
+          path: path,
+          fallback: _UnsupportedFile(path: path),
+          // PhotoViewGallery.builder keeps neighboring pages built for the
+          // swipe transition, so this fires for pages the user isn't
+          // actually looking at too -- only apply it while this is still
+          // the page on screen.
+          onPageChanged: (page, pagesCount) {
+            if (mounted && index == _currentIndex) {
+              setState(() {
+                _pdfPage = page;
+                _pdfPagesCount = pagesCount;
+              });
+            }
+          },
+        ),
       );
     }
     if (isImagePath(path)) {

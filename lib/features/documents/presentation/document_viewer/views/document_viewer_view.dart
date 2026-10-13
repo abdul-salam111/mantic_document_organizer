@@ -649,6 +649,26 @@ class _PageAreaState extends State<_PageArea> {
       );
     }
 
+    // The common case for a scanned multi-page document (see
+    // DocumentPdfExporter.mergeForStorage): one stored file that's itself a
+    // multi-page PDF. With nothing else in filePaths to scroll between,
+    // the list below this comment -- and its own zoom wrapper further
+    // down -- exist for nothing, and only get in the way: both are
+    // same-axis gesture consumers that would otherwise sit between the
+    // user's finger and PdfViewPinch's own internal page-scroll/zoom,
+    // exactly the conflict that broke scrolling here before. Render the
+    // live PDF directly instead, with nothing above it in the gesture
+    // arena.
+    final singlePath = paths.length == 1 ? paths.first : null;
+    if (singlePath != null && isPdfPath(singlePath)) {
+      return _SinglePdfPage(
+        path: singlePath,
+        isSelected: widget.selectedPaths.contains(singlePath),
+        selectionActive: widget.selectedPaths.isNotEmpty,
+        onToggleSelection: () => widget.onToggleSelection(singlePath),
+      );
+    }
+
     final content = Stack(
       children: [
         ListView.separated(
@@ -710,6 +730,101 @@ class _PageAreaState extends State<_PageArea> {
             color: Theme.of(context).scaffoldBackgroundColor,
           ),
           child: content,
+        ),
+      ),
+    );
+  }
+}
+
+/// A document whose only file is a single multi-page PDF: shows it live and
+/// directly, filling the page area, instead of through the general
+/// multi-file list+zoom machinery above (see the comment at its call site
+/// in [_PageAreaState.build] for why). [PdfZoomView]/`PdfViewPinch` owns
+/// its own pinch-zoom/pan/page-scroll gestures outright here -- the
+/// wrapping [GestureDetector] only adds tap/long-press for selection,
+/// which coexist fine with those (a tap or long-press that turns into a
+/// drag is ceded to PdfViewPinch's own recognizers by the gesture arena,
+/// same as how the list below handles it per-item).
+class _SinglePdfPage extends StatefulWidget {
+  final String path;
+  final bool isSelected;
+  final bool selectionActive;
+  final VoidCallback onToggleSelection;
+
+  const _SinglePdfPage({
+    required this.path,
+    required this.isSelected,
+    required this.selectionActive,
+    required this.onToggleSelection,
+  });
+
+  @override
+  State<_SinglePdfPage> createState() => _SinglePdfPageState();
+}
+
+class _SinglePdfPageState extends State<_SinglePdfPage> {
+  int _page = 1;
+  int? _pagesCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onLongPress: widget.onToggleSelection,
+      onTap: widget.selectionActive ? widget.onToggleSelection : null,
+      child: ColoredBox(
+        color: context.surfaceElevated,
+        child: Stack(
+          fit: .expand,
+          children: [
+            PdfZoomView(
+              path: widget.path,
+              fallback: _UnsupportedPreview(path: widget.path),
+              onPageChanged: (page, pagesCount) {
+                if (mounted) {
+                  setState(() {
+                    _page = page;
+                    _pagesCount = pagesCount;
+                  });
+                }
+              },
+            ),
+            if (widget.isSelected)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: ColoredBox(
+                    color: context.primary.withValues(alpha: 0.16),
+                  ),
+                ),
+              ),
+            if (widget.isSelected)
+              Positioned(
+                top: 10,
+                right: 10,
+                child: IgnorePointer(
+                  child: Container(
+                    width: 28,
+                    height: 28,
+                    alignment: .center,
+                    decoration: BoxDecoration(
+                      color: context.primary,
+                      shape: .circle,
+                    ),
+                    child: Icon(
+                      Icons.check_rounded,
+                      size: 18,
+                      color: context.white,
+                    ),
+                  ),
+                ),
+              ),
+            Positioned(
+              top: 12,
+              left: 12,
+              child: IgnorePointer(
+                child: _FileCounter(current: _page, total: _pagesCount ?? 1),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -823,12 +938,16 @@ class _PagePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (isPdfPath(path)) {
-      return PdfZoomView(
-        path: path,
-        fallback: _UnsupportedPreview(path: path),
-      );
-    }
+    // A real interactive PdfZoomView can't live in here: this list item sits
+    // inside the page list's own vertical ListView, which is itself nested
+    // inside the page-level PhotoView zoom wrapper below -- both same-axis
+    // gesture consumers that would fight PdfViewPinch for the same vertical
+    // drag (see PdfZoomView's own doc comment). A static first-page
+    // thumbnail avoids that conflict entirely; tapping it already opens the
+    // full-screen FilePreviewView (via _SelectableFilePreview's onTap),
+    // where PdfZoomView owns its gestures uncontested and paging/zooming
+    // actually works.
+    if (isPdfPath(path)) return _PdfStaticPreview(path: path);
     if (!isImagePath(path)) return _UnsupportedPreview(path: path);
     return InteractiveViewer(
       panEnabled: false,
@@ -842,6 +961,77 @@ class _PagePreview extends StatelessWidget {
               _UnsupportedPreview(path: path),
         ),
       ),
+    );
+  }
+}
+
+/// Static first-page thumbnail for a PDF attachment, with a "N pages"
+/// badge when it has more than one -- see [_PagePreview] for why this
+/// can't be the live, scrollable [PdfZoomView] itself.
+class _PdfStaticPreview extends StatefulWidget {
+  final String path;
+
+  const _PdfStaticPreview({required this.path});
+
+  @override
+  State<_PdfStaticPreview> createState() => _PdfStaticPreviewState();
+}
+
+class _PdfStaticPreviewState extends State<_PdfStaticPreview> {
+  int? _pagesCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: .expand,
+      children: [
+        ColoredBox(
+          color: context.surfaceElevated,
+          child: PdfPageThumbnail(
+            path: widget.path,
+            fit: .contain,
+            // Default renderWidth (160) is sized for a small card, not this
+            // full-width preview -- upscaling it here is what looked
+            // pixelated. Render at the device's real pixel width instead.
+            renderWidth:
+                context.screenWidth * MediaQuery.devicePixelRatioOf(context),
+            onPagesCount: (count) {
+              if (mounted) setState(() => _pagesCount = count);
+            },
+            fallback: _UnsupportedPreview(path: widget.path),
+          ),
+        ),
+        if ((_pagesCount ?? 1) > 1)
+          Positioned(
+            right: 10,
+            bottom: 10,
+            child: Container(
+              padding: const .symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: context.black.withValues(alpha: 0.65),
+                borderRadius: .circular(20),
+              ),
+              child: Row(
+                mainAxisSize: .min,
+                children: [
+                  const Icon(
+                    Iconsax.document_copy,
+                    size: 14,
+                    color: Colors.white,
+                  ),
+                  widthBox(6),
+                  Text(
+                    '$_pagesCount pages',
+                    style: context.labelSmall.copyWith(
+                      color: context.white,
+                      fontWeight: .w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
