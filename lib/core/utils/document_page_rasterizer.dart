@@ -98,15 +98,22 @@ class DocumentPageRasterizer {
     final pages = <String>[];
 
     for (var i = 1; i <= document.pagesCount; i++) {
-      final page = await document.getPage(i);
-      final image = await page.render(
-        width: page.width * _renderScale,
-        height: page.height * _renderScale,
-      );
-      await page.close();
-
-      final bytes = image?.bytes;
-      if (bytes == null) continue;
+      // pdfx's render() can come back null under memory pressure (plausible
+      // here, rendering one page of a possibly-long PDF at a time) without
+      // throwing -- retry once on a fresh page handle before giving up.
+      // Silently skipping used to just drop that page, so a shared/combined
+      // PDF could end up with fewer pages than the source document without
+      // any indication to the user.
+      final bytes =
+          await _renderPageBytes(document, i) ??
+          await _renderPageBytes(document, i);
+      if (bytes == null) {
+        await document.close();
+        throw StateError(
+          'Failed to render page $i of ${p.basename(path)} while preparing '
+          'it for export/sharing.',
+        );
+      }
 
       final file = File(
         '${tempDir.path}/page_${DateTime.now().microsecondsSinceEpoch}_$i.jpg',
@@ -116,5 +123,21 @@ class DocumentPageRasterizer {
     }
     await document.close();
     return pages;
+  }
+
+  static Future<List<int>?> _renderPageBytes(
+    PdfDocument document,
+    int pageNumber,
+  ) async {
+    final page = await document.getPage(pageNumber);
+    try {
+      final image = await page.render(
+        width: page.width * _renderScale,
+        height: page.height * _renderScale,
+      );
+      return image?.bytes;
+    } finally {
+      await page.close();
+    }
   }
 }
