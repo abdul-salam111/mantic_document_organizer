@@ -206,8 +206,19 @@ class DocumentPdfExporter {
   /// (AddDocumentViewModel._runOcrAndAi), so downsampling here doesn't
   /// touch extraction accuracy -- only how heavy the stored,
   /// in-app-viewed PDF ends up being.
-  static const int _maxStoredImageDimension = 2000;
-  static const int _storedImageQuality = 85;
+  ///
+  /// Kept well above what [combine]'s own share path renders pages at
+  /// (~2105px long edge -- a fixed A4-scaled page height times
+  /// [DocumentPageRasterizer]'s 2.5x render scale, independent of source
+  /// resolution): "Share as PDF" has no way to merge this stored PDF's
+  /// real byte stream, so it always re-rasterizes it from scratch via
+  /// [DocumentPageRasterizer] before rebuilding a share copy. Capping too
+  /// close to (or below) that ceiling would hand the share path an
+  /// already-soft, already-JPEG-compressed source to resample and
+  /// re-compress a second time -- visibly degrading "Share as PDF" output
+  /// even though both stages individually look like reasonable caps.
+  static const int _maxStoredImageDimension = 3200;
+  static const int _storedImageQuality = 92;
 
   /// Loads [path] as a [pw.MemoryImage]. With [downsample] true, re-encodes
   /// it first if it exceeds [_maxStoredImageDimension] on its long edge --
