@@ -128,6 +128,7 @@
   "tapToSetExpiryDate": "Toca para establecer la fecha y hora de caducidad",
   "attachmentRequired": "Agrega al menos un documento para guardar",
   "extractingTextStatus": "Extrayendo texto…",
+  "loadingPagesStatus": "Cargando páginas…",
   "organizingWithAiStatus": "Organizando con IA…",
   "camera": "Cámara",
   "gallery": "Galería",

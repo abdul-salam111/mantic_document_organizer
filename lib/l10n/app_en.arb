@@ -295,6 +295,8 @@
   "@attachmentRequired": {"description": "Add Document screen validation message when no attachment has been added"},
   "extractingTextStatus": "Extracting text…",
   "@extractingTextStatus": {"description": "Add Document screen inline status while on-device OCR is running"},
+  "loadingPagesStatus": "Loading pages…",
+  "@loadingPagesStatus": {"description": "Add Document screen inline status while an existing document's PDF attachments are being split back into individual editable pages"},
   "organizingWithAiStatus": "Organizing with AI…",
   "@organizingWithAiStatus": {"description": "Add Document screen inline status while the AI suggestion call is running"},
   "camera": "Camera",

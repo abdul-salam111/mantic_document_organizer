@@ -45,6 +45,15 @@ class _PdfZoomViewState extends State<PdfZoomView> {
       controller: _controller,
       onPageChanged: (page) =>
           widget.onPageChanged?.call(page, _controller.pagesCount),
+      // PdfViewPinch's own onPageChanged only fires once the centered page
+      // actually *changes* from its starting value -- since that starting
+      // value is already page 1, opening a document never triggers it on
+      // its own, leaving pagesCount unknown (and the page counter stuck on
+      // a "1/1" fallback) until the user scrolls at least once. This fires
+      // unconditionally as soon as the document finishes loading, so the
+      // real page count is known immediately.
+      onDocumentLoaded: (document) =>
+          widget.onPageChanged?.call(_controller.page, document.pagesCount),
       builders: PdfViewPinchBuilders<DefaultBuilderOptions>(
         options: const DefaultBuilderOptions(),
         documentLoaderBuilder: (context) =>

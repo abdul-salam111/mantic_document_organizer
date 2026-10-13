@@ -440,6 +440,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get extractingTextStatus => 'Extraction du texte…';
 
   @override
+  String get loadingPagesStatus => 'Chargement des pages…';
+
+  @override
   String get organizingWithAiStatus => 'Organisation avec l\'IA…';
 
   @override

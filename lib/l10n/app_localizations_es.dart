@@ -439,6 +439,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get extractingTextStatus => 'Extrayendo texto…';
 
   @override
+  String get loadingPagesStatus => 'Cargando páginas…';
+
+  @override
   String get organizingWithAiStatus => 'Organizando con IA…';
 
   @override

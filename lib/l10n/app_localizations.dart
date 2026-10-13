@@ -816,6 +816,12 @@ abstract class AppLocalizations {
   /// **'Extracting text…'**
   String get extractingTextStatus;
 
+  /// Add Document screen inline status while an existing document's PDF attachments are being split back into individual editable pages
+  ///
+  /// In en, this message translates to:
+  /// **'Loading pages…'**
+  String get loadingPagesStatus;
+
   /// Add Document screen inline status while the AI suggestion call is running
   ///
   /// In en, this message translates to:

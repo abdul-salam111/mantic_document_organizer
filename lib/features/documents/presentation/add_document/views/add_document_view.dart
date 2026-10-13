@@ -59,7 +59,7 @@ class AddDocumentView extends StatelessWidget {
         final vm = sl<AddDocumentViewModel>();
         final editing = editingDocument;
         if (editing != null) {
-          vm.startEditing(editing);
+          unawaited(vm.startEditing(editing));
         } else {
           final category = initialCategory;
           if (category != null) vm.preselectCategory(category);
@@ -258,6 +258,12 @@ class _AttachmentSection extends StatelessWidget {
             ),
           ],
         ),
+        if (vm.isLoadingAttachments) ...[
+          heightBox(14),
+          _OcrAiStatusLine(
+            label: AppLocalizations.of(context).loadingPagesStatus,
+          ),
+        ],
         if (vm.attachments.isNotEmpty) ...[
           heightBox(14),
           Wrap(

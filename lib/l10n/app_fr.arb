@@ -128,6 +128,7 @@
   "tapToSetExpiryDate": "Appuyez pour définir la date et l'heure d'expiration",
   "attachmentRequired": "Ajoutez au moins un document pour enregistrer",
   "extractingTextStatus": "Extraction du texte…",
+  "loadingPagesStatus": "Chargement des pages…",
   "organizingWithAiStatus": "Organisation avec l'IA…",
   "camera": "Appareil photo",
   "gallery": "Galerie",

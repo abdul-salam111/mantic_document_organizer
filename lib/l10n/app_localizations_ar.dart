@@ -434,6 +434,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get extractingTextStatus => 'استخراج النص…';
 
   @override
+  String get loadingPagesStatus => 'جارٍ تحميل الصفحات…';
+
+  @override
   String get organizingWithAiStatus => 'التنظيم باستخدام الذكاء الاصطناعي…';
 
   @override

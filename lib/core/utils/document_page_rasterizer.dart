@@ -19,6 +19,15 @@ class DocumentPageRasterizer {
   /// sharper image (mirrors OcrService's own render scale).
   static const double _renderScale = 2.5;
 
+  /// Whether [path] is one of this class's own scratch pages (see
+  /// [_renderPages]) -- a temp file that was rendered for immediate
+  /// re-processing/display and never persisted anywhere permanent, as
+  /// opposed to an already-stored attachment.
+  static Future<bool> isScratchPage(String path) async {
+    final tempDir = await getTemporaryDirectory();
+    return path.startsWith(tempDir.path);
+  }
+
   static Future<List<String>> toImagePaths(List<String> paths) async {
     final result = <String>[];
     for (final path in paths) {

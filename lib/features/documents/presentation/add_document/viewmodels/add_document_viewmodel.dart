@@ -12,6 +12,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../../../../../core/background/document_sync_background_service.dart';
+import '../../../../../core/utils/document_page_rasterizer.dart';
 import '../../../../../core/utils/document_pdf_exporter.dart';
 import '../../../../../core/utils/shared_space_sync.dart';
 
@@ -66,9 +67,34 @@ class AddDocumentViewModel extends ChangeNotifier {
   DocumentItem? _editingDocument;
   bool get isEditing => _editingDocument != null;
 
+  bool _isLoadingAttachments = false;
+  bool get isLoadingAttachments => _isLoadingAttachments;
+
+  /// Matches the filename [DocumentPdfExporter.mergeForStorage] writes
+  /// (`'merged_${...}.pdf'`) -- used to tell "a multi-photo scan we merged
+  /// into a PDF ourselves" apart from "a real PDF the user attached as-is
+  /// via Files" in [startEditing]. Splitting the former back into its
+  /// pages for editing is safe (it's re-merged the same way on save); doing
+  /// that to the latter would be wrong whenever more than one such PDF is
+  /// attached -- [_mergeImageAttachmentsForStorage] would then combine
+  /// pages from unrelated PDFs into a single file on save, since it can't
+  /// tell which image-type attachment came from which original PDF.
+  bool _isOwnMergedPdf(String path) =>
+      path.replaceAll('\\', '/').split('/').last.startsWith('merged_');
+
   /// Prefills every field from an existing document. Called once by the
   /// view right after creation, mirroring [preselectCategory].
-  void startEditing(DocumentItem document) {
+  ///
+  /// A PDF we created by merging scanned photos (see [_isOwnMergedPdf]) is
+  /// split back into one image attachment per internal page (via
+  /// [DocumentPageRasterizer]) rather than kept as that single merged file
+  /// -- otherwise it would show as one opaque "page" here with no way to
+  /// reorder/delete its individual pages. On save,
+  /// [_mergeImageAttachmentsForStorage] re-merges them the same way a fresh
+  /// multi-photo capture would, so this round-trips correctly even if
+  /// nothing was actually changed. A PDF the user attached directly (via
+  /// Files) is left as a single file attachment, same as before.
+  Future<void> startEditing(DocumentItem document) async {
     _editingDocument = document;
     titleController.text = document.title;
     _selectedCategory = _categoryUseCases.byId(document.categoryId);
@@ -79,17 +105,35 @@ class AddDocumentViewModel extends ChangeNotifier {
     _expiryDate = document.expiryDate;
     descriptionController.text = document.description;
     _baseOcrText = document.ocrText;
-    _attachments
-      ..clear()
-      ..addAll([
-        for (final path in document.filePaths)
+
+    _isLoadingAttachments = true;
+    notifyListeners();
+
+    final attachments = <AttachmentItem>[];
+    for (final path in document.filePaths) {
+      if (isPdfPath(path) && _isOwnMergedPdf(path)) {
+        final pages = await DocumentPageRasterizer.toImagePaths([path]);
+        attachments.addAll([
+          for (final page in pages)
+            AttachmentItem(path: page, type: AttachmentType.image),
+        ]);
+      } else {
+        attachments.add(
           AttachmentItem(
             path: path,
             type: isImagePath(path)
                 ? AttachmentType.image
                 : AttachmentType.file,
           ),
-      ]);
+        );
+      }
+    }
+    if (_disposed) return;
+
+    _attachments
+      ..clear()
+      ..addAll(attachments);
+    _isLoadingAttachments = false;
     notifyListeners();
   }
 
@@ -377,15 +421,25 @@ class AddDocumentViewModel extends ChangeNotifier {
   /// Collapses 2+ image-type attachments into a single PDF before saving,
   /// so a multi-page scan (several photos of one physical document) is
   /// stored as the one record it represents instead of that many separate
-  /// image rows. A lone image, or an attachment that's already something
-  /// else (an imported PDF/docx), passes through untouched -- there's
-  /// nothing to collapse, and real PDF byte streams can't be merged by
-  /// this library (same limitation [DocumentPdfExporter] documents).
+  /// image rows. A lone freshly-picked image, or an attachment that's
+  /// already something else (an imported PDF/docx), passes through
+  /// untouched -- there's nothing to collapse, and real PDF byte streams
+  /// can't be merged by this library (same limitation [DocumentPdfExporter]
+  /// documents). A lone image left over from editing a merged PDF down to
+  /// one page is the exception -- see
+  /// [DocumentPageRasterizer.isScratchPage] -- and still goes through the
+  /// same merge path below to get persisted.
   Future<void> _mergeImageAttachmentsForStorage() async {
     final imageAttachments = _attachments
         .where((a) => a.type == AttachmentType.image)
         .toList();
-    if (imageAttachments.length < 2) return;
+    if (imageAttachments.isEmpty) return;
+    if (imageAttachments.length == 1 &&
+        !await DocumentPageRasterizer.isScratchPage(
+          imageAttachments.single.path,
+        )) {
+      return;
+    }
 
     final combinedOcr = [
       for (final a in imageAttachments)
@@ -426,6 +480,29 @@ class AddDocumentViewModel extends ChangeNotifier {
       ..addAll(merged);
   }
 
+  /// Best-effort cleanup for an edit's now-unreferenced files -- most
+  /// notably the previous `merged_*.pdf` [_isOwnMergedPdf] regenerates on
+  /// every edit-save of a document [startEditing] split into per-page
+  /// attachments, even when the user changed nothing else. Nothing else in
+  /// this codebase's update path diffs old vs. new `filePaths`, so without
+  /// this every such edit would silently leak the old merged file on disk.
+  /// A path still present in [newPaths] (e.g. an untouched single image or
+  /// a real attached PDF the user didn't remove) is left alone.
+  Future<void> _deleteDroppedFiles(
+    List<String> oldPaths,
+    List<String> newPaths,
+  ) async {
+    final kept = newPaths.toSet();
+    for (final path in oldPaths) {
+      if (kept.contains(path)) continue;
+      try {
+        await File(path).delete();
+      } catch (_) {
+        // Best-effort -- a missing/locked file isn't worth failing over.
+      }
+    }
+  }
+
   Future<void> submit() async {
     if (_isSaving) return;
     _isSaving = true;
@@ -451,6 +528,7 @@ class AddDocumentViewModel extends ChangeNotifier {
       );
       if (original != null) {
         await _documentUseCases.updateDocument(item);
+        await _deleteDroppedFiles(original.filePaths, item.filePaths);
       } else {
         await _documentUseCases.addDocument(item);
       }
