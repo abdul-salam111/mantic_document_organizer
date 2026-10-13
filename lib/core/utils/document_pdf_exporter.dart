@@ -52,7 +52,20 @@ class DocumentPdfExporter {
   /// — no library here can merge real PDF byte streams) so a selection
   /// mixing scanned photos and an existing PDF attachment still produces
   /// one combined file.
+  ///
+  /// When [paths] is just one already-a-PDF file, there's nothing to
+  /// combine it *with* — rasterizing it to a JPEG per page and redrawing
+  /// those into a new PDF would only lose quality (vector text turned to a
+  /// fixed-DPI raster, then JPEG-compressed) for no benefit, so that single
+  /// file is copied through untouched instead. This is the common case: a
+  /// document that's just one file picked straight from Files already
+  /// is "a PDF", so sharing it "as a PDF" should hand back the exact file
+  /// the user picked.
   static Future<String> combine(List<String> paths, String title) async {
+    if (paths.length == 1 && isPdfPath(paths.single)) {
+      return _copyToOutput(paths.single, title);
+    }
+
     // Drop any source file that rasterized to zero pages (unsupported type,
     // unreadable PDF).
     final grouped = (await DocumentPageRasterizer.toImagePathsGrouped(paths))
@@ -186,6 +199,17 @@ class DocumentPdfExporter {
       return pageWidth * PdfPageFormat.a4.height / PdfPageFormat.a4.width;
     }
     return pageWidth * height / width;
+  }
+
+  /// Copies [path] byte-for-byte into the app's temp directory under
+  /// [title]'s sanitized name — the lossless equivalent of [combine]'s
+  /// normal rasterize-and-redraw path, for when there's genuinely nothing
+  /// to combine [path] with.
+  static Future<String> _copyToOutput(String path, String title) async {
+    final directory = await getTemporaryDirectory();
+    final file = File(p.join(directory.path, '${_sanitize(title)}.pdf'));
+    await File(path).copy(file.path);
+    return file.path;
   }
 
   static String _sanitize(String title) {
