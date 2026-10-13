@@ -159,7 +159,7 @@ class DocumentGridTile extends StatelessWidget {
                           child: Text(
                             AppLocalizations.of(
                               context,
-                            ).fileCount(document.filePaths.length),
+                            ).pageCount(document.filePaths.length),
                             maxLines: 1,
                             overflow: .ellipsis,
                             style: context.labelSmall.copyWith(

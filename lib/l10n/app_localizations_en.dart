@@ -70,6 +70,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String pageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pages',
+      one: '$count page',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String resultsCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

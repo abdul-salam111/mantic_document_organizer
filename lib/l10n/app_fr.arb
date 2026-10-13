@@ -21,6 +21,7 @@
   "uncategorized": "Sans catégorie",
   "newCategory": "Nouvelle catégorie",
   "fileCount": "{count, plural, one{{count} fichier} other{{count} fichiers}}",
+  "pageCount": "{count, plural, one{{count} page} other{{count} pages}}",
   "resultsCount": "{count, plural, one{{count} résultat} other{{count} résultats}}",
 
   "allDocsTitle": "Documents",

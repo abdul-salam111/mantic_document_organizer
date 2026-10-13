@@ -127,7 +127,7 @@ class DocumentListTile extends StatelessWidget {
                             heightBox(6),
                             _MetaLine(
                               text:
-                                  '${AppLocalizations.of(context).fileCount(document.filePaths.length)} · ${document.createdAt.timeAgoShort}',
+                                  '${AppLocalizations.of(context).pageCount(document.filePaths.length)} · ${document.createdAt.timeAgoShort}',
                             ),
                             if (_showExpiryChip) ...[
                               heightBox(8),

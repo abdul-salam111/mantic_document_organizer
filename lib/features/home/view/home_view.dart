@@ -483,7 +483,7 @@ class _RecentFileCard extends StatelessWidget {
                           icon: Iconsax.document,
                           text: AppLocalizations.of(
                             context,
-                          ).fileCount(document.filePaths.length),
+                          ).pageCount(document.filePaths.length),
                         ),
                         _MetaLineWithIcon(
                           icon: Iconsax.timer_1,

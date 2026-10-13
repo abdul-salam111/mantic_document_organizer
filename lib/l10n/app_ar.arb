@@ -21,6 +21,7 @@
   "uncategorized": "بدون تصنيف",
   "newCategory": "فئة جديدة",
   "fileCount": "{count, plural, one{{count} ملف} other{{count} ملفات}}",
+  "pageCount": "{count, plural, one{{count} صفحة} other{{count} صفحات}}",
   "resultsCount": "{count, plural, one{{count} نتيجة} other{{count} نتائج}}",
 
   "allDocsTitle": "المستندات",

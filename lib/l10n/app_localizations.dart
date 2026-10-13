@@ -204,6 +204,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{{count} file} other{{count} files}}'**
   String fileCount(int count);
 
+  /// Page count badge shown on a document card (list tile, grid tile, recent card) -- document.filePaths.length, each entry being one scanned page or attached file
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} page} other{{count} pages}}'**
+  String pageCount(int count);
+
   /// Search result count shown next to sort/view controls once a query is typed
   ///
   /// In en, this message translates to:

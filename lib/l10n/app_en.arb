@@ -41,6 +41,11 @@
     "description": "File count shown under a category",
     "placeholders": {"count": {"type": "int"}}
   },
+  "pageCount": "{count, plural, one{{count} page} other{{count} pages}}",
+  "@pageCount": {
+    "description": "Page count badge shown on a document card (list tile, grid tile, recent card) -- document.filePaths.length, each entry being one scanned page or attached file",
+    "placeholders": {"count": {"type": "int"}}
+  },
   "resultsCount": "{count, plural, one{{count} result} other{{count} results}}",
   "@resultsCount": {
     "description": "Search result count shown next to sort/view controls once a query is typed",
