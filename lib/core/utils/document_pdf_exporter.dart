@@ -1,6 +1,8 @@
 import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -108,7 +110,7 @@ class DocumentPdfExporter {
     final pdfDocument = pw.Document();
     PdfPageFormat? format;
     for (final path in imagePaths) {
-      final image = pw.MemoryImage(await File(path).readAsBytes());
+      final image = await _loadImage(path, downsample: true);
       format ??= _pageFormatFor(image);
       pdfDocument.addPage(
         pw.Page(
@@ -182,13 +184,62 @@ class DocumentPdfExporter {
   /// tall ID card gets a tall one) rather than all pages sharing one
   /// generic paper size with blank margins around the actual content.
   static Future<void> _addImagePage(pw.Document pdfDocument, String path) async {
-    final image = pw.MemoryImage(await File(path).readAsBytes());
+    final image = await _loadImage(path);
     pdfDocument.addPage(
       pw.Page(
         pageFormat: _pageFormatFor(image),
         margin: pw.EdgeInsets.zero,
         build: (context) => pw.Image(image, fit: pw.BoxFit.fill),
       ),
+    );
+  }
+
+  /// Caps an embedded page image's long edge at this many pixels when
+  /// [_loadImage] is asked to downsample -- camera captures/picked photos
+  /// can easily be 3000-4000px+ on a side, deliberately kept untouched at
+  /// pick time for OCR accuracy (see
+  /// AttachmentLocalDataSource.pickFromGallery's own comment), but that's
+  /// far more pixel data than a phone screen needs, or than pdfx's
+  /// PdfViewPinch (the in-app viewer -- see PdfZoomView) can open/scroll
+  /// smoothly. OCR already runs against each attachment's original
+  /// full-resolution file before [mergeForStorage] ever merges them
+  /// (AddDocumentViewModel._runOcrAndAi), so downsampling here doesn't
+  /// touch extraction accuracy -- only how heavy the stored,
+  /// in-app-viewed PDF ends up being.
+  static const int _maxStoredImageDimension = 2000;
+  static const int _storedImageQuality = 85;
+
+  /// Loads [path] as a [pw.MemoryImage]. With [downsample] true, re-encodes
+  /// it first if it exceeds [_maxStoredImageDimension] on its long edge --
+  /// only [mergeForStorage] asks for this; [export]/[combine]/
+  /// [exportEachPage] are explicit share/export actions where keeping full
+  /// fidelity (for printing/archival elsewhere) matters more than this
+  /// app's own in-app render cost.
+  static Future<pw.MemoryImage> _loadImage(
+    String path, {
+    bool downsample = false,
+  }) async {
+    final bytes = await File(path).readAsBytes();
+    if (!downsample) return pw.MemoryImage(bytes);
+
+    final decoded = img.decodeImage(bytes);
+    if (decoded == null) return pw.MemoryImage(bytes);
+    final longEdge = decoded.width > decoded.height
+        ? decoded.width
+        : decoded.height;
+    if (longEdge <= _maxStoredImageDimension) return pw.MemoryImage(bytes);
+
+    final resized = img.copyResize(
+      decoded,
+      width: decoded.width >= decoded.height
+          ? _maxStoredImageDimension
+          : null,
+      height: decoded.height > decoded.width
+          ? _maxStoredImageDimension
+          : null,
+    );
+    return pw.MemoryImage(
+      Uint8List.fromList(img.encodeJpg(resized, quality: _storedImageQuality)),
     );
   }
 
