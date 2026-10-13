@@ -103,6 +103,20 @@ Future<void> setupLocator() async {
 }
 
 Future<void> coreDependencies() async {
+  // The package's default check addresses are small third-party demo APIs
+  // (dummyapi.online, jsonplaceholder, fakestoreapi) that can be slow, rate
+  // limited, or DNS-blocked on a given network even while real internet
+  // access (including Google Sign-In, which talks to Google's own servers)
+  // works fine -- that mismatch was reported as a false "please check your
+  // network settings" error during login. Point the shared singleton at
+  // high-uptime hosts instead, before anything (DioHelper, bulk-import
+  // discovery) reads `InternetConnectionChecker.instance`.
+  InternetConnectionChecker.instance.addresses = [
+    AddressCheckOption(uri: Uri.parse('https://www.google.com')),
+    AddressCheckOption(uri: Uri.parse('https://www.cloudflare.com')),
+    AddressCheckOption(uri: Uri.parse('https://www.apple.com')),
+  ];
+
   sl.registerLazySingleton<Dio>(() => getDio());
   sl.registerLazySingleton(
     () => DioHelper(sl()),
