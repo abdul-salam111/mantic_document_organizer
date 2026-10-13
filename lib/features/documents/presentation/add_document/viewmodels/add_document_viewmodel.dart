@@ -270,13 +270,19 @@ class AddDocumentViewModel extends ChangeNotifier {
 
   /// Runs after every pick call (camera/gallery/file) with just the
   /// attachments added in that round: OCRs them (chained sequentially
-  /// through [_ocrChain]), then — for a new document, with connectivity
-  /// and an API key — sends the combined text to [AiDocumentService] and
-  /// pre-fills whichever of title/category/description/expiry the user
-  /// hasn't already touched. Deliberately not awaited by the pick methods
-  /// that call it — attachments appear immediately, OCR/AI happen in the
-  /// background, and neither one blocks Save (see [isProcessingOcr]/
-  /// [isAnalyzing] for the inline status line the view shows meanwhile).
+  /// through [_ocrChain]), then — with connectivity and an API key —
+  /// sends the combined text (every page, old and new) to
+  /// [AiDocumentService]. For a new document this pre-fills whichever of
+  /// title/category/description/expiry the user hasn't already touched;
+  /// when editing an existing document, only the description is
+  /// refreshed (see [_applyRegeneratedDescription]) — e.g. scanning an ID
+  /// card's back side after the front was already saved should fold both
+  /// sides' OCR into one redefined description, without touching a
+  /// title/category/tags the user already set. Deliberately not awaited
+  /// by the pick methods that call it — attachments appear immediately,
+  /// OCR/AI happen in the background, and neither one blocks Save (see
+  /// [isProcessingOcr]/[isAnalyzing] for the inline status line the view
+  /// shows meanwhile).
   Future<void> _runOcrAndAi(List<AttachmentItem> newAttachments) async {
     _isProcessingOcr = true;
     notifyListeners();
@@ -300,7 +306,7 @@ class AddDocumentViewModel extends ChangeNotifier {
     _isProcessingOcr = false;
     notifyListeners();
 
-    if (_disposed || isEditing) return;
+    if (_disposed) return;
     final text = ocrText;
     if (text.trim().isEmpty) return;
 
@@ -314,8 +320,24 @@ class AddDocumentViewModel extends ChangeNotifier {
     );
     if (_disposed) return;
     _isAnalyzing = false;
-    if (suggestion != null) _applySuggestion(suggestion);
+    if (suggestion != null) {
+      isEditing
+          ? _applyRegeneratedDescription(suggestion)
+          : _applySuggestion(suggestion);
+    }
     notifyListeners();
+  }
+
+  /// Edit mode only: a newly added page can change what the document as a
+  /// whole is about (e.g. an ID card's back side), so — unlike
+  /// [_applySuggestion]'s pre-fill-only semantics — this unconditionally
+  /// replaces the description with one re-derived from every page's
+  /// combined OCR text. Title/category/tags/expiry are left untouched,
+  /// since those are far more likely to already be deliberately set.
+  void _applyRegeneratedDescription(AiDocumentSuggestion suggestion) {
+    if (suggestion.description.isNotEmpty) {
+      descriptionController.text = suggestion.description;
+    }
   }
 
   /// Only pre-fills fields the user hasn't already touched — never
