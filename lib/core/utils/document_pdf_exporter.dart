@@ -1,8 +1,6 @@
 import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
 import 'dart:io';
-import 'dart:typed_data';
 
-import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -90,49 +88,6 @@ class DocumentPdfExporter {
     return file.path;
   }
 
-  /// Merges [imagePaths] into a single PDF written into the app's
-  /// permanent attachment storage (`<app documents>/documents/`, same
-  /// folder [AttachmentLocalDataSource] persists picked files into) --
-  /// for collapsing a multi-page scan's separate image files into the
-  /// one PDF it's actually saved as. Unlike [export]/[combine], this
-  /// result is meant to be kept, not shared, so it's written next to the
-  /// other persisted attachments instead of the temp directory.
-  ///
-  /// Unlike [_addImagePage]'s usual per-image aspect ratio, every page here
-  /// shares the *same* page size (taken from the first image). The in-app
-  /// PDF viewer (pdfx's `PdfViewPinch`, see `PdfZoomView`) assumes every
-  /// page is sized like page 1 until it individually re-measures each one,
-  /// so a page whose real size differs renders briefly cropped/mis-scaled
-  /// against that wrong assumption. Images that don't match the first
-  /// page's aspect ratio are letterboxed (`BoxFit.contain`) instead of
-  /// stretched to fill it.
-  static Future<String> mergeForStorage(List<String> imagePaths) async {
-    final pdfDocument = pw.Document();
-    PdfPageFormat? format;
-    for (final path in imagePaths) {
-      final image = await _loadImage(path, downsample: true);
-      format ??= _pageFormatFor(image);
-      pdfDocument.addPage(
-        pw.Page(
-          pageFormat: format,
-          margin: pw.EdgeInsets.zero,
-          build: (context) => pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain)),
-        ),
-      );
-    }
-
-    final appDocuments = await getApplicationDocumentsDirectory();
-    final dir = Directory(p.join(appDocuments.path, 'documents'));
-    if (!await dir.exists()) {
-      await dir.create(recursive: true);
-    }
-    final file = File(
-      p.join(dir.path, 'merged_${DateTime.now().microsecondsSinceEpoch}.pdf'),
-    );
-    await file.writeAsBytes(await pdfDocument.save());
-    return file.path;
-  }
-
   /// Exports every page in [paths] as its own separate single-page PDF
   /// file — the share sheet's "Export Each Page as PDF" action. A real PDF
   /// attachment is split page-by-page the same way [combine] merges one in:
@@ -184,73 +139,13 @@ class DocumentPdfExporter {
   /// tall ID card gets a tall one) rather than all pages sharing one
   /// generic paper size with blank margins around the actual content.
   static Future<void> _addImagePage(pw.Document pdfDocument, String path) async {
-    final image = await _loadImage(path);
+    final image = pw.MemoryImage(await File(path).readAsBytes());
     pdfDocument.addPage(
       pw.Page(
         pageFormat: _pageFormatFor(image),
         margin: pw.EdgeInsets.zero,
         build: (context) => pw.Image(image, fit: pw.BoxFit.fill),
       ),
-    );
-  }
-
-  /// Caps an embedded page image's long edge at this many pixels when
-  /// [_loadImage] is asked to downsample -- camera captures/picked photos
-  /// can easily be 3000-4000px+ on a side, deliberately kept untouched at
-  /// pick time for OCR accuracy (see
-  /// AttachmentLocalDataSource.pickFromGallery's own comment), but that's
-  /// far more pixel data than a phone screen needs, or than pdfx's
-  /// PdfViewPinch (the in-app viewer -- see PdfZoomView) can open/scroll
-  /// smoothly. OCR already runs against each attachment's original
-  /// full-resolution file before [mergeForStorage] ever merges them
-  /// (AddDocumentViewModel._runOcrAndAi), so downsampling here doesn't
-  /// touch extraction accuracy -- only how heavy the stored,
-  /// in-app-viewed PDF ends up being.
-  ///
-  /// Kept well above what [combine]'s own share path renders pages at
-  /// (~2105px long edge -- a fixed A4-scaled page height times
-  /// [DocumentPageRasterizer]'s 2.5x render scale, independent of source
-  /// resolution): "Share as PDF" has no way to merge this stored PDF's
-  /// real byte stream, so it always re-rasterizes it from scratch via
-  /// [DocumentPageRasterizer] before rebuilding a share copy. Capping too
-  /// close to (or below) that ceiling would hand the share path an
-  /// already-soft, already-JPEG-compressed source to resample and
-  /// re-compress a second time -- visibly degrading "Share as PDF" output
-  /// even though both stages individually look like reasonable caps.
-  static const int _maxStoredImageDimension = 3200;
-  static const int _storedImageQuality = 92;
-
-  /// Loads [path] as a [pw.MemoryImage]. With [downsample] true, re-encodes
-  /// it first if it exceeds [_maxStoredImageDimension] on its long edge --
-  /// only [mergeForStorage] asks for this; [export]/[combine]/
-  /// [exportEachPage] are explicit share/export actions where keeping full
-  /// fidelity (for printing/archival elsewhere) matters more than this
-  /// app's own in-app render cost.
-  static Future<pw.MemoryImage> _loadImage(
-    String path, {
-    bool downsample = false,
-  }) async {
-    final bytes = await File(path).readAsBytes();
-    if (!downsample) return pw.MemoryImage(bytes);
-
-    final decoded = img.decodeImage(bytes);
-    if (decoded == null) return pw.MemoryImage(bytes);
-    final longEdge = decoded.width > decoded.height
-        ? decoded.width
-        : decoded.height;
-    if (longEdge <= _maxStoredImageDimension) return pw.MemoryImage(bytes);
-
-    final resized = img.copyResize(
-      decoded,
-      width: decoded.width >= decoded.height
-          ? _maxStoredImageDimension
-          : null,
-      height: decoded.height > decoded.width
-          ? _maxStoredImageDimension
-          : null,
-    );
-    return pw.MemoryImage(
-      Uint8List.fromList(img.encodeJpg(resized, quality: _storedImageQuality)),
     );
   }
 

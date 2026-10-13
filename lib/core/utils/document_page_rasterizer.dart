@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:pdfx/pdfx.dart';
 
@@ -26,6 +27,28 @@ class DocumentPageRasterizer {
   static Future<bool> isScratchPage(String path) async {
     final tempDir = await getTemporaryDirectory();
     return path.startsWith(tempDir.path);
+  }
+
+  /// Copies [path] -- normally one of this class's own scratch pages, see
+  /// [isScratchPage] -- into the app's permanent attachment storage
+  /// (`<app documents>/documents/`, the same folder
+  /// `AttachmentLocalDataSource` persists every picked attachment into),
+  /// and returns the new path. For persisting a page rasterized for
+  /// display/editing once the user actually saves the document it belongs
+  /// to -- a path under the OS temp directory can be purged at any time,
+  /// so it can't be kept as a document's permanent `filePaths` entry as-is.
+  static Future<String> persistScratchPage(String path) async {
+    final appDocuments = await getApplicationDocumentsDirectory();
+    final dir = Directory(p.join(appDocuments.path, 'documents'));
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+    final newPath = p.join(
+      dir.path,
+      'page_${DateTime.now().microsecondsSinceEpoch}${p.extension(path)}',
+    );
+    await File(path).copy(newPath);
+    return newPath;
   }
 
   static Future<List<String>> toImagePaths(List<String> paths) async {

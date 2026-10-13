@@ -649,16 +649,19 @@ class _PageAreaState extends State<_PageArea> {
       );
     }
 
-    // The common case for a scanned multi-page document (see
-    // DocumentPdfExporter.mergeForStorage): one stored file that's itself a
-    // multi-page PDF. With nothing else in filePaths to scroll between,
-    // the list below this comment -- and its own zoom wrapper further
-    // down -- exist for nothing, and only get in the way: both are
-    // same-axis gesture consumers that would otherwise sit between the
-    // user's finger and PdfViewPinch's own internal page-scroll/zoom,
-    // exactly the conflict that broke scrolling here before. Render the
-    // live PDF directly instead, with nothing above it in the gesture
-    // arena.
+    // A document whose only file is a genuine PDF -- either a real
+    // multi-page PDF the user attached via Files, or a legacy document
+    // from before scanned photos stopped being merged into one PDF on
+    // save. With nothing else in filePaths to scroll between, the list
+    // below this comment -- and its own zoom wrapper further down --
+    // exist for nothing, and only get in the way: both are same-axis
+    // gesture consumers that would otherwise sit between the user's
+    // finger and PdfViewPinch's own internal page-scroll/zoom, exactly
+    // the conflict that broke scrolling here before. Render the live PDF
+    // directly instead, with nothing above it in the gesture arena. A
+    // multi-photo scan is never a single PDF file any more (each photo
+    // is its own filePaths entry), so it falls through to the generic
+    // list below instead -- already a plain vertical scroller of images.
     final singlePath = paths.length == 1 ? paths.first : null;
     if (singlePath != null && isPdfPath(singlePath)) {
       return _SinglePdfPage(
@@ -920,6 +923,15 @@ class _FilePreview extends StatelessWidget {
         File(path),
         width: double.infinity,
         fit: .fitWidth,
+        // A scanned page can be several thousand pixels wide (deliberately
+        // kept at pick-time's full resolution -- see
+        // AttachmentLocalDataSource.pickFromGallery's own comment), but this
+        // item only ever displays at screen width -- cap decode size to
+        // that instead of decoding the full source for every page in the
+        // scroller.
+        cacheWidth: (MediaQuery.sizeOf(context).width *
+                MediaQuery.devicePixelRatioOf(context))
+            .round(),
         errorBuilder: (context, error, stackTrace) =>
             _UnsupportedPreview(path: path),
       );

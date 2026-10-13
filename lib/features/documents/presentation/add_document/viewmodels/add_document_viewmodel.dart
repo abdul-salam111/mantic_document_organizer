@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/background/document_sync_background_service.dart';
 import '../../../../../core/utils/document_page_rasterizer.dart';
-import '../../../../../core/utils/document_pdf_exporter.dart';
 import '../../../../../core/utils/shared_space_sync.dart';
 
 enum TagError { limitReached, tooLong, duplicate }
@@ -77,15 +76,16 @@ class AddDocumentViewModel extends ChangeNotifier {
   /// into one image attachment per internal page (via
   /// [DocumentPageRasterizer]) rather than kept as that single file --
   /// otherwise it would show as one opaque "page" here with no way to
-  /// reorder/delete its individual pages. On save,
-  /// [_mergeImageAttachmentsForStorage] re-merges them the same way a fresh
-  /// multi-photo capture would, so this round-trips correctly whether it's
-  /// a scan we merged ourselves or a real PDF the user attached via Files,
-  /// even if nothing was actually changed. A document with *more than one*
-  /// PDF attachment is left untouched -- splitting every one of them would
-  /// make [_mergeImageAttachmentsForStorage] combine pages from unrelated
-  /// PDFs into a single file on save, since it can't tell which image
-  /// attachment came from which original PDF.
+  /// reorder/delete its individual pages. On save, each split-out page is
+  /// persisted as its own separate image attachment (see
+  /// [_persistTempAttachments]) rather than re-merged into a PDF -- new
+  /// documents never merge scanned photos into a PDF at all (each photo
+  /// stays its own stored file); this only matters for editing a legacy
+  /// merged PDF, or a real multi-page PDF the user attached via Files. A
+  /// document with *more than one* PDF attachment is left untouched --
+  /// there'd be no way to tell, once split, which resulting image
+  /// attachment came from which original PDF, should the edit need to put
+  /// them back.
   Future<void> startEditing(DocumentItem document) async {
     _editingDocument = document;
     titleController.text = document.title;
@@ -411,76 +411,50 @@ class AddDocumentViewModel extends ChangeNotifier {
     if (!_disposed) super.notifyListeners();
   }
 
-  /// Collapses 2+ image-type attachments into a single PDF before saving,
-  /// so a multi-page scan (several photos of one physical document) is
-  /// stored as the one record it represents instead of that many separate
-  /// image rows. A lone freshly-picked image, or an attachment that's
-  /// already something else (an imported PDF/docx), passes through
-  /// untouched -- there's nothing to collapse, and real PDF byte streams
-  /// can't be merged by this library (same limitation [DocumentPdfExporter]
-  /// documents). A lone image left over from editing a merged PDF down to
-  /// one page is the exception -- see
-  /// [DocumentPageRasterizer.isScratchPage] -- and still goes through the
-  /// same merge path below to get persisted.
-  Future<void> _mergeImageAttachmentsForStorage() async {
-    final imageAttachments = _attachments
-        .where((a) => a.type == AttachmentType.image)
-        .toList();
-    if (imageAttachments.isEmpty) return;
-    if (imageAttachments.length == 1 &&
-        !await DocumentPageRasterizer.isScratchPage(
-          imageAttachments.single.path,
-        )) {
-      return;
-    }
-
-    final combinedOcr = [
-      for (final a in imageAttachments)
-        if (_ocrTextByPath[a.path] case final text?) text,
-    ].where((t) => t.trim().isNotEmpty).join('\n\n');
-
-    final mergedPath = await DocumentPdfExporter.mergeForStorage([
-      for (final a in imageAttachments) a.path,
-    ]);
-
-    for (final a in imageAttachments) {
-      _ocrTextByPath.remove(a.path);
-      try {
-        await File(a.path).delete();
-      } catch (_) {
-        // Best-effort cleanup -- a missing/locked source file isn't worth
-        // failing the save over, it's just now-orphaned temp storage.
-      }
-    }
-    if (combinedOcr.isNotEmpty) _ocrTextByPath[mergedPath] = combinedOcr;
-
-    var inserted = false;
-    final merged = <AttachmentItem>[];
-    for (final a in _attachments) {
-      if (a.type != AttachmentType.image) {
-        merged.add(a);
+  /// Persists any attachment still pointing at one of
+  /// [DocumentPageRasterizer]'s scratch pages (temp-dir renders from
+  /// [startEditing] splitting a PDF for editing) into the app's permanent
+  /// attachment storage before it can be saved into a document's
+  /// `filePaths` -- a temp path can be purged by the OS at any time, so it
+  /// can't be kept as-is. A no-op for the common case: fresh camera/
+  /// gallery/file picks are already permanent paths the moment they're
+  /// picked.
+  Future<void> _persistTempAttachments() async {
+    for (var i = 0; i < _attachments.length; i++) {
+      final attachment = _attachments[i];
+      if (!await DocumentPageRasterizer.isScratchPage(attachment.path)) {
         continue;
       }
-      if (!inserted) {
-        merged.add(
-          AttachmentItem(path: mergedPath, type: AttachmentType.file),
-        );
-        inserted = true;
+
+      final persistedPath = await DocumentPageRasterizer.persistScratchPage(
+        attachment.path,
+      );
+      if (_ocrTextByPath.containsKey(attachment.path)) {
+        _ocrTextByPath[persistedPath] = _ocrTextByPath.remove(
+          attachment.path,
+        )!;
+      }
+      _attachments[i] = AttachmentItem(
+        path: persistedPath,
+        type: attachment.type,
+      );
+      try {
+        await File(attachment.path).delete();
+      } catch (_) {
+        // Best-effort -- the temp file will eventually be cleared by the
+        // OS anyway, not worth failing the save over.
       }
     }
-    _attachments
-      ..clear()
-      ..addAll(merged);
   }
 
   /// Best-effort cleanup for an edit's now-unreferenced files -- most
-  /// notably the previous `merged_*.pdf` [_isOwnMergedPdf] regenerates on
-  /// every edit-save of a document [startEditing] split into per-page
-  /// attachments, even when the user changed nothing else. Nothing else in
-  /// this codebase's update path diffs old vs. new `filePaths`, so without
-  /// this every such edit would silently leak the old merged file on disk.
-  /// A path still present in [newPaths] (e.g. an untouched single image or
-  /// a real attached PDF the user didn't remove) is left alone.
+  /// notably a legacy `merged_*.pdf` once its first edit splits it into
+  /// per-page attachments and [_persistTempAttachments] persists those
+  /// under new paths. Nothing else in this codebase's update path diffs
+  /// old vs. new `filePaths`, so without this every such edit would
+  /// silently leak the old merged file on disk. A path still present in
+  /// [newPaths] (e.g. an untouched single image or a real attached PDF the
+  /// user didn't remove) is left alone.
   Future<void> _deleteDroppedFiles(
     List<String> oldPaths,
     List<String> newPaths,
@@ -501,7 +475,7 @@ class AddDocumentViewModel extends ChangeNotifier {
     _isSaving = true;
     notifyListeners();
     try {
-      await _mergeImageAttachmentsForStorage();
+      await _persistTempAttachments();
       final category = _selectedCategory;
       final original = _editingDocument;
       final item = DocumentItem(
