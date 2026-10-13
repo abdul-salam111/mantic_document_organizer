@@ -531,7 +531,21 @@ class _AttachmentThumbnail extends StatelessWidget {
           fit: .expand,
           children: [
             attachment.type == AttachmentType.image
-                ? Image.file(File(attachment.path), fit: .cover)
+                ? Image.file(
+                    File(attachment.path),
+                    fit: .cover,
+                    // Without this, decoding a full-resolution source photo
+                    // (camera/gallery picks are kept at original quality --
+                    // see AttachmentLocalDataSource.pickFromGallery -- and
+                    // DocumentPageRasterizer's per-page renders are ~2MP)
+                    // just to show this 90x90 tile wastes real memory/CPU
+                    // on every attachment shown here. cacheWidth/Height make
+                    // the codec itself downsample while decoding.
+                    cacheWidth: (90 * MediaQuery.devicePixelRatioOf(context))
+                        .round(),
+                    cacheHeight: (90 * MediaQuery.devicePixelRatioOf(context))
+                        .round(),
+                  )
                 : isPdfPath(attachment.path)
                 ? PdfPageThumbnail(
                     path: attachment.path,
