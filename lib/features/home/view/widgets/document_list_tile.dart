@@ -28,6 +28,14 @@ class DocumentListTile extends StatelessWidget {
   final bool isSelecting;
   final bool isSelected;
 
+  /// A snippet of body text (OCR content or notes) around a search match,
+  /// shown when the document matched *there* rather than its title/
+  /// category/tags — so a hit buried inside a scanned page is visible
+  /// without opening it. Null everywhere except search results; when set,
+  /// [highlightQuery] is the term within it to call out.
+  final String? matchExcerpt;
+  final String highlightQuery;
+
   const DocumentListTile({
     super.key,
     required this.document,
@@ -37,6 +45,8 @@ class DocumentListTile extends StatelessWidget {
     this.onLongPress,
     this.isSelecting = false,
     this.isSelected = false,
+    this.matchExcerpt,
+    this.highlightQuery = '',
   });
 
   bool get _showExpiryChip =>
@@ -133,6 +143,13 @@ class DocumentListTile extends StatelessWidget {
                               text:
                                   '${AppLocalizations.of(context).pageCount(document.filePaths.length)} · ${document.createdAt.timeAgoShort}',
                             ),
+                            if (matchExcerpt != null) ...[
+                              heightBox(6),
+                              _MatchExcerpt(
+                                excerpt: matchExcerpt!,
+                                highlight: highlightQuery,
+                              ),
+                            ],
                             if (_showExpiryChip) ...[
                               heightBox(8),
                               ExpiryChip(expiryDate: document.expiryDate!),
@@ -179,6 +196,86 @@ class _MetaLine extends StatelessWidget {
       style: context.labelSmall.copyWith(color: context.textSecondary),
     );
   }
+}
+
+/// A search match's body-text snippet, with [highlight] called out in bold
+/// wherever it occurs (case-insensitively) — so the reason this document
+/// matched is visible at a glance, not just that it did.
+class _MatchExcerpt extends StatelessWidget {
+  final String excerpt;
+  final String highlight;
+
+  const _MatchExcerpt({required this.excerpt, required this.highlight});
+
+  @override
+  Widget build(BuildContext context) {
+    final baseStyle = context.labelSmall.copyWith(
+      color: context.textSecondary,
+      fontStyle: .italic,
+    );
+    final highlightStyle = baseStyle.copyWith(
+      color: context.textPrimary,
+      fontWeight: .w700,
+      fontStyle: .normal,
+    );
+    return Row(
+      crossAxisAlignment: .start,
+      children: [
+        Padding(
+          padding: const .only(top: 2),
+          child: Icon(
+            Iconsax.quote_up,
+            size: 11,
+            color: context.textSecondary,
+          ),
+        ),
+        widthBox(4),
+        Expanded(
+          child: Text.rich(
+            _highlightedSpan(excerpt, highlight, baseStyle, highlightStyle),
+            maxLines: 2,
+            overflow: .ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Splits [text] into spans around every case-insensitive occurrence of
+/// [query], styling the matches with [highlightStyle] and everything else
+/// with [baseStyle].
+TextSpan _highlightedSpan(
+  String text,
+  String query,
+  TextStyle baseStyle,
+  TextStyle highlightStyle,
+) {
+  if (query.isEmpty) return TextSpan(text: text, style: baseStyle);
+  final lowerText = text.toLowerCase();
+  final lowerQuery = query.toLowerCase();
+  final spans = <TextSpan>[];
+  var start = 0;
+  while (true) {
+    final index = lowerText.indexOf(lowerQuery, start);
+    if (index == -1) {
+      spans.add(TextSpan(text: text.substring(start), style: baseStyle));
+      break;
+    }
+    if (index > start) {
+      spans.add(
+        TextSpan(text: text.substring(start, index), style: baseStyle),
+      );
+    }
+    spans.add(
+      TextSpan(
+        text: text.substring(index, index + query.length),
+        style: highlightStyle,
+      ),
+    );
+    start = index + query.length;
+  }
+  return TextSpan(children: spans);
 }
 
 /// A proper circular tap target (not a bare icon) that fills in softly
