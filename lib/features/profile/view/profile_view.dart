@@ -121,30 +121,14 @@ class ProfileView extends StatelessWidget {
     BuildContext context,
     ProfileViewModel viewModel,
   ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: context.surfaceElevated,
-        title: const Text('Sign out?'),
-        content: const Text(
-          'You will need to sign in again to access your account.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(
-              AppLocalizations.of(context).signOut,
-              style: TextStyle(color: context.error),
-            ),
-          ),
-        ],
-      ),
+    final confirmed = await showAnimatedConfirmDialog(
+      context,
+      icon: Iconsax.logout,
+      title: 'Sign out?',
+      message: 'You will need to sign in again to access your account.',
+      confirmLabel: AppLocalizations.of(context).signOut,
     );
-    if (confirmed == true && context.mounted) {
+    if (confirmed && context.mounted) {
       await viewModel.signOut();
     }
   }
@@ -154,28 +138,14 @@ class ProfileView extends StatelessWidget {
     ProfileViewModel viewModel,
   ) async {
     final l10n = AppLocalizations.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: context.surfaceElevated,
-        title: Text(l10n.deleteAccountDialogTitle),
-        content: Text(l10n.deleteAccountDialogMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(
-              l10n.deleteAccount,
-              style: TextStyle(color: context.error),
-            ),
-          ),
-        ],
-      ),
+    final confirmed = await showAnimatedConfirmDialog(
+      context,
+      icon: Iconsax.trash,
+      title: l10n.deleteAccountDialogTitle,
+      message: l10n.deleteAccountDialogMessage,
+      confirmLabel: l10n.deleteAccount,
     );
-    if (confirmed == true && context.mounted) {
+    if (confirmed && context.mounted) {
       await viewModel.deleteAccount();
     }
   }
