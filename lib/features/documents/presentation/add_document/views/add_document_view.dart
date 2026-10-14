@@ -16,6 +16,7 @@ import '../../../../../core/utils/utils_exports.dart';
 import '../../../../../core/widgets/widgets_exports.dart';
 import '../../../../../routes/routes_exports.dart';
 import '../../../../home/home_exports.dart';
+import '../../document_viewer/document_viewer_exports.dart';
 import '../viewmodels/add_document_viewmodel.dart';
 
 const _formControlHeight = 55.0;
@@ -530,28 +531,37 @@ class _AttachmentThumbnail extends StatelessWidget {
         child: Stack(
           fit: .expand,
           children: [
-            attachment.type == AttachmentType.image
-                ? Image.file(
-                    File(attachment.path),
-                    fit: .cover,
-                    // Without this, decoding a full-resolution source photo
-                    // (camera/gallery picks are kept at original quality --
-                    // see AttachmentLocalDataSource.pickFromGallery -- and
-                    // DocumentPageRasterizer's per-page renders are ~2MP)
-                    // just to show this 90x90 tile wastes real memory/CPU
-                    // on every attachment shown here. cacheWidth/Height make
-                    // the codec itself downsample while decoding.
-                    cacheWidth: (90 * MediaQuery.devicePixelRatioOf(context))
-                        .round(),
-                    cacheHeight: (90 * MediaQuery.devicePixelRatioOf(context))
-                        .round(),
-                  )
-                : isPdfPath(attachment.path)
-                ? PdfPageThumbnail(
-                    path: attachment.path,
-                    fallback: _UnsupportedAttachmentIcon(path: attachment.path),
-                  )
-                : _UnsupportedAttachmentIcon(path: attachment.path),
+            // Hero-flies into FilePreviewView on tap -- same tag scheme
+            // (filePageHeroTag) the document viewer's own page list uses,
+            // so this thumbnail and its full-screen preview are never two
+            // independently-animated widgets.
+            FilePageHero(
+              path: attachment.path,
+              child: attachment.type == AttachmentType.image
+                  ? Image.file(
+                      File(attachment.path),
+                      fit: .cover,
+                      // Without this, decoding a full-resolution source photo
+                      // (camera/gallery picks are kept at original quality --
+                      // see AttachmentLocalDataSource.pickFromGallery -- and
+                      // DocumentPageRasterizer's per-page renders are ~2MP)
+                      // just to show this 90x90 tile wastes real memory/CPU
+                      // on every attachment shown here. cacheWidth/Height make
+                      // the codec itself downsample while decoding.
+                      cacheWidth: (90 * MediaQuery.devicePixelRatioOf(context))
+                          .round(),
+                      cacheHeight: (90 * MediaQuery.devicePixelRatioOf(context))
+                          .round(),
+                    )
+                  : isPdfPath(attachment.path)
+                  ? PdfPageThumbnail(
+                      path: attachment.path,
+                      fallback: _UnsupportedAttachmentIcon(
+                        path: attachment.path,
+                      ),
+                    )
+                  : _UnsupportedAttachmentIcon(path: attachment.path),
+            ),
             Positioned(
               top: 4,
               right: 4,
