@@ -16,6 +16,7 @@ import '../../../../../routes/routes_exports.dart';
 import '../../../../home/home_exports.dart';
 import '../../add_document/add_document_exports.dart';
 import '../viewmodels/document_viewer_viewmodel.dart';
+import 'file_page_hero.dart';
 import 'share_document_sheet.dart';
 
 class DocumentViewerView extends StatelessWidget {
@@ -898,7 +899,7 @@ class _SelectableFilePreview extends StatelessWidget {
     onTap: selectionActive ? onToggle : onOpenPreview,
     child: Stack(
       children: [
-        _FilePreview(path: path),
+        FilePageHero(path: path, child: _FilePreview(path: path)),
         if (isSelected)
           Positioned.fill(
             child: IgnorePointer(

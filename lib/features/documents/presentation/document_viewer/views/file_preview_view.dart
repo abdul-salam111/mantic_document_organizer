@@ -11,6 +11,7 @@ import '../../../../../core/utils/utils_exports.dart';
 import '../../../../../core/widgets/widgets_exports.dart';
 import '../../../domain/entities/document_item.dart';
 import '../../../domain/usecases/document_processing_usecases.dart';
+import 'file_page_hero.dart';
 
 /// Full-screen, swipeable, pinch-zoomable view of a document's attached
 /// files at their original size. Opened by tapping a page in the document
@@ -111,9 +112,15 @@ class _FilePreviewViewState extends State<FilePreviewView> {
     // gestures, so this page opts out of PhotoView's own gesture handling
     // (disableGestures) rather than fight it for the same pointers, and
     // just rides along in the gallery's page view for swipe-between-files.
+    final heroAttributes = PhotoViewHeroAttributes(
+      tag: filePageHeroTag(path),
+      flightShuttleBuilder: (flightContext, _, _, _, _) =>
+          filePageHeroFlightContent(flightContext, path),
+    );
     if (isPdfPath(path)) {
       return PhotoViewGalleryPageOptions.customChild(
         disableGestures: true,
+        heroAttributes: heroAttributes,
         child: PdfZoomView(
           path: path,
           fallback: _UnsupportedFile(path: path),
@@ -135,6 +142,7 @@ class _FilePreviewViewState extends State<FilePreviewView> {
     if (isImagePath(path)) {
       return PhotoViewGalleryPageOptions(
         imageProvider: FileImage(File(path)),
+        heroAttributes: heroAttributes,
         minScale: PhotoViewComputedScale.contained,
         maxScale: PhotoViewComputedScale.covered * 3,
         errorBuilder: (context, error, stackTrace) =>
@@ -143,6 +151,7 @@ class _FilePreviewViewState extends State<FilePreviewView> {
     }
     return PhotoViewGalleryPageOptions.customChild(
       disableGestures: true,
+      heroAttributes: heroAttributes,
       child: _UnsupportedFile(path: path),
     );
   }
