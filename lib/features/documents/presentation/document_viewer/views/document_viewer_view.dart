@@ -695,6 +695,7 @@ class _PageAreaState extends State<_PageArea> {
                 RouteNames.filePreview,
                 extra: (widget.document.filePaths, index),
               ),
+              enablePageHero: index != 0,
             );
             return KeyedSubtree(
               key: _fileKeys[index],
@@ -885,12 +886,20 @@ class _SelectableFilePreview extends StatelessWidget {
   final VoidCallback onToggle;
   final VoidCallback onOpenPreview;
 
+  /// False for the one item that's already wrapped in a [DocumentCoverHero]
+  /// by its caller (the first file, which is what the document's own cover
+  /// thumbnail shows) — a [Hero] can't be nested inside another [Hero], so
+  /// that item skips this widget's own per-page one and only animates the
+  /// document-open flight, not the open-full-preview one.
+  final bool enablePageHero;
+
   const _SelectableFilePreview({
     required this.path,
     required this.isSelected,
     required this.selectionActive,
     required this.onToggle,
     required this.onOpenPreview,
+    this.enablePageHero = true,
   });
 
   @override
@@ -899,7 +908,9 @@ class _SelectableFilePreview extends StatelessWidget {
     onTap: selectionActive ? onToggle : onOpenPreview,
     child: Stack(
       children: [
-        FilePageHero(path: path, child: _FilePreview(path: path)),
+        enablePageHero
+            ? FilePageHero(path: path, child: _FilePreview(path: path))
+            : _FilePreview(path: path),
         if (isSelected)
           Positioned.fill(
             child: IgnorePointer(
