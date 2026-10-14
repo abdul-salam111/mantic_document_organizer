@@ -223,5 +223,20 @@
   "pageNotFound": "Página no encontrada",
   "pageNotFoundSubtitle": "No pudimos encontrar \"{path}\".",
   "goBack": "Volver",
-  "operationFailedToast": "No se pudo completar la acción. Inténtalo de nuevo."
+  "operationFailedToast": "No se pudo completar la acción. Inténtalo de nuevo.",
+
+  "draftsTitle": "Borradores",
+  "draftsCount": "{count, plural, one{1 documento sin terminar} other{{count} documentos sin terminar}}",
+  "draftsHelp": "Continúa donde lo dejaste o descarta lo que ya no necesites.",
+  "noDrafts": "Sin borradores",
+  "untitledDraft": "Documento sin título",
+  "resumeDraft": "Continuar",
+  "discardDraft": "Descartar",
+  "discardDraftMessage": "Este borrador y sus páginas se eliminarán permanentemente.",
+  "draftMissingFiles": "Algunas páginas de este borrador ya no se encuentran.",
+  "draftSaveFailed": "No se pudo guardar tu borrador.",
+  "draftSaving": "Guardando borrador…",
+  "draftSaved": "Borrador guardado",
+  "draftHint": "Tu progreso se guarda automáticamente.",
+  "draftRetry": "Reintentar"
 }

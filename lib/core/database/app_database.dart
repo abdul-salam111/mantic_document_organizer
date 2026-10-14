@@ -1,3 +1,4 @@
+import '../../features/documents/documents_domain_exports.dart' show DocumentDraft;
 import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
 import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
 import 'dart:convert';
@@ -55,7 +56,7 @@ class AppDatabase {
     final path = join(await getDatabasesPath(), 'mantic.db');
     _db = await openDatabase(
       path,
-      version: 8,
+      version: 9,
       onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: (db, version) async {
         await db.execute('''
@@ -107,6 +108,7 @@ class AppDatabase {
         await _createUploadedAttachments(db);
         await _createCategorySyncState(db);
         await _createDiscoveryExaminedAssets(db);
+        await _createDrafts(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -129,6 +131,7 @@ class AppDatabase {
         if (oldVersion < 7) {
           await _createDiscoveryExaminedAssets(db);
         }
+        if (oldVersion < 9) await _createDrafts(db);
         if (oldVersion < 8) {
           await db.execute('ALTER TABLE categories ADD COLUMN space_id TEXT');
           await db.execute('ALTER TABLE categories ADD COLUMN my_role TEXT');
@@ -136,6 +139,80 @@ class AppDatabase {
       },
     );
     await _refreshPendingDocumentIds();
+  }
+
+  Future<void> _createDrafts(DatabaseExecutor db) => db.execute('''
+    CREATE TABLE IF NOT EXISTS document_drafts (
+      id TEXT PRIMARY KEY,
+      updated_at INTEGER NOT NULL,
+      payload TEXT NOT NULL
+    )
+  ''');
+
+  Future<List<DocumentDraft>> fetchDrafts() async {
+    final rows = await _requireDb.query('document_drafts', orderBy: 'updated_at DESC');
+    final root = (await getApplicationDocumentsDirectory()).path;
+    return rows.map((row) {
+      final payload = jsonDecode(row['payload'] as String) as Map<String, dynamic>;
+      List<String> paths(String key) => [
+        for (final path in payload[key] as List)
+          _resolveAttachmentPath(path as String, root),
+      ];
+      return DocumentDraft(
+        document: _documentFromRow(
+          Map<String, Object?>.from(payload['document'] as Map),
+          tags: List<String>.from(payload['tags'] as List),
+          filePaths: paths('paths'),
+        ),
+        updatedAt: DateTime.fromMillisecondsSinceEpoch(row['updated_at'] as int),
+        pendingTag: payload['pendingTag'] as String,
+        ownedPaths: paths('ownedPaths'),
+        ocrByPath: {
+          for (final entry in (payload['ocrByPath'] as Map).entries)
+            _resolveAttachmentPath(entry.key as String, root): entry.value as String,
+        },
+      );
+    }).toList();
+  }
+
+  Future<void> upsertDraft(DocumentDraft draft) => _requireDb.transaction((txn) async {
+    // A late autosave must never resurrect an already committed capture.
+    final saved = await txn.query('documents', columns: ['id'], where: 'id = ?', whereArgs: [draft.id]);
+    if (saved.isNotEmpty) return;
+    await txn.insert('document_drafts', {
+      'id': draft.id,
+      'updated_at': draft.updatedAt.millisecondsSinceEpoch,
+      'payload': jsonEncode({
+        'document': _documentToRow(draft.document),
+        'tags': draft.document.tags,
+        'paths': draft.document.filePaths.map(_attachmentStorageSuffix).toList(),
+        'ownedPaths': draft.ownedPaths.map(_attachmentStorageSuffix).toList(),
+        'pendingTag': draft.pendingTag,
+        'ocrByPath': {for (final entry in draft.ocrByPath.entries) _attachmentStorageSuffix(entry.key): entry.value},
+      }),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  });
+
+  /// Returns only files no surviving document or draft references.
+  Future<List<String>> deleteDraft(String id) async {
+    final root = (await getApplicationDocumentsDirectory()).path;
+    return _requireDb.transaction((txn) async {
+      final rows = await txn.query('document_drafts', where: 'id = ?', whereArgs: [id]);
+      if (rows.isEmpty) return <String>[];
+      final payload = jsonDecode(rows.first['payload'] as String) as Map;
+      await txn.delete('document_drafts', where: 'id = ?', whereArgs: [id]);
+      final used = <String>{
+        for (final row in await txn.query('document_attachments', columns: ['path']))
+          _attachmentStorageSuffix(row['path'] as String),
+      };
+      for (final row in await txn.query('document_drafts', columns: ['payload'])) {
+        final other = jsonDecode(row['payload'] as String) as Map;
+        used.addAll(List<String>.from(other['ownedPaths'] as List));
+        used.addAll(List<String>.from(other['paths'] as List));
+      }
+      return [for (final path in List<String>.from(payload['ownedPaths'] as List))
+        if (!used.contains(path)) _resolveAttachmentPath(path, root)];
+    });
   }
 
   /// Durable, local-first queue.  A mutation enters this table in the same
@@ -246,7 +323,8 @@ class AppDatabase {
           whereArgs: [document.id],
         );
         if (synced.isNotEmpty) continue;
-        await _enqueueDocumentMutation(txn, document, 'upsert');
+        await txn.delete('document_drafts', where: 'id = ?', whereArgs: [document.id]);
+      await _enqueueDocumentMutation(txn, document, 'upsert');
       }
     });
     await _refreshPendingDocumentIds();

@@ -1361,6 +1361,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not complete the action. Please try again.'**
   String get operationFailedToast;
+
+  /// Heading for unfinished/unsaved documents -- the Home entry and the drafts sheet title
+  ///
+  /// In en, this message translates to:
+  /// **'Drafts'**
+  String get draftsTitle;
+
+  /// Subtitle under draftsTitle on Home's compact drafts entry
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 unfinished document} other{{count} unfinished documents}}'**
+  String draftsCount(int count);
+
+  /// Subtitle under the drafts sheet's title
+  ///
+  /// In en, this message translates to:
+  /// **'Pick up where you left off, or discard what you no longer need.'**
+  String get draftsHelp;
+
+  /// Drafts sheet empty state
+  ///
+  /// In en, this message translates to:
+  /// **'No drafts'**
+  String get noDrafts;
+
+  /// Fallback title for a draft with no title yet
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled document'**
+  String get untitledDraft;
+
+  /// Button that reopens a draft to keep editing it
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get resumeDraft;
+
+  /// Button label, confirm-dialog title, and confirm label that permanently deletes a draft
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get discardDraft;
+
+  /// Confirmation message before discarding a draft
+  ///
+  /// In en, this message translates to:
+  /// **'This draft and its pages will be permanently deleted.'**
+  String get discardDraftMessage;
+
+  /// Add Document screen status line when a restored draft is missing one or more of its attached files
+  ///
+  /// In en, this message translates to:
+  /// **'Some pages from this draft could no longer be found.'**
+  String get draftMissingFiles;
+
+  /// Add Document screen status line when autosaving the draft fails
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save your draft.'**
+  String get draftSaveFailed;
+
+  /// Add Document screen status line while the draft is being autosaved
+  ///
+  /// In en, this message translates to:
+  /// **'Saving draft…'**
+  String get draftSaving;
+
+  /// Add Document screen status line once the draft has been autosaved
+  ///
+  /// In en, this message translates to:
+  /// **'Draft saved'**
+  String get draftSaved;
+
+  /// Add Document screen status line shown before any changes have been made yet
+  ///
+  /// In en, this message translates to:
+  /// **'Your progress is saved automatically.'**
+  String get draftHint;
+
+  /// Button that retries a failed draft autosave
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get draftRetry;
 }
 
 class _AppLocalizationsDelegate

@@ -223,5 +223,20 @@
   "pageNotFound": "Page introuvable",
   "pageNotFoundSubtitle": "Nous n'avons pas trouvé « {path} ».",
   "goBack": "Retour",
-  "operationFailedToast": "Impossible de terminer cette action. Réessayez."
+  "operationFailedToast": "Impossible de terminer cette action. Réessayez.",
+
+  "draftsTitle": "Brouillons",
+  "draftsCount": "{count, plural, one{1 document inachevé} other{{count} documents inachevés}}",
+  "draftsHelp": "Reprenez là où vous vous étiez arrêté, ou supprimez ce dont vous n'avez plus besoin.",
+  "noDrafts": "Aucun brouillon",
+  "untitledDraft": "Document sans titre",
+  "resumeDraft": "Reprendre",
+  "discardDraft": "Supprimer",
+  "discardDraftMessage": "Ce brouillon et ses pages seront définitivement supprimés.",
+  "draftMissingFiles": "Certaines pages de ce brouillon sont introuvables.",
+  "draftSaveFailed": "Impossible d'enregistrer votre brouillon.",
+  "draftSaving": "Enregistrement du brouillon…",
+  "draftSaved": "Brouillon enregistré",
+  "draftHint": "Votre progression est enregistrée automatiquement.",
+  "draftRetry": "Réessayer"
 }

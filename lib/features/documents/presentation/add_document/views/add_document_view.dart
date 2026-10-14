@@ -1,3 +1,4 @@
+import '../../../domain/entities/document_draft.dart';
 import 'package:mantic_doc_org/core/utils/persist_action.dart';
 import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
 import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
@@ -25,6 +26,7 @@ class AddDocumentView extends StatelessWidget {
   /// Preselects the category picker — set when opened via a category's
   /// document list "+" button, so the user doesn't have to reselect the
   /// category they were already looking at.
+  final DocumentDraft? initialDraft;
   final CategoryItem? initialCategory;
 
   /// Set when opened via the document viewer's Edit button — switches this
@@ -47,6 +49,7 @@ class AddDocumentView extends StatelessWidget {
 
   const AddDocumentView({
     super.key,
+    this.initialDraft,
     this.initialCategory,
     this.editingDocument,
     this.initialSharedFilePaths,
@@ -59,7 +62,9 @@ class AddDocumentView extends StatelessWidget {
       create: (providerContext) {
         final vm = sl<AddDocumentViewModel>();
         final editing = editingDocument;
-        if (editing != null) {
+        if (initialDraft != null) {
+          unawaited(vm.resumeDraft(initialDraft!));
+        } else if (editing != null) {
           unawaited(vm.startEditing(editing));
         } else {
           final category = initialCategory;
@@ -104,12 +109,19 @@ class AddDocumentView extends StatelessWidget {
       child: UnfocusWrapper(
         child: Consumer<AddDocumentViewModel>(
           builder: (context, vm, _) {
-            return Scaffold(
+            return _DraftLifecycle(
+              vm: vm,
+              child: Scaffold(
               appBar: CustomAppBar(
                 title: editingDocument != null
                     ? AppLocalizations.of(context).editDocumentTitle
                     : AppLocalizations.of(context).addDocumentTitle,
-                onBackPressed: () => Navigator.of(context).pop(),
+                onBackPressed: () async {
+                  if (vm.isSaving || vm.isLoadingAttachments) return;
+                  if (await persistAction(context, vm.flushDraft) && context.mounted) {
+                    Navigator.of(context).pop();
+                  }
+                },
                 backgroundColor: context.background,
                 foregroundColor: context.textPrimary,
               ),
@@ -120,6 +132,10 @@ class AddDocumentView extends StatelessWidget {
                   child: ListView(
                     padding: const .symmetric(horizontal: 14, vertical: 20),
                     children: [
+                      if (vm.draftsEnabled) ...[
+                        _DraftStatus(vm: vm),
+                        heightBox(16),
+                      ],
                       _AttachmentSection(vm: vm),
                       heightBox(24),
                       CustomTextFormField(
@@ -161,6 +177,7 @@ class AddDocumentView extends StatelessWidget {
                         ? AppLocalizations.of(context).update
                         : AppLocalizations.of(context).save,
                     onPressed: () async {
+                      if (vm.isLoadingAttachments) return;
                       if (!vm.validateAttachments()) return;
                       if (!vm.formKey.currentState!.validate()) return;
                       if (!await persistAction(context, () => vm.submit())) {
@@ -186,6 +203,7 @@ class AddDocumentView extends StatelessWidget {
                     },
                   ),
                 ),
+              ),
               ),
             );
           },
@@ -1139,6 +1157,71 @@ class _ExpirableToggle extends StatelessWidget {
             },
             activeThumbColor: context.primary,
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Persist on lifecycle changes; block navigation only while durability is
+/// unresolved. A failed save keeps the editable form and an explicit retry.
+class _DraftLifecycle extends StatefulWidget {
+  final AddDocumentViewModel vm;
+  final Widget child;
+  const _DraftLifecycle({required this.vm, required this.child});
+  @override
+  State<_DraftLifecycle> createState() => _DraftLifecycleState();
+}
+
+class _DraftLifecycleState extends State<_DraftLifecycle> with WidgetsBindingObserver {
+  bool _leaving = false;
+  @override
+  void initState() { super.initState(); WidgetsBinding.instance.addObserver(this); }
+  @override
+  void dispose() { WidgetsBinding.instance.removeObserver(this); super.dispose(); }
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == .inactive || state == .paused) {
+      unawaited(widget.vm.flushDraft().catchError((Object _) {}));
+    }
+  }
+  @override
+  Widget build(BuildContext context) => PopScope(
+    canPop: widget.vm.canLeave,
+    onPopInvokedWithResult: (didPop, result) async {
+      if (didPop || _leaving || widget.vm.isSaving || widget.vm.isLoadingAttachments) return;
+      _leaving = true;
+      final saved = await persistAction(context, widget.vm.flushDraft);
+      // Let the provider rebuild PopScope with the now-durable state.
+      await WidgetsBinding.instance.endOfFrame;
+      if (saved && context.mounted) Navigator.of(context).pop();
+      _leaving = false;
+    },
+    child: AbsorbPointer(absorbing: widget.vm.isSaving || widget.vm.isLoadingAttachments, child: widget.child),
+  );
+}
+
+class _DraftStatus extends StatelessWidget {
+  final AddDocumentViewModel vm;
+  const _DraftStatus({required this.vm});
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final message = vm.hasMissingDraftFiles ? l10n.draftMissingFiles
+        : vm.draftFailed ? l10n.draftSaveFailed
+        : vm.isSavingDraft ? l10n.draftSaving
+        : vm.hasDraft ? l10n.draftSaved : l10n.draftHint;
+    return Container(
+      padding: const .all(12),
+      decoration: BoxDecoration(color: context.surface, borderRadius: .circular(12)),
+      child: Row(
+        children: [
+          Icon(vm.draftFailed || vm.hasMissingDraftFiles ? Icons.error_outline : Icons.edit_note_rounded,
+            color: vm.draftFailed || vm.hasMissingDraftFiles ? context.errorAccent : context.textSecondary),
+          const SizedBox(width: 10),
+          Expanded(child: Text(message, style: context.bodySmall)),
+          if (vm.draftFailed)
+            TextButton(onPressed: () => persistAction(context, vm.flushDraft), child: Text(l10n.draftRetry)),
         ],
       ),
     );

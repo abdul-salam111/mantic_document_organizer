@@ -828,4 +828,54 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get operationFailedToast =>
       'تعذّر إكمال الإجراء. يُرجى المحاولة مرة أخرى.';
+
+  @override
+  String get draftsTitle => 'المسودات';
+
+  @override
+  String draftsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مستندات غير مكتملة',
+      one: 'مستند واحد غير مكتمل',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get draftsHelp => 'تابع من حيث توقفت، أو تجاهل ما لم تعد بحاجة إليه.';
+
+  @override
+  String get noDrafts => 'لا توجد مسودات';
+
+  @override
+  String get untitledDraft => 'مستند بدون عنوان';
+
+  @override
+  String get resumeDraft => 'متابعة';
+
+  @override
+  String get discardDraft => 'تجاهل';
+
+  @override
+  String get discardDraftMessage => 'سيتم حذف هذه المسودة وصفحاتها نهائيًا.';
+
+  @override
+  String get draftMissingFiles => 'تعذّر العثور على بعض صفحات هذه المسودة.';
+
+  @override
+  String get draftSaveFailed => 'تعذّر حفظ مسودتك.';
+
+  @override
+  String get draftSaving => 'جارٍ حفظ المسودة…';
+
+  @override
+  String get draftSaved => 'تم حفظ المسودة';
+
+  @override
+  String get draftHint => 'يتم حفظ تقدمك تلقائيًا.';
+
+  @override
+  String get draftRetry => 'إعادة المحاولة';
 }

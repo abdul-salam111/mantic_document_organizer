@@ -223,5 +223,20 @@
   "pageNotFound": "الصفحة غير موجودة",
   "pageNotFoundSubtitle": "تعذّر العثور على \"{path}\".",
   "goBack": "رجوع",
-  "operationFailedToast": "تعذّر إكمال الإجراء. يُرجى المحاولة مرة أخرى."
+  "operationFailedToast": "تعذّر إكمال الإجراء. يُرجى المحاولة مرة أخرى.",
+
+  "draftsTitle": "المسودات",
+  "draftsCount": "{count, plural, one{مستند واحد غير مكتمل} other{{count} مستندات غير مكتملة}}",
+  "draftsHelp": "تابع من حيث توقفت، أو تجاهل ما لم تعد بحاجة إليه.",
+  "noDrafts": "لا توجد مسودات",
+  "untitledDraft": "مستند بدون عنوان",
+  "resumeDraft": "متابعة",
+  "discardDraft": "تجاهل",
+  "discardDraftMessage": "سيتم حذف هذه المسودة وصفحاتها نهائيًا.",
+  "draftMissingFiles": "تعذّر العثور على بعض صفحات هذه المسودة.",
+  "draftSaveFailed": "تعذّر حفظ مسودتك.",
+  "draftSaving": "جارٍ حفظ المسودة…",
+  "draftSaved": "تم حفظ المسودة",
+  "draftHint": "يتم حفظ تقدمك تلقائيًا.",
+  "draftRetry": "إعادة المحاولة"
 }

@@ -840,4 +840,57 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get operationFailedToast =>
       'Impossible de terminer cette action. Réessayez.';
+
+  @override
+  String get draftsTitle => 'Brouillons';
+
+  @override
+  String draftsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count documents inachevés',
+      one: '1 document inachevé',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get draftsHelp =>
+      'Reprenez là où vous vous étiez arrêté, ou supprimez ce dont vous n\'avez plus besoin.';
+
+  @override
+  String get noDrafts => 'Aucun brouillon';
+
+  @override
+  String get untitledDraft => 'Document sans titre';
+
+  @override
+  String get resumeDraft => 'Reprendre';
+
+  @override
+  String get discardDraft => 'Supprimer';
+
+  @override
+  String get discardDraftMessage =>
+      'Ce brouillon et ses pages seront définitivement supprimés.';
+
+  @override
+  String get draftMissingFiles =>
+      'Certaines pages de ce brouillon sont introuvables.';
+
+  @override
+  String get draftSaveFailed => 'Impossible d\'enregistrer votre brouillon.';
+
+  @override
+  String get draftSaving => 'Enregistrement du brouillon…';
+
+  @override
+  String get draftSaved => 'Brouillon enregistré';
+
+  @override
+  String get draftHint => 'Votre progression est enregistrée automatiquement.';
+
+  @override
+  String get draftRetry => 'Réessayer';
 }

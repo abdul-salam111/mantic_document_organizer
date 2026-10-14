@@ -837,4 +837,57 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get operationFailedToast =>
       'No se pudo completar la acción. Inténtalo de nuevo.';
+
+  @override
+  String get draftsTitle => 'Borradores';
+
+  @override
+  String draftsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count documentos sin terminar',
+      one: '1 documento sin terminar',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get draftsHelp =>
+      'Continúa donde lo dejaste o descarta lo que ya no necesites.';
+
+  @override
+  String get noDrafts => 'Sin borradores';
+
+  @override
+  String get untitledDraft => 'Documento sin título';
+
+  @override
+  String get resumeDraft => 'Continuar';
+
+  @override
+  String get discardDraft => 'Descartar';
+
+  @override
+  String get discardDraftMessage =>
+      'Este borrador y sus páginas se eliminarán permanentemente.';
+
+  @override
+  String get draftMissingFiles =>
+      'Algunas páginas de este borrador ya no se encuentran.';
+
+  @override
+  String get draftSaveFailed => 'No se pudo guardar tu borrador.';
+
+  @override
+  String get draftSaving => 'Guardando borrador…';
+
+  @override
+  String get draftSaved => 'Borrador guardado';
+
+  @override
+  String get draftHint => 'Tu progreso se guarda automáticamente.';
+
+  @override
+  String get draftRetry => 'Reintentar';
 }

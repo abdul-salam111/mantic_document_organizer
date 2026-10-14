@@ -1,3 +1,7 @@
+import '../../features/documents/documents_domain_exports.dart';
+import '../../features/documents/data/datasources/draft_local_datasource.dart';
+import '../../features/documents/data/repository_impl/draft_repository_impl.dart';
+import '../../features/documents/domain/repositories/draft_repository.dart';
 import '../../features/documents/data/repository_impl/document_repository_impl.dart';
 import '../../features/documents/domain/repositories/document_repository.dart';
 import '../../features/favorites/data/repository_impl/favorites_repository_impl.dart';
@@ -245,6 +249,9 @@ Future<void> backupDependencies() async {
 }
 
 Future<void> documentStorageDependencies() async {
+  sl.registerLazySingleton<DraftLocalDataSource>(() => SqliteDraftDataSource(sl()));
+  sl.registerLazySingleton<IDraftRepository>(() => DraftRepositoryImpl(sl()), dispose: (repo) => (repo as DraftRepositoryImpl).dispose());
+  sl.registerLazySingleton<DraftUseCases>(() => DraftUseCases(sl()));
   sl.registerLazySingleton<CategoryLocalDataSource>(
     () => SqliteCategoryDataSource(sl()),
   );
@@ -331,6 +338,7 @@ Future<void> addDocumentDependencies() async {
   sl.registerLazySingleton(() => DocumentProcessingUseCases(sl()));
   sl.registerFactory<AddDocumentViewModel>(
     () => AddDocumentViewModel(
+      drafts: sl(),
       categoryUseCases: sl(),
       documentUseCases: sl(),
       processing: sl(),

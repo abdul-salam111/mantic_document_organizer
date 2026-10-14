@@ -550,5 +550,37 @@
   },
   "goBack": "Go back",
   "@goBack": {"description": "Route error page button"},
-  "operationFailedToast": "Could not complete the action. Please try again."
+  "operationFailedToast": "Could not complete the action. Please try again.",
+
+  "draftsTitle": "Drafts",
+  "@draftsTitle": {"description": "Heading for unfinished/unsaved documents -- the Home entry and the drafts sheet title"},
+  "draftsCount": "{count, plural, one{1 unfinished document} other{{count} unfinished documents}}",
+  "@draftsCount": {
+    "description": "Subtitle under draftsTitle on Home's compact drafts entry",
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "draftsHelp": "Pick up where you left off, or discard what you no longer need.",
+  "@draftsHelp": {"description": "Subtitle under the drafts sheet's title"},
+  "noDrafts": "No drafts",
+  "@noDrafts": {"description": "Drafts sheet empty state"},
+  "untitledDraft": "Untitled document",
+  "@untitledDraft": {"description": "Fallback title for a draft with no title yet"},
+  "resumeDraft": "Resume",
+  "@resumeDraft": {"description": "Button that reopens a draft to keep editing it"},
+  "discardDraft": "Discard",
+  "@discardDraft": {"description": "Button label, confirm-dialog title, and confirm label that permanently deletes a draft"},
+  "discardDraftMessage": "This draft and its pages will be permanently deleted.",
+  "@discardDraftMessage": {"description": "Confirmation message before discarding a draft"},
+  "draftMissingFiles": "Some pages from this draft could no longer be found.",
+  "@draftMissingFiles": {"description": "Add Document screen status line when a restored draft is missing one or more of its attached files"},
+  "draftSaveFailed": "Couldn't save your draft.",
+  "@draftSaveFailed": {"description": "Add Document screen status line when autosaving the draft fails"},
+  "draftSaving": "Saving draft…",
+  "@draftSaving": {"description": "Add Document screen status line while the draft is being autosaved"},
+  "draftSaved": "Draft saved",
+  "@draftSaved": {"description": "Add Document screen status line once the draft has been autosaved"},
+  "draftHint": "Your progress is saved automatically.",
+  "@draftHint": {"description": "Add Document screen status line shown before any changes have been made yet"},
+  "draftRetry": "Retry",
+  "@draftRetry": {"description": "Button that retries a failed draft autosave"}
 }

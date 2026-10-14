@@ -1,3 +1,4 @@
+import 'features/documents/documents_domain_exports.dart';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -61,6 +62,7 @@ void main() {
       await sl<AppDatabase>().init();
       await sl<CategoryUseCases>().init();
       await sl<DocumentUseCases>().init();
+      await sl<DraftUseCases>().init();
       await sl<ThemeController>().loadTheme();
       await sl<LocaleController>().loadLocale();
       await sl<SecurityController>().loadSecurity();

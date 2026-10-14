@@ -1,3 +1,4 @@
+import '../features/documents/documents_domain_exports.dart' show DocumentDraft;
 import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
 import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
 import 'package:flutter/material.dart';
@@ -110,6 +111,7 @@ class AppRoutes {
         pageBuilder: (context, state) {
           final extra = state.extra;
           final child = switch (extra) {
+            DocumentDraft draft => AddDocumentView(initialDraft: draft),
             (DocumentItem document, AttachmentSource source) => AddDocumentView(
               editingDocument: document,
               initialSource: source,

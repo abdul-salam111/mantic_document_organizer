@@ -830,4 +830,57 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get operationFailedToast =>
       'Could not complete the action. Please try again.';
+
+  @override
+  String get draftsTitle => 'Drafts';
+
+  @override
+  String draftsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count unfinished documents',
+      one: '1 unfinished document',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get draftsHelp =>
+      'Pick up where you left off, or discard what you no longer need.';
+
+  @override
+  String get noDrafts => 'No drafts';
+
+  @override
+  String get untitledDraft => 'Untitled document';
+
+  @override
+  String get resumeDraft => 'Resume';
+
+  @override
+  String get discardDraft => 'Discard';
+
+  @override
+  String get discardDraftMessage =>
+      'This draft and its pages will be permanently deleted.';
+
+  @override
+  String get draftMissingFiles =>
+      'Some pages from this draft could no longer be found.';
+
+  @override
+  String get draftSaveFailed => 'Couldn\'t save your draft.';
+
+  @override
+  String get draftSaving => 'Saving draft…';
+
+  @override
+  String get draftSaved => 'Draft saved';
+
+  @override
+  String get draftHint => 'Your progress is saved automatically.';
+
+  @override
+  String get draftRetry => 'Retry';
 }

@@ -1,3 +1,6 @@
+import 'dart:convert';
+import '../../../domain/entities/document_draft.dart';
+import '../../../domain/usecases/draft_usecases.dart';
 import '../../../domain/entities/attachment_item.dart';
 import '../../../domain/entities/document_suggestion.dart';
 import '../../../domain/usecases/document_processing_usecases.dart';
@@ -24,6 +27,7 @@ enum TagError { limitReached, tooLong, duplicate }
 enum AttachmentSource { camera, gallery, file }
 
 class AddDocumentViewModel extends ChangeNotifier {
+  final DraftUseCases? _drafts;
   final CategoryUseCases _categoryUseCases;
   final DocumentUseCases _documentUseCases;
   final DocumentProcessingUseCases _processing;
@@ -35,14 +39,144 @@ class AddDocumentViewModel extends ChangeNotifier {
   /// from a category's own "+" button still preselects that category via
   /// [preselectCategory], called separately by the view.
   AddDocumentViewModel({
+    DraftUseCases? drafts,
     required CategoryUseCases categoryUseCases,
     required DocumentUseCases documentUseCases,
     required DocumentProcessingUseCases processing,
     required DocumentSyncBackgroundService syncBackgroundService,
-  }) : _categoryUseCases = categoryUseCases,
+  }) : _drafts = drafts,
+       _categoryUseCases = categoryUseCases,
        _documentUseCases = documentUseCases,
        _processing = processing,
-       _syncBackgroundService = syncBackgroundService;
+       _syncBackgroundService = syncBackgroundService {
+    titleController.addListener(_draftChanged);
+    descriptionController.addListener(_draftChanged);
+    tagController.addListener(_draftChanged);
+  }
+
+  String _captureId = generateLocalId();
+  DateTime _captureCreatedAt = DateTime.now();
+  final Set<String> _ownedPaths = {};
+  bool _restoringDraft = false;
+  bool _completed = false;
+  bool _draftPaused = false;
+  bool _draftFailed = false;
+  int _draftWrites = 0;
+  String? _lastDraftSignature;
+  Future<void> _draftQueue = Future.value();
+  List<String> _missingPaths = [];
+  bool get hasMissingDraftFiles => _missingPaths.isNotEmpty;
+  bool get draftFailed => _draftFailed;
+  bool get isSavingDraft => _draftWrites > 0;
+  bool get hasDraft => _lastDraftSignature != null && !_completed;
+  bool get draftsEnabled => _drafts != null && !isEditing;
+  bool get canLeave =>
+      !isSaving && !isSavingDraft && !draftFailed && !_restoringDraft;
+
+  DocumentDraft _snapshot() => DocumentDraft(
+    document: DocumentItem(
+      id: _captureId,
+      title: titleController.text,
+      category: _selectedCategory?.name ?? 'Uncategorized',
+      categoryId: _selectedCategory?.id ?? uncategorizedCategoryId,
+      iconKey: _selectedCategory?.iconKey ?? 'solidFolder',
+      createdAt: _captureCreatedAt,
+      tags: _tags,
+      filePaths: [for (final a in _attachments) a.path],
+      isExpirable: _isExpirable,
+      expiryDate: _expiryDate,
+      description: descriptionController.text,
+      ocrText: ocrText,
+    ),
+    updatedAt: DateTime.now(),
+    pendingTag: tagController.text,
+    ocrByPath: _ocrTextByPath,
+    ownedPaths: _ownedPaths.toList(),
+  );
+
+  void _draftChanged() {
+    if (_disposed ||
+        !draftsEnabled ||
+        _restoringDraft ||
+        _completed ||
+        _draftPaused) {
+      return;
+    }
+    // Category preselection alone must not create an empty draft.
+    if (!hasDraft &&
+        _attachments.isEmpty &&
+        titleController.text.trim().isEmpty &&
+        descriptionController.text.trim().isEmpty &&
+        tagController.text.trim().isEmpty &&
+        _tags.isEmpty) {
+      return;
+    }
+    final draft = _snapshot();
+    final signature = jsonEncode([
+      draft.document.title,
+      draft.document.categoryId,
+      draft.document.tags,
+      draft.document.filePaths,
+      draft.document.isExpirable,
+      draft.document.expiryDate?.toIso8601String(),
+      draft.document.description,
+      draft.pendingTag,
+      draft.ocrByPath,
+      draft.ownedPaths,
+    ]);
+    if (signature == _lastDraftSignature && !_draftFailed) return;
+    _lastDraftSignature = signature;
+    _draftWrites++;
+    _draftQueue = _draftQueue.then((_) async {
+      try {
+        await _drafts!.save(draft);
+        _draftFailed = false;
+      } catch (_) {
+        // Keep the form and expose a retry action instead of a toast per keypress.
+        _draftFailed = true;
+      } finally {
+        _draftWrites--;
+        if (!_disposed) super.notifyListeners();
+      }
+    });
+    super.notifyListeners();
+  }
+
+  Future<void> flushDraft() async {
+    _draftChanged();
+    await _draftQueue;
+    if (_draftFailed) throw StateError('Draft could not be saved');
+  }
+
+  Future<void> resumeDraft(DocumentDraft draft) async {
+    _restoringDraft = true;
+    _isLoadingAttachments = true;
+    _captureId = draft.id;
+    _captureCreatedAt = draft.document.createdAt;
+    final document = draft.document;
+    titleController.text = document.title;
+    descriptionController.text = document.description;
+    tagController.text = draft.pendingTag;
+    final category = _categoryUseCases.byId(document.categoryId);
+    _selectedCategory = category?.isViewerOnly == false ? category : null;
+    _tags.addAll(document.tags);
+    _isExpirable = document.isExpirable;
+    _expiryDate = document.expiryDate;
+    _ocrTextByPath.addAll(draft.ocrByPath);
+    _ownedPaths.addAll(draft.ownedPaths);
+    _attachments.addAll([
+      for (final path in document.filePaths)
+        AttachmentItem(path: path, type: isImagePath(path) ? .image : .file),
+    ]);
+    notifyListeners();
+    try {
+      _missingPaths = await _drafts!.missingFiles(draft);
+    } finally {
+      _restoringDraft = false;
+      _isLoadingAttachments = false;
+      notifyListeners();
+    }
+  }
 
   /// Called from the view when opened with a category already in
   /// context (e.g. the "+" button on a category's document list) — picks
@@ -306,7 +440,7 @@ class AddDocumentViewModel extends ChangeNotifier {
     _isProcessingOcr = false;
     notifyListeners();
 
-    if (_disposed) return;
+    if (_disposed || _completed || _isSaving) return;
     final text = ocrText;
     if (text.trim().isEmpty) return;
 
@@ -318,7 +452,7 @@ class AddDocumentViewModel extends ChangeNotifier {
         for (final c in _categoryUseCases.categories) c.name,
       ],
     );
-    if (_disposed) return;
+    if (_disposed || _completed || _isSaving) return;
     _isAnalyzing = false;
     if (suggestion != null) {
       isEditing
@@ -393,6 +527,7 @@ class AddDocumentViewModel extends ChangeNotifier {
   void _acceptAttachments(AttachmentSelection selection) {
     if (_disposed || selection.items.isEmpty) return;
     _attachments.addAll(selection.items);
+    if (!isEditing) _ownedPaths.addAll(selection.items.map((a) => a.path));
     _showAttachmentError = false;
     notifyListeners();
     unawaited(_runOcrAndAi(selection.items));
@@ -422,6 +557,8 @@ class AddDocumentViewModel extends ChangeNotifier {
 
   void removeAttachment(AttachmentItem attachment) {
     _attachments.remove(attachment);
+    _missingPaths.remove(attachment.path);
+    _ocrTextByPath.remove(attachment.path);
     notifyListeners();
   }
 
@@ -430,7 +567,10 @@ class AddDocumentViewModel extends ChangeNotifier {
   bool _disposed = false;
   @override
   void notifyListeners() {
-    if (!_disposed) super.notifyListeners();
+    if (!_disposed) {
+      _draftChanged();
+      super.notifyListeners();
+    }
   }
 
   /// Persists any attachment still pointing at one of
@@ -452,9 +592,7 @@ class AddDocumentViewModel extends ChangeNotifier {
         attachment.path,
       );
       if (_ocrTextByPath.containsKey(attachment.path)) {
-        _ocrTextByPath[persistedPath] = _ocrTextByPath.remove(
-          attachment.path,
-        )!;
+        _ocrTextByPath[persistedPath] = _ocrTextByPath.remove(attachment.path)!;
       }
       _attachments[i] = AttachmentItem(
         path: persistedPath,
@@ -497,11 +635,19 @@ class AddDocumentViewModel extends ChangeNotifier {
     _isSaving = true;
     notifyListeners();
     try {
+      await flushDraft();
+      _draftPaused = true;
+      if (draftsEnabled) {
+        _missingPaths = await _drafts!.missingFiles(_snapshot());
+        if (_missingPaths.isNotEmpty) {
+          throw StateError('Remove or replace missing draft pages');
+        }
+      }
       await _persistTempAttachments();
       final category = _selectedCategory;
       final original = _editingDocument;
       final item = DocumentItem(
-        id: original?.id ?? generateLocalId(),
+        id: original?.id ?? _captureId,
         title: titleController.text.trim(),
         category: category?.name ?? 'Uncategorized',
         categoryId: category?.id ?? uncategorizedCategoryId,
@@ -521,11 +667,21 @@ class AddDocumentViewModel extends ChangeNotifier {
       } else {
         await _documentUseCases.addDocument(item);
       }
+      _completed = true;
+      if (draftsEnabled) {
+        // The database removed the draft atomically with the document write.
+        // Refresh failures must not turn a successful save into a second save.
+        try {
+          await _drafts!.init();
+        } catch (_) {}
+        await _deleteDroppedFiles(_ownedPaths.toList(), item.filePaths);
+      }
       triggerSharedSpaceSyncIfNeeded(
         syncBackgroundService: _syncBackgroundService,
         spaceId: category?.spaceId,
       );
     } finally {
+      _draftPaused = false;
       _isSaving = false;
       notifyListeners();
     }
