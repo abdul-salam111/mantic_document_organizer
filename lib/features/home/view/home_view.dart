@@ -179,7 +179,11 @@ class HomeView extends StatelessWidget {
                             ),
                             heightBox(7),
                             SizedBox(
-                              height: 80,
+                              height:
+                                  214 +
+                                  (MediaQuery.textScalerOf(context).scale(14) -
+                                          14) *
+                                      7,
                               child: StaggeredReveal(
                                 itemCount: vm.expiringSoonPreview.length,
                                 builder: (context, reveal) =>
@@ -198,16 +202,8 @@ class HomeView extends StatelessWidget {
                                               vm.expiringSoonPreview.length,
                                           index: index,
                                           beginOffset: const Offset(0.12, 0),
-                                          child: _RecentFileCard(
+                                          child: _ExpiringSoonCard(
                                             document: document,
-                                            enableHero: false,
-                                            accentBarColor: expiryUrgencyColor(
-                                              context,
-                                              document.expiryDate!,
-                                            ),
-                                            trailingMeta: ExpiryChip(
-                                              expiryDate: document.expiryDate!,
-                                            ),
                                           ),
                                         );
                                       },
@@ -474,33 +470,7 @@ Color categoryIconColor(BuildContext context, String categoryName) {
 class _RecentFileCard extends StatelessWidget {
   final DocumentItem document;
 
-  /// Replaces the bottom metadata row (created-time by default) — the
-  /// Expiring Soon section passes an [ExpiryChip] here so the card
-  /// surfaces urgency instead of how long ago it was added, while keeping
-  /// everything else about the card identical.
-  final Widget? trailingMeta;
-
-  /// False for the Expiring Soon section: a document can legitimately
-  /// appear in both it and Recent Files at once (both are previews of the
-  /// same underlying document list, just filtered differently), and two
-  /// simultaneous Heroes with the same tag on one screen crashes — only
-  /// one of the two cards for a given document gets to carry the
-  /// document-open Hero, so Recent Files keeps it.
-  final bool enableHero;
-
-  /// A colored bar down the card's left edge — the Expiring Soon section
-  /// passes its urgency color here (see [expiryUrgencyColor]) so its cards
-  /// read as a distinct kind of card at a glance instead of looking like
-  /// plain Recent Files entries with a different bottom line. Null (the
-  /// Recent Files default) omits the bar entirely.
-  final Color? accentBarColor;
-
-  const _RecentFileCard({
-    required this.document,
-    this.trailingMeta,
-    this.enableHero = true,
-    this.accentBarColor,
-  });
+  const _RecentFileCard({required this.document});
 
   static const double _height = 80;
 
@@ -513,9 +483,11 @@ class _RecentFileCard extends StatelessWidget {
       borderRadius: 8,
       iconSize: 24,
     );
-    return enableHero
-        ? DocumentCoverHero(document: document, color: color, child: thumbnail)
-        : thumbnail;
+    return DocumentCoverHero(
+      document: document,
+      color: color,
+      child: thumbnail,
+    );
   }
 
   @override
@@ -545,8 +517,6 @@ class _RecentFileCard extends StatelessWidget {
             Row(
               crossAxisAlignment: .stretch,
               children: [
-                if (accentBarColor != null)
-                  Container(width: 4, color: accentBarColor),
                 SizedBox(
                   width: _height,
                   height: _height,
@@ -583,11 +553,10 @@ class _RecentFileCard extends StatelessWidget {
                             context,
                           ).pageCount(document.filePaths.length),
                         ),
-                        trailingMeta ??
-                            _MetaLineWithIcon(
-                              icon: Iconsax.timer_1,
-                              text: document.createdAt.timeAgoShort,
-                            ),
+                        _MetaLineWithIcon(
+                          icon: Iconsax.timer_1,
+                          text: document.createdAt.timeAgoShort,
+                        ),
                       ],
                     ),
                   ),
@@ -603,6 +572,110 @@ class _RecentFileCard extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A date-first reminder, visually separate from the thumbnail-led recent files.
+/// No Hero: the same document can also appear in Recent Files on this route.
+class _ExpiringSoonCard extends StatelessWidget {
+  final DocumentItem document;
+
+  const _ExpiringSoonCard({required this.document});
+
+  @override
+  Widget build(BuildContext context) {
+    final expiry = document.expiryDate!;
+    final accent = expiryUrgencyColor(context, expiry);
+    return SizedBox(
+      width: 180,
+      child: Material(
+        color: Color.alphaBlend(
+          accent.withValues(alpha: 0.07),
+          context.categoryCardSurface,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: .circular(18),
+          side: BorderSide(color: accent.withValues(alpha: 0.22)),
+        ),
+        clipBehavior: .antiAlias,
+        child: InkWell(
+          onTap: () => AppNavigator.pushNamed(
+            RouteNames.documentViewer,
+            extra: document,
+          ),
+          child: Padding(
+            padding: const .all(14),
+            child: Column(
+              crossAxisAlignment: .start,
+              children: [
+                Row(
+                  crossAxisAlignment: .start,
+                  children: [
+                    Container(
+                      width: 60,
+                      padding: const .symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: context.surface,
+                        borderRadius: .circular(12),
+                        border: Border.all(
+                          color: accent.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            expiry.shortMonthName,
+                            maxLines: 1,
+                            style: context.labelSmall.copyWith(
+                              color: context.textSecondary,
+                              fontWeight: .w600,
+                            ),
+                          ),
+                          Text(
+                            expiry.format('dd'),
+                            style: context.headlineMedium.copyWith(
+                              color: context.textPrimary,
+                              fontWeight: .w800,
+                              height: 1.15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    PendingSyncBadge(documentId: document.id, size: 21),
+                  ],
+                ),
+                heightBox(12),
+                Text(
+                  document.title,
+                  maxLines: 2,
+                  overflow: .ellipsis,
+                  style: context.bodyMedium.copyWith(
+                    fontWeight: .w700,
+                    height: 1.2,
+                  ),
+                ),
+                heightBox(4),
+                Text(
+                  document.category,
+                  maxLines: 1,
+                  overflow: .ellipsis,
+                  style: context.labelSmall.copyWith(
+                    color: context.textSecondary,
+                  ),
+                ),
+                const Spacer(),
+                SizedBox(
+                  width: double.infinity,
+                  child: ExpiryChip(expiryDate: expiry),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

@@ -6,7 +6,7 @@ import '../../../../core/utils/utils_exports.dart';
 import '../../../../core/widgets/widgets_exports.dart';
 
 /// Overdue/soon/later, shared by [ExpiryChip] and Home's Expiring Soon
-/// preview cards (their left accent bar) so both read urgency the same
+/// preview cards (their tinted surface and border) so both read urgency the same
 /// way instead of each picking their own thresholds.
 Color expiryUrgencyColor(BuildContext context, DateTime expiryDate) {
   final daysLeft = expiryDate.difference(DateTime.now()).inDays;
