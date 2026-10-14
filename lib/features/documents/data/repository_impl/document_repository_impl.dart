@@ -5,6 +5,7 @@ import '../../domain/entities/document_item.dart';
 import '../../domain/repositories/document_repository.dart';
 import '../datasources/document_local_datasource.dart';
 import '../../../../core/notifications/expiry_notification_service.dart';
+import '../../../../core/notifications/sync_reminder_service.dart';
 
 class DocumentRepositoryImpl extends ChangeNotifier
     implements IDocumentRepository {
@@ -25,6 +26,7 @@ class DocumentRepositoryImpl extends ChangeNotifier
   Future<void> _schedule(DocumentItem document) async {
     await _bestEffort(() => _notifications.scheduleForDocument(document));
     _refreshDigest();
+    _refreshSyncReminder();
   }
 
   Future<void> _cancel(String id) =>
@@ -41,8 +43,9 @@ class DocumentRepositoryImpl extends ChangeNotifier
 
   final DocumentLocalDataSource _db;
   final ExpiryNotificationService _notifications;
+  final SyncReminderService _syncReminder;
 
-  DocumentRepositoryImpl(this._db, this._notifications);
+  DocumentRepositoryImpl(this._db, this._notifications, this._syncReminder);
   static const Duration trashRetentionPeriod =
       DocumentPolicy.trashRetentionPeriod;
 
@@ -71,11 +74,25 @@ class DocumentRepositoryImpl extends ChangeNotifier
       await _bestEffort(() => _notifications.scheduleForDocument(document));
     }
     _refreshDigest();
+    // Also catches the case this comment's sibling call (inside _schedule)
+    // can't: a sync run just finished (DocumentSyncBackgroundService calls
+    // DocumentUseCases.init(), which reaches here) and pending-sync state
+    // may have gone from "something pending" to "nothing left" without any
+    // single document add/update/restore to hang that reconciliation off.
+    _refreshSyncReminder();
   }
 
   void _refreshDigest() => unawaited(
     _bestEffort(() => _notifications.scheduleWeeklyDigest(_documents)),
   );
+
+  /// Reconciles the "a document is waiting to back up" reminder against
+  /// whatever's actually still pending sync right now -- called alongside
+  /// [_refreshDigest] everywhere that already reconciles reminders against
+  /// fresh state (every add/update/restore, and startup), so it never needs
+  /// its own tracked "is something pending" flag.
+  void _refreshSyncReminder() =>
+      unawaited(_bestEffort(() => _syncReminder.refresh()));
 
   @override
   Future<void> addDocument(DocumentItem document) => _write(() async {

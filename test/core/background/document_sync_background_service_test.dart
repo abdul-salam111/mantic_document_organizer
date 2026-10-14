@@ -6,6 +6,7 @@ import 'package:mantic_doc_org/core/background/document_sync_background_service.
 import 'package:mantic_doc_org/core/database/database_exports.dart';
 import 'package:mantic_doc_org/core/notifications/document_sync_notifications.dart';
 import 'package:mantic_doc_org/core/notifications/notification_plugin.dart';
+import 'package:mantic_doc_org/core/notifications/sync_reminder_service.dart';
 import 'package:mantic_doc_org/features/backup/data/services/document_sync_service.dart';
 import 'package:mantic_doc_org/features/backup/domain/entities/sync_progress.dart';
 import 'package:mantic_doc_org/features/categories/domain/usecases/category_usecases.dart';
@@ -90,24 +91,38 @@ class FakeDocumentSyncNotifications extends DocumentSyncNotifications {
   }
 }
 
+class FakeSyncReminderService extends SyncReminderService {
+  FakeSyncReminderService() : super(AppNotificationPlugin(), AppDatabase());
+
+  int refreshCalls = 0;
+
+  @override
+  Future<void> refresh() async {
+    refreshCalls++;
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late FakeDocumentSyncService syncService;
   late FakeAppDatabase database;
   late FakeDocumentSyncNotifications notifications;
+  late FakeSyncReminderService syncReminder;
   late DocumentSyncBackgroundService service;
 
   setUp(() {
     syncService = FakeDocumentSyncService();
     database = FakeAppDatabase();
     notifications = FakeDocumentSyncNotifications();
+    syncReminder = FakeSyncReminderService();
     service = DocumentSyncBackgroundService(
       syncService: syncService,
       database: database,
       documents: DocumentUseCases(FakeDocuments()),
       categories: CategoryUseCases(FakeCategories()),
       notifications: notifications,
+      syncReminder: syncReminder,
     );
   });
 

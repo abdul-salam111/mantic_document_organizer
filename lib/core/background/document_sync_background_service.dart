@@ -21,12 +21,15 @@ class DocumentSyncBackgroundService {
     required DocumentUseCases documents,
     required CategoryUseCases categories,
     required DocumentSyncNotifications notifications,
+    required SyncReminderService syncReminder,
   }) : _syncService = syncService,
        _database = database,
        _documents = documents,
        _categories = categories,
-       _notifications = notifications {
+       _notifications = notifications,
+       _syncReminder = syncReminder {
     _notifications.onOpenTapped = _openBackupSetup;
+    _syncReminder.onOpenTapped = _openBackupSetup;
   }
 
   final DocumentSyncService _syncService;
@@ -34,6 +37,7 @@ class DocumentSyncBackgroundService {
   final DocumentUseCases _documents;
   final CategoryUseCases _categories;
   final DocumentSyncNotifications _notifications;
+  final SyncReminderService _syncReminder;
 
   /// Keyed by spaceId -- see DocumentSyncService's matching field for why
   /// a single global flag was wrong here (it let one space's sync being
@@ -89,7 +93,11 @@ class DocumentSyncBackgroundService {
 
     _syncService.progress.addListener(onProgress);
     try {
-      await _notifications.showSyncing(current: 0, total: 0, label: 'Starting backup…');
+      await _notifications.showSyncing(
+        current: 0,
+        total: 0,
+        label: 'Starting backup…',
+      );
       if (queueExistingDocuments) {
         await _database.queueExistingDocumentsForSync();
       }

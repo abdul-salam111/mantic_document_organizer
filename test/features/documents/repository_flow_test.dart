@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mantic_doc_org/core/database/app_database.dart';
 import 'package:mantic_doc_org/core/notifications/expiry_notification_service.dart';
 import 'package:mantic_doc_org/core/notifications/notification_plugin.dart';
 import 'package:mantic_doc_org/core/notifications/reminder_preference_controller.dart';
+import 'package:mantic_doc_org/core/notifications/sync_reminder_service.dart';
 import 'package:mantic_doc_org/features/categories/data/datasources/category_local_datasource.dart';
 import 'package:mantic_doc_org/features/categories/data/repository_impl/category_repository_impl.dart';
 import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
@@ -112,6 +114,15 @@ class ReminderSpy extends ExpiryNotificationService {
   }
 }
 
+class SyncReminderSpy extends SyncReminderService {
+  SyncReminderSpy() : super(AppNotificationPlugin(), AppDatabase());
+  int refreshCount = 0;
+  @override
+  Future<void> refresh() async {
+    refreshCount++;
+  }
+}
+
 class MemoryCategories implements CategoryLocalDataSource {
   final rows = <String, CategoryItem>{};
   bool fail = false;
@@ -144,13 +155,15 @@ class MemoryCategories implements CategoryLocalDataSource {
 void main() {
   late MemoryDocuments storage;
   late ReminderSpy reminders;
+  late SyncReminderSpy syncReminder;
   late DocumentRepositoryImpl repository;
   late DocumentUseCases documents;
   late FavoritesUsecase favorites;
   setUp(() async {
     storage = MemoryDocuments();
     reminders = ReminderSpy();
-    repository = DocumentRepositoryImpl(storage, reminders);
+    syncReminder = SyncReminderSpy();
+    repository = DocumentRepositoryImpl(storage, reminders, syncReminder);
     documents = DocumentUseCases(repository);
     favorites = FavoritesUsecase(
       repository: FavoritesRepositoryImpl(repository),
@@ -255,6 +268,20 @@ void main() {
       await documents.addDocument(document('a'));
       await documents.snoozeExpiryReminder('a', const Duration(days: 3));
       expect(reminders.snoozed, [('a', const Duration(days: 3))]);
+    },
+  );
+
+  test(
+    'adding, updating, and restoring a document each reconcile the sync reminder',
+    () async {
+      syncReminder.refreshCount = 0;
+      await documents.addDocument(document('a'));
+      expect(syncReminder.refreshCount, 1);
+      await documents.updateDocument(storage.rows['a']!.copyWith(title: 'B'));
+      expect(syncReminder.refreshCount, 2);
+      await documents.trashDocument('a');
+      await documents.restoreDocument('a');
+      expect(syncReminder.refreshCount, 3);
     },
   );
 

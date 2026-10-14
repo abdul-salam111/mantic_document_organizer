@@ -8,6 +8,7 @@ import 'package:mantic_doc_org/core/di/injection_container.dart';
 import 'package:mantic_doc_org/core/localization/localization_exports.dart';
 import 'package:mantic_doc_org/core/notifications/document_sync_notifications.dart';
 import 'package:mantic_doc_org/core/notifications/notification_plugin.dart';
+import 'package:mantic_doc_org/core/notifications/sync_reminder_service.dart';
 import 'package:mantic_doc_org/core/theme/theme.dart';
 import 'package:mantic_doc_org/core/widgets/inputs/custom_textfield.dart';
 import 'package:mantic_doc_org/features/backup/data/services/document_sync_service.dart';
@@ -50,6 +51,10 @@ void main() {
         documents: DocumentUseCases(documents),
         categories: CategoryUseCases(categories),
         notifications: DocumentSyncNotifications(AppNotificationPlugin()),
+        syncReminder: SyncReminderService(
+          AppNotificationPlugin(),
+          AppDatabase(),
+        ),
       ),
     );
     sl.registerFactory<AddDocumentViewModel>(() => vm);

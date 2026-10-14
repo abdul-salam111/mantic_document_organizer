@@ -141,6 +141,10 @@ Future<void> coreDependencies() async {
     dispose: (service) => service.dispose(),
   );
   sl.registerLazySingleton(
+    () => SyncReminderService(sl(), sl()),
+    dispose: (service) => service.dispose(),
+  );
+  sl.registerLazySingleton(
     () => AutoImportNotifications(sl()),
     dispose: (service) => service.dispose(),
   );
@@ -235,6 +239,7 @@ Future<void> backupDependencies() async {
       documents: sl(),
       categories: sl(),
       notifications: sl(),
+      syncReminder: sl(),
     ),
   );
 }
@@ -251,7 +256,7 @@ Future<void> documentStorageDependencies() async {
     () => SqliteDocumentDataSource(sl()),
   );
   sl.registerLazySingleton<IDocumentRepository>(
-    () => DocumentRepositoryImpl(sl(), sl()),
+    () => DocumentRepositoryImpl(sl(), sl(), sl()),
   );
   sl.registerLazySingleton<DocumentUseCases>(() => DocumentUseCases(sl()));
 }
