@@ -351,6 +351,45 @@ class AppLocalizationsAr extends AppLocalizations {
       'في انتظار Wi-Fi للمزامنة. فعّل بيانات الجوال من الإعدادات للمزامنة في أي وقت';
 
   @override
+  String get remindersSectionTitle => 'التذكيرات';
+
+  @override
+  String get remindBeforeExpiry => 'ذكّرني قبل انتهاء الصلاحية';
+
+  @override
+  String get remindBeforeExpirySubtitle =>
+      'ينطبق على كل مستند له تاريخ انتهاء صلاحية';
+
+  @override
+  String reminderDaysValue(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'قبل $days أيام',
+      one: 'قبل يوم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get snooze => 'تأجيل';
+
+  @override
+  String snoozeForDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days أيام',
+      one: 'يوم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reminderSnoozedToast =>
+      'تم تأجيل التذكير — سنذكرك مرة أخرى لاحقًا';
+
+  @override
   String get support => 'الدعم';
 
   @override

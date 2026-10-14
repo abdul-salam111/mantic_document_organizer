@@ -36,6 +36,12 @@ class DocumentListTile extends StatelessWidget {
   final String? matchExcerpt;
   final String highlightQuery;
 
+  /// Shows a snooze button (next to the favorite toggle) when non-null —
+  /// only the Expiring Soon screen wires this up, since it's the only
+  /// place every row is already known to have an active expiry reminder.
+  /// Called with the chosen snooze duration once the user picks one.
+  final ValueChanged<Duration>? onSnooze;
+
   const DocumentListTile({
     super.key,
     required this.document,
@@ -47,6 +53,7 @@ class DocumentListTile extends StatelessWidget {
     this.isSelected = false,
     this.matchExcerpt,
     this.highlightQuery = '',
+    this.onSnooze,
   });
 
   bool get _showExpiryChip =>
@@ -162,6 +169,8 @@ class DocumentListTile extends StatelessWidget {
                       // a star mid-selection reads as "favorite this one"
                       // more than "select it", so it's removed as a tap
                       // target entirely instead of just no-op'd.
+                      if (!isSelecting && onSnooze != null)
+                        _SnoozeButton(onSelected: onSnooze!),
                       if (!isSelecting)
                         _FavoriteButton(
                           isFavorite: document.isFavorite,
@@ -223,11 +232,7 @@ class _MatchExcerpt extends StatelessWidget {
       children: [
         Padding(
           padding: const .only(top: 2),
-          child: Icon(
-            Iconsax.quote_up,
-            size: 11,
-            color: context.textSecondary,
-          ),
+          child: Icon(Iconsax.quote_up, size: 11, color: context.textSecondary),
         ),
         widthBox(4),
         Expanded(
@@ -263,9 +268,7 @@ TextSpan _highlightedSpan(
       break;
     }
     if (index > start) {
-      spans.add(
-        TextSpan(text: text.substring(start, index), style: baseStyle),
-      );
+      spans.add(TextSpan(text: text.substring(start, index), style: baseStyle));
     }
     spans.add(
       TextSpan(
@@ -276,6 +279,51 @@ TextSpan _highlightedSpan(
     start = index + query.length;
   }
   return TextSpan(children: spans);
+}
+
+/// Offers a short list of preset snooze durations — same circular-icon
+/// shape as [_FavoriteButton] so the two sit consistently side by side.
+class _SnoozeButton extends StatelessWidget {
+  static const _options = [
+    Duration(days: 1),
+    Duration(days: 3),
+    Duration(days: 7),
+  ];
+
+  final ValueChanged<Duration> onSelected;
+
+  const _SnoozeButton({required this.onSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Tooltip(
+      message: l10n.snooze,
+      child: PopupMenuButton<Duration>(
+        onSelected: onSelected,
+        padding: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(borderRadius: .circular(14)),
+        itemBuilder: (context) => [
+          for (final duration in _options)
+            PopupMenuItem(
+              value: duration,
+              child: Text(l10n.snoozeForDays(duration.inDays)),
+            ),
+        ],
+        child: Container(
+          width: 36,
+          height: 36,
+          alignment: .center,
+          decoration: const BoxDecoration(shape: .circle),
+          child: Icon(
+            Iconsax.notification,
+            size: 19,
+            color: context.textSecondary,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 /// A proper circular tap target (not a bare icon) that fills in softly

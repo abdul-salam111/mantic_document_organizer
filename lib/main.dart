@@ -48,6 +48,11 @@ void main() {
       // Shared flutter_local_notifications plugin -- must be initialized
       // before any service that sends notifications through it.
       await sl<AppNotificationPlugin>().init();
+      // Must be loaded before ExpiryNotificationService.init() below --
+      // DocumentUseCases.init() schedules/reconciles every active
+      // document's reminder immediately after, reading this preference's
+      // current value each time.
+      await sl<ReminderPreferenceController>().loadReminderPreference();
       // Must be ready before DocumentUseCases.init() below, which
       // schedules/reconciles every active document's expiry reminders as
       // soon as it hydrates.
@@ -106,6 +111,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<NetworkPreferenceController>.value(
           value: sl<NetworkPreferenceController>(),
+        ),
+        ChangeNotifierProvider<ReminderPreferenceController>.value(
+          value: sl<ReminderPreferenceController>(),
         ),
       ],
       child: Consumer2<ThemeController, LocaleController>(

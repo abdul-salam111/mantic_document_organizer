@@ -17,6 +17,9 @@ class ExpiringSoonViewModel extends ChangeNotifier {
   Future<void> toggleFavorite(DocumentItem document) =>
       _documentUseCases.toggleFavorite(document);
 
+  Future<void> snooze(DocumentItem document, Duration by) =>
+      _documentUseCases.snoozeExpiryReminder(document.id, by);
+
   @override
   void dispose() {
     _documentUseCases.removeListener(notifyListeners);

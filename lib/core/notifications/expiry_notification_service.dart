@@ -9,23 +9,26 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../../l10n/app_localizations.dart';
 import 'notification_plugin.dart';
+import 'reminder_preference_controller.dart';
 
 /// Local (on-device, no backend) reminders for a document's expiry date —
-/// schedules up to two notifications per document, [daysBefore] days before
+/// schedules up to two notifications per document,
+/// [ReminderPreferenceController.daysBefore] days before
 /// [DocumentItem.expiryDate] and on the day itself, both at [_reminderHour]
 /// local time. The document repository is the single call site for every
 /// document mutation (add/update/trash/restore/delete), so it owns calling
 /// [scheduleForDocument]/[cancelForDocument] here — nothing else in the app
-/// needs to know this exists.
+/// needs to know this exists, other than [snooze] (called straight from the
+/// Expiring Soon screen, since a snooze isn't a document mutation).
 class ExpiryNotificationService {
-  ExpiryNotificationService(this._notificationPlugin);
+  ExpiryNotificationService(this._notificationPlugin, this._reminderPreference);
 
   final AppNotificationPlugin _notificationPlugin;
+  final ReminderPreferenceController _reminderPreference;
   FlutterLocalNotificationsPlugin get _plugin => _notificationPlugin.plugin;
   StreamSubscription<NotificationResponse>? _tapSubscription;
 
   static const int _reminderHour = 9;
-  static const int daysBefore = 7;
   static const String _channelId = 'document_expiry';
   static const String _channelName = 'Document Expiry Reminders';
 
@@ -43,8 +46,12 @@ class ExpiryNotificationService {
 
   String _expiringSoonTitle = 'Document expiring soon';
   String _expiresTodayTitle = 'Document expires today';
-  String Function(String title) _expiringSoonBody = (title) =>
-      '"$title" expires in $daysBefore days';
+  // Takes the day count rather than closing over it, since [snooze]
+  // schedules the same body with a recomputed count (how many days are
+  // actually left once the snooze fires), not necessarily
+  // [ReminderPreferenceController.daysBefore].
+  String Function(String title, int days) _expiringSoonBody = (title, days) =>
+      '"$title" expires in $days days';
   String Function(String title) _expiresTodayBody = (title) =>
       '"$title" expires today';
   String _expiringSoonDigestTitle = 'Documents expiring soon';
@@ -69,8 +76,8 @@ class ExpiryNotificationService {
   void updateLocalizedStrings(AppLocalizations l10n) {
     _expiringSoonTitle = l10n.documentExpiringSoonTitle;
     _expiresTodayTitle = l10n.documentExpiresTodayTitle;
-    _expiringSoonBody = (title) =>
-        l10n.documentExpiringSoonBody(title, daysBefore);
+    _expiringSoonBody = (title, days) =>
+        l10n.documentExpiringSoonBody(title, days);
     _expiresTodayBody = (title) => l10n.documentExpiresTodayBody(title);
     _expiringSoonDigestTitle = l10n.expiringSoonDigestTitle;
     _expiringSoonDigestBody = (count) => l10n.expiringSoonDigestBody(count);
@@ -108,13 +115,14 @@ class ExpiryNotificationService {
       expiryDate.month,
       expiryDate.day,
     );
-    final reminderDay = expiryDay.subtract(const Duration(days: daysBefore));
+    final daysBefore = _reminderPreference.daysBefore;
+    final reminderDay = expiryDay.subtract(Duration(days: daysBefore));
 
     if (reminderDay.isAfter(now)) {
       await _schedule(
         id: _reminderNotificationId(document.id),
         title: _expiringSoonTitle,
-        body: _expiringSoonBody(document.title),
+        body: _expiringSoonBody(document.title, daysBefore),
         day: reminderDay,
       );
     }
@@ -135,6 +143,35 @@ class ExpiryNotificationService {
   Future<void> cancelForDocument(String documentId) async {
     await _plugin.cancel(id: _reminderNotificationId(documentId));
     await _plugin.cancel(id: _expiryNotificationId(documentId));
+  }
+
+  /// Reschedules [document]'s "expiring soon" reminder to fire again
+  /// [by] from now, replacing whatever was in that slot (the standard
+  /// lead-time reminder [scheduleForDocument] may have already scheduled,
+  /// or nothing, if it had already fired) — scheduling with the same id
+  /// a second time overwrites the first rather than stacking two
+  /// notifications. Reuses the same "expires in N days" body, recomputing
+  /// N for the snoozed time so it stays accurate even though it may no
+  /// longer match [ReminderPreferenceController.daysBefore].
+  ///
+  /// This doesn't persist across the document's own reminder being
+  /// recomputed — a later edit to the document calls
+  /// [scheduleForDocument] again, which overwrites this slot back to the
+  /// standard schedule. A deliberate tradeoff: documents are edited far
+  /// less often than reminders are snoozed, so this isn't worth tracking
+  /// "snoozed until" as separate persisted state.
+  Future<void> snooze(DocumentItem document, Duration by) {
+    final remindAt = DateTime.now().add(by);
+    final expiryDate = document.expiryDate;
+    final daysUntilExpiry = expiryDate == null
+        ? 0
+        : expiryDate.difference(remindAt).inDays;
+    return _scheduleAt(
+      id: _reminderNotificationId(document.id),
+      title: _expiringSoonTitle,
+      body: _expiringSoonBody(document.title, daysUntilExpiry),
+      when: remindAt,
+    );
   }
 
   /// Recomputes and (re)schedules the single weekly "N documents expire
@@ -213,16 +250,30 @@ class ExpiryNotificationService {
     return response?.payload == _digestPayload;
   }
 
+  /// [day] at [_reminderHour] local time — for the two standard per-document
+  /// reminders, which only ever care about the date, not a specific time.
   Future<void> _schedule({
     required int id,
     required String title,
     required String body,
     required DateTime day,
+  }) => _scheduleAt(
+    id: id,
+    title: title,
+    body: body,
+    when: DateTime(day.year, day.month, day.day, _reminderHour),
+  );
+
+  /// The exact moment [when] — for [snooze], where "day at 9am" would be
+  /// meaningless for a short snooze (e.g. "remind me again tomorrow" still
+  /// needs today's time-of-day preserved, not rounded to 9am).
+  Future<void> _scheduleAt({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime when,
   }) {
-    final scheduledDate = tz.TZDateTime.from(
-      DateTime(day.year, day.month, day.day, _reminderHour),
-      tz.local,
-    );
+    final scheduledDate = tz.TZDateTime.from(when, tz.local);
     return _plugin.zonedSchedule(
       id: id,
       title: title,
@@ -239,8 +290,8 @@ class ExpiryNotificationService {
         ),
         iOS: DarwinNotificationDetails(),
       ),
-      // Being off by a few minutes doesn't matter for a "expires in 7 days"
-      // reminder — avoids needing the exact-alarm permission entirely.
+      // Being off by a few minutes doesn't matter for an "expires in N
+      // days" reminder — avoids needing the exact-alarm permission entirely.
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
     );
   }

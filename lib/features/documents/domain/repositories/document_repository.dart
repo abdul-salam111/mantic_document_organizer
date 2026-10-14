@@ -15,4 +15,15 @@ abstract interface class IDocumentRepository {
   Future<void> permanentlyDeleteDocument(String id);
   Future<void> emptyTrash();
   int countForCategory(String categoryId);
+
+  /// Reschedules every active document's expiry reminder against the
+  /// current reminder lead-time preference — called after the user changes
+  /// that preference, since reminders already scheduled were computed with
+  /// whatever the lead time was at the time.
+  Future<void> rescheduleExpiryReminders();
+
+  /// Snoozes [documentId]'s expiry reminder to fire again [by] from now.
+  /// A no-op if [documentId] isn't an active document (e.g. it was
+  /// trashed between the snooze button being shown and tapped).
+  Future<void> snoozeExpiryReminder(String documentId, Duration by);
 }

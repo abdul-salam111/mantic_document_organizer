@@ -173,4 +173,18 @@ class DocumentRepositoryImpl extends ChangeNotifier
   @override
   int countForCategory(String categoryId) =>
       _documents.where((d) => d.categoryId == categoryId).length;
+
+  @override
+  Future<void> rescheduleExpiryReminders() async {
+    for (final document in _documents) {
+      await _bestEffort(() => _notifications.scheduleForDocument(document));
+    }
+  }
+
+  @override
+  Future<void> snoozeExpiryReminder(String documentId, Duration by) {
+    final index = _documents.indexWhere((d) => d.id == documentId);
+    if (index == -1) return Future.value();
+    return _bestEffort(() => _notifications.snooze(_documents[index], by));
+  }
 }

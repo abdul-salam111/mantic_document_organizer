@@ -651,6 +651,48 @@ abstract class AppLocalizations {
   /// Settings section heading
   ///
   /// In en, this message translates to:
+  /// **'Reminders'**
+  String get remindersSectionTitle;
+
+  /// Settings row label for the expiry-reminder lead-time preference
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me before expiry'**
+  String get remindBeforeExpiry;
+
+  /// Settings row subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Applies to every document with an expiry date'**
+  String get remindBeforeExpirySubtitle;
+
+  /// How the chosen reminder lead time is shown, e.g. '7 days before' — used both as the current value and as each option in its picker
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, one{1 day before} other{{days} days before}}'**
+  String reminderDaysValue(int days);
+
+  /// Tooltip/label for the snooze action on an expiring document
+  ///
+  /// In en, this message translates to:
+  /// **'Snooze'**
+  String get snooze;
+
+  /// Snooze duration option label, e.g. '3 days'
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, one{1 day} other{{days} days}}'**
+  String snoozeForDays(int days);
+
+  /// Toast shown after snoozing a document's expiry reminder
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder snoozed — we\'ll remind you again later'**
+  String get reminderSnoozedToast;
+
+  /// Settings section heading
+  ///
+  /// In en, this message translates to:
   /// **'Support'**
   String get support;
 

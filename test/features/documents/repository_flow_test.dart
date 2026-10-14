@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mantic_doc_org/core/notifications/expiry_notification_service.dart';
 import 'package:mantic_doc_org/core/notifications/notification_plugin.dart';
+import 'package:mantic_doc_org/core/notifications/reminder_preference_controller.dart';
 import 'package:mantic_doc_org/features/categories/data/datasources/category_local_datasource.dart';
 import 'package:mantic_doc_org/features/categories/data/repository_impl/category_repository_impl.dart';
 import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
@@ -88,9 +89,11 @@ class MemoryDocuments implements DocumentLocalDataSource {
 }
 
 class ReminderSpy extends ExpiryNotificationService {
-  ReminderSpy() : super(AppNotificationPlugin());
+  ReminderSpy()
+    : super(AppNotificationPlugin(), ReminderPreferenceController());
   final scheduled = <String>[];
   final cancelled = <String>[];
+  final snoozed = <(String, Duration)>[];
   @override
   Future<void> scheduleForDocument(DocumentItem document) async {
     scheduled.add(document.id);
@@ -101,6 +104,11 @@ class ReminderSpy extends ExpiryNotificationService {
   @override
   Future<void> cancelForDocument(String id) async {
     cancelled.add(id);
+  }
+
+  @override
+  Future<void> snooze(DocumentItem document, Duration by) async {
+    snoozed.add((document.id, by));
   }
 }
 
@@ -223,23 +231,44 @@ void main() {
       await documents.addDocument(document('c'));
       await documents.trashDocuments(['a', 'c']);
       expect(documents.documents.map((d) => d.id), ['b']);
-      expect(
-        documents.trashedDocuments.map((d) => d.id).toSet(),
-        {'a', 'c'},
-      );
+      expect(documents.trashedDocuments.map((d) => d.id).toSet(), {'a', 'c'});
       expect(reminders.cancelled, containsAll(['a', 'c']));
       expect(reminders.cancelled, isNot(contains('b')));
     },
   );
 
+  test(
+    'rescheduling expiry reminders reschedules every active document',
+    () async {
+      await documents.addDocument(document('a'));
+      await documents.addDocument(document('b'));
+      await documents.trashDocument('b');
+      reminders.scheduled.clear();
+      await documents.rescheduleExpiryReminders();
+      expect(reminders.scheduled, ['a']);
+    },
+  );
+
+  test(
+    'snoozing an active document forwards to the notification service',
+    () async {
+      await documents.addDocument(document('a'));
+      await documents.snoozeExpiryReminder('a', const Duration(days: 3));
+      expect(reminders.snoozed, [('a', const Duration(days: 3))]);
+    },
+  );
+
+  test('snoozing an unknown document id is a no-op', () async {
+    await documents.addDocument(document('a'));
+    await documents.snoozeExpiryReminder('missing', const Duration(days: 3));
+    expect(reminders.snoozed, isEmpty);
+  });
+
   test('failed bulk trash retains recoverable state', () async {
     await documents.addDocument(document('a'));
     await documents.addDocument(document('b'));
     storage.fail = true;
-    await expectLater(
-      documents.trashDocuments(['a', 'b']),
-      throwsStateError,
-    );
+    await expectLater(documents.trashDocuments(['a', 'b']), throwsStateError);
     expect(documents.documents, hasLength(2));
     expect(documents.trashedDocuments, isEmpty);
   });

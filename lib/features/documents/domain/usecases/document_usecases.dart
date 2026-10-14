@@ -29,6 +29,10 @@ class DocumentUseCases {
   Future<void> emptyTrash() => _repository.emptyTrash();
   int countForCategory(String categoryId) =>
       _repository.countForCategory(categoryId);
+  Future<void> rescheduleExpiryReminders() =>
+      _repository.rescheduleExpiryReminders();
+  Future<void> snoozeExpiryReminder(String documentId, Duration by) =>
+      _repository.snoozeExpiryReminder(documentId, by);
   List<DocumentItem> expiringSoon({DateTime? at}) {
     final now = at ?? DateTime.now();
     final windowEnd = now.add(const Duration(days: digestWindowDays));

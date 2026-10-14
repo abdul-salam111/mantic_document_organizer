@@ -4,10 +4,12 @@ import 'package:share_plus/share_plus.dart';
 import '../../../core/di/di_exports.dart';
 import '../../../core/localization/localization_exports.dart';
 import '../../../core/networks/networks_exports.dart';
+import '../../../core/notifications/notifications_exports.dart';
 import '../../../core/security/security_exports.dart';
 import '../../../core/theme/theme_exports.dart';
 import '../../../core/utils/utils_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
+import '../../documents/domain/usecases/document_usecases.dart';
 import '../viewmodel/settings_viewmodel.dart';
 
 class SettingsView extends StatelessWidget {
@@ -152,6 +154,11 @@ class SettingsView extends StatelessWidget {
             _SectionHeader(AppLocalizations.of(context).dataUsage),
             heightBox(10),
             const _SettingsCard(children: [_MobileDataToggleRow()]),
+
+            heightBox(28),
+            _SectionHeader(AppLocalizations.of(context).remindersSectionTitle),
+            heightBox(10),
+            const _SettingsCard(children: [_ReminderLeadTimeRow()]),
 
             heightBox(28),
             _SectionHeader(AppLocalizations.of(context).support),
@@ -427,6 +434,83 @@ class _MobileDataToggleRow extends StatelessWidget {
           trailing: Switch(
             value: networkPreference.isMobileDataSyncEnabled,
             onChanged: networkPreference.setMobileDataSyncEnabled,
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// How many days before expiry the app reminds the user — a single
+/// app-wide preference, applied to every document with an expiry date.
+/// Same `PopupMenuButton` pattern as the language row above, picking from
+/// [ReminderPreferenceController.availableDaysOptions].
+class _ReminderLeadTimeRow extends StatelessWidget {
+  const _ReminderLeadTimeRow();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Consumer<ReminderPreferenceController>(
+      builder: (context, reminderPreference, _) {
+        final current = reminderPreference.daysBefore;
+        return _SettingsRow(
+          icon: Iconsax.notification,
+          label: l10n.remindBeforeExpiry,
+          subtitle: l10n.remindBeforeExpirySubtitle,
+          trailing: PopupMenuButton<int>(
+            initialValue: current,
+            onSelected: (days) async {
+              await reminderPreference.setDaysBefore(days);
+              // Reminders already scheduled were computed with the old
+              // lead time — refresh them now instead of waiting for the
+              // next document edit to happen to pick up the new one.
+              await sl<DocumentUseCases>().rescheduleExpiryReminders();
+            },
+            padding: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(borderRadius: .circular(14)),
+            itemBuilder: (context) => [
+              for (final days
+                  in ReminderPreferenceController.availableDaysOptions)
+                PopupMenuItem(
+                  value: days,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          l10n.reminderDaysValue(days),
+                          style: context.bodyMedium.copyWith(
+                            fontWeight: days == current ? .bold : .normal,
+                          ),
+                        ),
+                      ),
+                      if (days == current)
+                        Icon(
+                          Icons.check,
+                          size: 18,
+                          color: context.primaryAccent,
+                        ),
+                    ],
+                  ),
+                ),
+            ],
+            child: Row(
+              mainAxisSize: .min,
+              children: [
+                Text(
+                  l10n.reminderDaysValue(current),
+                  style: context.bodyMedium.copyWith(
+                    color: context.textSecondary,
+                  ),
+                ),
+                widthBox(4),
+                Icon(
+                  Iconsax.arrow_down_1,
+                  size: 14,
+                  color: context.textSecondary,
+                ),
+              ],
+            ),
           ),
         );
       },

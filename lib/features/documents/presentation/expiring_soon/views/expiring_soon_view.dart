@@ -68,6 +68,19 @@ class ExpiringSoonView extends StatelessWidget {
                                 context,
                                 () => vm.toggleFavorite(document),
                               ),
+                              onSnooze: (duration) async {
+                                final success = await persistAction(
+                                  context,
+                                  () => vm.snooze(document, duration),
+                                );
+                                if (success && context.mounted) {
+                                  AppToastsUtils.success(
+                                    AppLocalizations.of(
+                                      context,
+                                    ).reminderSnoozedToast,
+                                  );
+                                }
+                              },
                             ),
                           );
                         },

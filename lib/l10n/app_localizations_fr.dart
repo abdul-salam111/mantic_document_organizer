@@ -355,6 +355,45 @@ class AppLocalizationsFr extends AppLocalizations {
       'En attente du Wi-Fi pour synchroniser. Activez les données mobiles dans les réglages pour synchroniser à tout moment';
 
   @override
+  String get remindersSectionTitle => 'Rappels';
+
+  @override
+  String get remindBeforeExpiry => 'Me rappeler avant l\'expiration';
+
+  @override
+  String get remindBeforeExpirySubtitle =>
+      'S\'applique à tous les documents ayant une date d\'expiration';
+
+  @override
+  String reminderDaysValue(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days jours avant',
+      one: '1 jour avant',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get snooze => 'Reporter';
+
+  @override
+  String snoozeForDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days jours',
+      one: '1 jour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reminderSnoozedToast =>
+      'Rappel reporté — nous vous le rappellerons plus tard';
+
+  @override
   String get support => 'Assistance';
 
   @override

@@ -127,6 +127,7 @@ Future<void> coreDependencies() async {
   sl.registerLazySingleton(() => LocaleController());
   sl.registerLazySingleton(() => SecurityController());
   sl.registerLazySingleton(() => NetworkPreferenceController());
+  sl.registerLazySingleton(() => ReminderPreferenceController());
   sl.registerLazySingleton(
     () => OcrService(),
     dispose: (service) => service.dispose(),
@@ -136,7 +137,7 @@ Future<void> coreDependencies() async {
   sl.registerLazySingleton(() => AppDatabase());
   sl.registerLazySingleton(() => AppNotificationPlugin());
   sl.registerLazySingleton(
-    () => ExpiryNotificationService(sl()),
+    () => ExpiryNotificationService(sl(), sl()),
     dispose: (service) => service.dispose(),
   );
   sl.registerLazySingleton(
