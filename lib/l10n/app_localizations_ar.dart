@@ -156,6 +156,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trashSubtitle => 'استعادة المستندات المحذوفة مؤخرًا';
 
   @override
+  String get expiringSoonMenuSubtitle =>
+      'مستندات تقترب من تاريخ انتهاء صلاحيتها';
+
+  @override
   String get settingsSubtitle => 'المظهر واللغة والفئات والأمان';
 
   @override

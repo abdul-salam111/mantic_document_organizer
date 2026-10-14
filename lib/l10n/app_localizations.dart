@@ -333,6 +333,12 @@ abstract class AppLocalizations {
   /// Profile menu entry subtitle
   ///
   /// In en, this message translates to:
+  /// **'Documents with an upcoming expiry date'**
+  String get expiringSoonMenuSubtitle;
+
+  /// Profile menu entry subtitle
+  ///
+  /// In en, this message translates to:
   /// **'Appearance, language, categories & security'**
   String get settingsSubtitle;
 

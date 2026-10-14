@@ -45,6 +45,7 @@
   "signIn": "Se connecter",
   "trash": "Corbeille",
   "trashSubtitle": "Récupérer les documents récemment supprimés",
+  "expiringSoonMenuSubtitle": "Documents dont l'expiration approche",
   "settingsSubtitle": "Apparence, langue, catégories et sécurité",
   "signOut": "Déconnexion",
   "deleteAccount": "Supprimer le compte",

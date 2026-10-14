@@ -5,6 +5,18 @@ import '../../../../core/theme/theme_exports.dart';
 import '../../../../core/utils/utils_exports.dart';
 import '../../../../core/widgets/widgets_exports.dart';
 
+/// Overdue/soon/later, shared by [ExpiryChip] and Home's Expiring Soon
+/// preview cards (their left accent bar) so both read urgency the same
+/// way instead of each picking their own thresholds.
+Color expiryUrgencyColor(BuildContext context, DateTime expiryDate) {
+  final daysLeft = expiryDate.difference(DateTime.now()).inDays;
+  return daysLeft < 0
+      ? context.errorAccent
+      : daysLeft <= 30
+      ? context.warning
+      : context.textSecondary;
+}
+
 /// Color-coded by urgency (overdue/soon/later) — shared by
 /// [DocumentListTile] and document_viewer's info panel.
 class ExpiryChip extends StatelessWidget {
@@ -14,12 +26,7 @@ class ExpiryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final daysLeft = expiryDate.difference(DateTime.now()).inDays;
-    final chipColor = daysLeft < 0
-        ? context.errorAccent
-        : daysLeft <= 30
-        ? context.warning
-        : context.textSecondary;
+    final chipColor = expiryUrgencyColor(context, expiryDate);
     return Container(
       padding: const .symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -31,11 +38,19 @@ class ExpiryChip extends StatelessWidget {
         children: [
           Icon(Iconsax.timer_1, size: 11, color: chipColor),
           widthBox(4),
-          Text(
-            AppLocalizations.of(context).expiresOn(expiryDate.formatted),
-            style: context.labelSmall.copyWith(
-              color: chipColor,
-              fontWeight: .w600,
+          // Flexible + ellipsis rather than an unbounded Text — this chip
+          // is also used in narrow contexts (Home's Expiring Soon preview
+          // cards), where the full "Expires on <date>" string doesn't
+          // always fit.
+          Flexible(
+            child: Text(
+              AppLocalizations.of(context).expiresOn(expiryDate.formatted),
+              maxLines: 1,
+              overflow: .ellipsis,
+              style: context.labelSmall.copyWith(
+                color: chipColor,
+                fontWeight: .w600,
+              ),
             ),
           ),
         ],

@@ -104,6 +104,8 @@
   "@trash": {"description": "Profile menu entry"},
   "trashSubtitle": "Recover recently deleted documents",
   "@trashSubtitle": {"description": "Profile menu entry subtitle"},
+  "expiringSoonMenuSubtitle": "Documents with an upcoming expiry date",
+  "@expiringSoonMenuSubtitle": {"description": "Profile menu entry subtitle"},
   "settingsSubtitle": "Appearance, language, categories & security",
   "@settingsSubtitle": {"description": "Profile menu entry subtitle"},
   "signOut": "Sign Out",

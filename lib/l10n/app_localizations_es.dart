@@ -158,6 +158,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trashSubtitle => 'Recupera documentos eliminados recientemente';
 
   @override
+  String get expiringSoonMenuSubtitle =>
+      'Documentos con fecha de vencimiento próxima';
+
+  @override
   String get settingsSubtitle => 'Apariencia, idioma, categorías y seguridad';
 
   @override

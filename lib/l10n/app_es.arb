@@ -45,6 +45,7 @@
   "signIn": "Iniciar sesión",
   "trash": "Papelera",
   "trashSubtitle": "Recupera documentos eliminados recientemente",
+  "expiringSoonMenuSubtitle": "Documentos con fecha de vencimiento próxima",
   "settingsSubtitle": "Apariencia, idioma, categorías y seguridad",
   "signOut": "Cerrar sesión",
   "deleteAccount": "Eliminar cuenta",

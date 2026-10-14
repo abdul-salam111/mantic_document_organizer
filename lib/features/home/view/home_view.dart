@@ -11,6 +11,7 @@ import '../../../core/widgets/widgets_exports.dart';
 import '../../../routes/routes_exports.dart';
 import '../../navbar/viewmodel/navbar_viewmodel.dart';
 import '../viewmodel/home_viewmodel.dart';
+import 'widgets/document_chips.dart';
 import 'widgets/document_cover_thumbnail.dart';
 import 'widgets/view_mode_toggle.dart';
 
@@ -141,6 +142,72 @@ class HomeView extends StatelessWidget {
                                           beginOffset: const Offset(0.12, 0),
                                           child: _RecentFileCard(
                                             document: document,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                              ),
+                            ),
+                            heightBox(20),
+                          ],
+                          if (vm.expiringSoonPreview.isNotEmpty) ...[
+                            Row(
+                              children: [
+                                Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  ).expiringSoonTitle,
+                                  style: context.titleMedium.copyWith(
+                                    fontWeight: .w700,
+                                  ),
+                                ),
+                                const Spacer(),
+                                InkWell(
+                                  borderRadius: .circular(6),
+                                  onTap: () => AppNavigator.pushNamed(
+                                    RouteNames.expiringSoon,
+                                  ),
+                                  child: Text(
+                                    AppLocalizations.of(context).seeAll,
+                                    style: context.labelLarge.copyWith(
+                                      color: context.primary,
+                                      fontWeight: .w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            heightBox(7),
+                            SizedBox(
+                              height: 80,
+                              child: StaggeredReveal(
+                                itemCount: vm.expiringSoonPreview.length,
+                                builder: (context, reveal) =>
+                                    ListView.separated(
+                                      scrollDirection: .horizontal,
+                                      clipBehavior: Clip.none,
+                                      itemCount: vm.expiringSoonPreview.length,
+                                      separatorBuilder: (context, index) =>
+                                          widthBox(12),
+                                      itemBuilder: (context, index) {
+                                        final document =
+                                            vm.expiringSoonPreview[index];
+                                        return StaggeredRevealItem(
+                                          reveal: reveal,
+                                          itemCount:
+                                              vm.expiringSoonPreview.length,
+                                          index: index,
+                                          beginOffset: const Offset(0.12, 0),
+                                          child: _RecentFileCard(
+                                            document: document,
+                                            enableHero: false,
+                                            accentBarColor: expiryUrgencyColor(
+                                              context,
+                                              document.expiryDate!,
+                                            ),
+                                            trailingMeta: ExpiryChip(
+                                              expiryDate: document.expiryDate!,
+                                            ),
                                           ),
                                         );
                                       },
@@ -321,7 +388,6 @@ class _CategoryGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-  
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -329,7 +395,7 @@ class _CategoryGrid extends StatelessWidget {
         crossAxisCount: 4,
         mainAxisSpacing: context.screenWidth > 380 ? 15 : 15,
         crossAxisSpacing: context.screenWidth > 380 ? 20 : 15,
-        childAspectRatio:0.78,
+        childAspectRatio: 0.78,
       ),
       itemCount: vm.categories.length + 2,
       itemBuilder: (context, index) => _categoryTileAt(
@@ -408,9 +474,49 @@ Color categoryIconColor(BuildContext context, String categoryName) {
 class _RecentFileCard extends StatelessWidget {
   final DocumentItem document;
 
-  const _RecentFileCard({required this.document});
+  /// Replaces the bottom metadata row (created-time by default) — the
+  /// Expiring Soon section passes an [ExpiryChip] here so the card
+  /// surfaces urgency instead of how long ago it was added, while keeping
+  /// everything else about the card identical.
+  final Widget? trailingMeta;
+
+  /// False for the Expiring Soon section: a document can legitimately
+  /// appear in both it and Recent Files at once (both are previews of the
+  /// same underlying document list, just filtered differently), and two
+  /// simultaneous Heroes with the same tag on one screen crashes — only
+  /// one of the two cards for a given document gets to carry the
+  /// document-open Hero, so Recent Files keeps it.
+  final bool enableHero;
+
+  /// A colored bar down the card's left edge — the Expiring Soon section
+  /// passes its urgency color here (see [expiryUrgencyColor]) so its cards
+  /// read as a distinct kind of card at a glance instead of looking like
+  /// plain Recent Files entries with a different bottom line. Null (the
+  /// Recent Files default) omits the bar entirely.
+  final Color? accentBarColor;
+
+  const _RecentFileCard({
+    required this.document,
+    this.trailingMeta,
+    this.enableHero = true,
+    this.accentBarColor,
+  });
 
   static const double _height = 80;
+
+  Widget _thumbnail(Color color) {
+    final thumbnail = DocumentCoverThumbnail(
+      document: document,
+      color: color,
+      width: _height - 8,
+      height: _height - 8,
+      borderRadius: 8,
+      iconSize: 24,
+    );
+    return enableHero
+        ? DocumentCoverHero(document: document, color: color, child: thumbnail)
+        : thumbnail;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -439,26 +545,14 @@ class _RecentFileCard extends StatelessWidget {
             Row(
               crossAxisAlignment: .stretch,
               children: [
+                if (accentBarColor != null)
+                  Container(width: 4, color: accentBarColor),
                 SizedBox(
                   width: _height,
                   height: _height,
                   child: Stack(
                     children: [
-                      Padding(
-                        padding: const .all(4),
-                        child: DocumentCoverHero(
-                          document: document,
-                          color: color,
-                          child: DocumentCoverThumbnail(
-                            document: document,
-                            color: color,
-                            width: _height - 8,
-                            height: _height - 8,
-                            borderRadius: 8,
-                            iconSize: 24,
-                          ),
-                        ),
-                      ),
+                      Padding(padding: const .all(4), child: _thumbnail(color)),
                       Positioned(
                         top: 4,
                         right: 4,
@@ -489,10 +583,11 @@ class _RecentFileCard extends StatelessWidget {
                             context,
                           ).pageCount(document.filePaths.length),
                         ),
-                        _MetaLineWithIcon(
-                          icon: Iconsax.timer_1,
-                          text: document.createdAt.timeAgoShort,
-                        ),
+                        trailingMeta ??
+                            _MetaLineWithIcon(
+                              icon: Iconsax.timer_1,
+                              text: document.createdAt.timeAgoShort,
+                            ),
                       ],
                     ),
                   ),
@@ -666,10 +761,7 @@ class _CategoryTile extends StatelessWidget {
           ),
         ),
         if (_showBadge)
-          Positioned(
-            right: 6,
-            child: _CountBadge(count: fileCount!, size: 20),
-          ),
+          Positioned(right: 6, child: _CountBadge(count: fileCount!, size: 20)),
       ],
     );
   }

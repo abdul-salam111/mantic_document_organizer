@@ -45,6 +45,7 @@
   "signIn": "تسجيل الدخول",
   "trash": "سلة المهملات",
   "trashSubtitle": "استعادة المستندات المحذوفة مؤخرًا",
+  "expiringSoonMenuSubtitle": "مستندات تقترب من تاريخ انتهاء صلاحيتها",
   "settingsSubtitle": "المظهر واللغة والفئات والأمان",
   "signOut": "تسجيل الخروج",
   "deleteAccount": "حذف الحساب",

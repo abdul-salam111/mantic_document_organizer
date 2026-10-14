@@ -63,6 +63,17 @@ class ProfileView extends StatelessWidget {
                   ),
                   heightBox(10),
                   _ProfileMenuTile(
+                    icon: Iconsax.timer_1,
+                    iconColor: context.warning,
+                    label: AppLocalizations.of(context).expiringSoonTitle,
+                    subtitle: AppLocalizations.of(
+                      context,
+                    ).expiringSoonMenuSubtitle,
+                    onTap: () =>
+                        AppNavigator.pushNamed(RouteNames.expiringSoon),
+                  ),
+                  heightBox(10),
+                  _ProfileMenuTile(
                     icon: Iconsax.cloud_add,
                     iconColor: context.primary,
                     label: 'Sync & backup',
@@ -93,7 +104,9 @@ class ProfileView extends StatelessWidget {
                       icon: Iconsax.trash,
                       iconColor: context.errorAccent,
                       label: AppLocalizations.of(context).deleteAccount,
-                      subtitle: AppLocalizations.of(context).deleteAccountSubtitle,
+                      subtitle: AppLocalizations.of(
+                        context,
+                      ).deleteAccountSubtitle,
                       isDestructive: true,
                       onTap: () => _confirmDeleteAccount(context, vm),
                     ),

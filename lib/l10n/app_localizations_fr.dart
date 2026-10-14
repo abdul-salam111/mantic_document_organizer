@@ -158,6 +158,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trashSubtitle => 'Récupérer les documents récemment supprimés';
 
   @override
+  String get expiringSoonMenuSubtitle =>
+      'Documents dont l\'expiration approche';
+
+  @override
   String get settingsSubtitle => 'Apparence, langue, catégories et sécurité';
 
   @override
