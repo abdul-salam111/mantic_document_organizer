@@ -1,3 +1,4 @@
+import '../../documents/documents_exports.dart' show DraftInbox;
 import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
 import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +12,6 @@ import '../../../core/widgets/widgets_exports.dart';
 import '../../../routes/routes_exports.dart';
 import '../../navbar/viewmodel/navbar_viewmodel.dart';
 import '../viewmodel/home_viewmodel.dart';
-import 'widgets/document_chips.dart';
 import 'widgets/document_cover_thumbnail.dart';
 import 'widgets/view_mode_toggle.dart';
 
@@ -95,6 +95,7 @@ class HomeView extends StatelessWidget {
                             ],
                           ),
                           heightBox(vm.recentFiles.isNotEmpty ? 14 : 20),
+                          const DraftInbox(),
                           if (vm.recentFiles.isNotEmpty) ...[
                             Row(
                               children: [
@@ -150,66 +151,8 @@ class HomeView extends StatelessWidget {
                             ),
                             heightBox(20),
                           ],
-                          if (vm.expiringSoonPreview.isNotEmpty) ...[
-                            Row(
-                              children: [
-                                Text(
-                                  AppLocalizations.of(
-                                    context,
-                                  ).expiringSoonTitle,
-                                  style: context.titleMedium.copyWith(
-                                    fontWeight: .w700,
-                                  ),
-                                ),
-                                const Spacer(),
-                                InkWell(
-                                  borderRadius: .circular(6),
-                                  onTap: () => AppNavigator.pushNamed(
-                                    RouteNames.expiringSoon,
-                                  ),
-                                  child: Text(
-                                    AppLocalizations.of(context).seeAll,
-                                    style: context.labelLarge.copyWith(
-                                      color: context.primary,
-                                      fontWeight: .w600,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            heightBox(7),
-                            SizedBox(
-                              height:
-                                  184 +
-                                  (MediaQuery.textScalerOf(context).scale(14) -
-                                          14) *
-                                      7,
-                              child: StaggeredReveal(
-                                itemCount: vm.expiringSoonPreview.length,
-                                builder: (context, reveal) =>
-                                    ListView.separated(
-                                      scrollDirection: .horizontal,
-                                      clipBehavior: Clip.none,
-                                      itemCount: vm.expiringSoonPreview.length,
-                                      separatorBuilder: (context, index) =>
-                                          widthBox(12),
-                                      itemBuilder: (context, index) {
-                                        final document =
-                                            vm.expiringSoonPreview[index];
-                                        return StaggeredRevealItem(
-                                          reveal: reveal,
-                                          itemCount:
-                                              vm.expiringSoonPreview.length,
-                                          index: index,
-                                          beginOffset: const Offset(0.12, 0),
-                                          child: _ExpiringSoonCard(
-                                            document: document,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                              ),
-                            ),
+                          if (vm.expiringSoonCount > 0) ...[
+                            _ExpiringSoonBanner(count: vm.expiringSoonCount),
                             heightBox(20),
                           ],
                           Row(
@@ -578,104 +521,57 @@ class _RecentFileCard extends StatelessWidget {
   }
 }
 
-/// A date-first reminder, visually separate from the thumbnail-led recent files.
-/// No Hero: the same document can also appear in Recent Files on this route.
-class _ExpiringSoonCard extends StatelessWidget {
-  final DocumentItem document;
+/// A single tappable summary line rather than its own row of cards next to
+/// Recent Files -- the full, individually-browsable list is one tap away on
+/// ExpiringSoonView, so Home doesn't need to duplicate it as a second
+/// scrollable strip of near-identical cards.
+class _ExpiringSoonBanner extends StatelessWidget {
+  final int count;
 
-  const _ExpiringSoonCard({required this.document});
+  const _ExpiringSoonBanner({required this.count});
 
   @override
   Widget build(BuildContext context) {
-    final expiry = document.expiryDate!;
-    final accent = expiryUrgencyColor(context, expiry);
-    return SizedBox(
-      width: 150,
-      child: Material(
-        color: Color.alphaBlend(
-          accent.withValues(alpha: 0.07),
-          context.categoryCardSurface,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: .circular(16),
-          side: BorderSide(color: accent.withValues(alpha: 0.22)),
-        ),
-        clipBehavior: .antiAlias,
-        child: InkWell(
-          onTap: () => AppNavigator.pushNamed(
-            RouteNames.documentViewer,
-            extra: document,
-          ),
-          child: Padding(
-            padding: const .all(11),
-            child: Column(
-              crossAxisAlignment: .start,
-              children: [
-                Row(
-                  crossAxisAlignment: .start,
-                  children: [
-                    Container(
-                      width: 48,
-                      padding: const .symmetric(vertical: 6),
-                      decoration: BoxDecoration(
-                        color: context.surface,
-                        borderRadius: .circular(10),
-                        border: Border.all(
-                          color: accent.withValues(alpha: 0.2),
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            expiry.shortMonthName,
-                            maxLines: 1,
-                            style: context.labelSmall.copyWith(
-                              color: context.textSecondary,
-                              fontWeight: .w600,
-                              fontSize: 10,
-                            ),
-                          ),
-                          Text(
-                            expiry.format('dd'),
-                            style: context.titleLarge.copyWith(
-                              color: context.textPrimary,
-                              fontWeight: .w800,
-                              height: 1.15,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Spacer(),
-                    PendingSyncBadge(documentId: document.id, size: 18),
-                  ],
+    return Material(
+      color: Color.alphaBlend(
+        context.warning.withValues(alpha: 0.08),
+        context.categoryCardSurface,
+      ),
+      borderRadius: .circular(16),
+      clipBehavior: .antiAlias,
+      child: InkWell(
+        onTap: () => AppNavigator.pushNamed(RouteNames.expiringSoon),
+        child: Padding(
+          padding: const .all(14),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                alignment: .center,
+                decoration: BoxDecoration(
+                  color: context.warning.withValues(alpha: 0.15),
+                  shape: .circle,
                 ),
-                heightBox(9),
-                Text(
-                  document.title,
-                  maxLines: 2,
-                  overflow: .ellipsis,
-                  style: context.labelLarge.copyWith(
-                    fontWeight: .w700,
-                    height: 1.2,
-                  ),
+                child: Icon(Iconsax.timer_1, size: 20, color: context.warning),
+              ),
+              widthBox(12),
+              Expanded(
+                // Reuses the weekly digest notification's own string --
+                // same "N documents expire this month" framing either way,
+                // so there's no second near-identical copy to keep in sync
+                // across locales.
+                child: Text(
+                  AppLocalizations.of(context).expiringSoonDigestBody(count),
+                  style: context.bodyMedium.copyWith(fontWeight: .w600),
                 ),
-                heightBox(3),
-                Text(
-                  document.category,
-                  maxLines: 1,
-                  overflow: .ellipsis,
-                  style: context.labelSmall.copyWith(
-                    color: context.textSecondary,
-                  ),
-                ),
-                const Spacer(),
-                SizedBox(
-                  width: double.infinity,
-                  child: ExpiryChip(expiryDate: expiry),
-                ),
-              ],
-            ),
+              ),
+              Icon(
+                Iconsax.arrow_right_3,
+                size: 18,
+                color: context.textSecondary,
+              ),
+            ],
           ),
         ),
       ),

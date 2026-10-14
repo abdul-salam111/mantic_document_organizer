@@ -57,14 +57,11 @@ class HomeViewModel extends ChangeNotifier {
   List<DocumentItem> get recentFiles =>
       _documentUseCases.documents.take(_recentFilesLimit).toList();
 
-  /// Soonest-expiring first, capped the same as [recentFiles] — the
-  /// preview strip shown on Home when there's at least one. The full,
-  /// uncapped list lives behind "See all" (ExpiringSoonView), which reuses
-  /// the same [DocumentUseCases.expiringSoon] call directly.
-  static const int _expiringSoonPreviewLimit = 10;
-
-  List<DocumentItem> get expiringSoonPreview =>
-      _documentUseCases.expiringSoon().take(_expiringSoonPreviewLimit).toList();
+  /// How many documents are expiring soon -- Home only ever shows this
+  /// count (a single tappable banner into ExpiringSoonView, which reuses
+  /// the same [DocumentUseCases.expiringSoon] call directly for the actual
+  /// list), never the documents themselves.
+  int get expiringSoonCount => _documentUseCases.expiringSoon().length;
 
   Future<void> toggleFavorite(DocumentItem document) =>
       _documentUseCases.toggleFavorite(document);
