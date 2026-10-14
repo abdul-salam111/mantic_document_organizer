@@ -2,25 +2,14 @@ MANTIC DOCUMENT ORGANIZER - ENGINEERING STATUS REPORT
 Date: October 14, 2026
 Branch: new_features
 
-1. SMOOTH DOCUMENT-OPENING ANIMATIONS
-Documents and their pages now animate smoothly into view when tapped, instead of cutting abruptly.
-Also fixed a crash this surfaced before it shipped.
 
-2. REDESIGNED SIGN-OUT / DELETE-ACCOUNT DIALOGS
-Replaced the plain default popups with a polished, reusable dialog design and a custom open/close animation.
-Same component can now be reused for other confirmations in the app.
+5. GENTLE BACKUP REMINDER
+If a document isn't backed up yet, users now get a one-time, low-priority reminder the next day instead of nothing.
+Only applies once backup is actually connected, and clears itself automatically once everything's synced.
 
-3. SMARTER SEARCH
-Search now also finds text inside documents (OCR'd scans, notes), not just titles - fully offline.
-Results are ranked by relevance, show a matching preview snippet, and can be filtered by file type, expiry, and date.
-
-4. CONFIGURABLE EXPIRY REMINDERS
-Users can now choose how far ahead of an expiry date they get notified (1/3/7/14/30 days), from Settings.
-Added a one-tap snooze on any expiring document, instead of a fixed one-size-fits-all reminder.
-
-5. EXPIRING SOON IS NOW EASY TO FIND
-Previously there was no way to browse expiring documents except by tapping a notification.
-Added an entry point from the Profile tab, plus a dedicated preview section on the Home screen with its own card design.
+6. DRAFTS - RESUME UNFINISHED DOCUMENTS
+In-progress documents now autosave as you go; a "Drafts" entry on Home lets you resume or discard them.
+Added a "Reorganize with AI" option so a resumed draft can still be re-analyzed, not just a first-time scan.
 
 QUALITY
-No regressions - flutter analyze clean, all tests passing. Not yet pushed to "new_features" branch.
+No regressions - flutter analyze clean, all tests passing. Latest work not yet pushed to "new_features" branch.
