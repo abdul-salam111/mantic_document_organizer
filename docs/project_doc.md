@@ -4,6 +4,8 @@
 
 This document is the single technical reference for how Mantic is built — architecture, stack, data model, screens, and phase-by-phase implementation. Intended for engineering use and as context for AI-assisted development (e.g. Claude Code) on this project.
 
+For the prioritized user-experience backlog, current implementation status, and feature acceptance criteria, see the [Product Feature Roadmap](product_feature_roadmap.md).
+
 ## Architecture overview
 
 Mantic is **offline-first** for everything core, and **online-enhanced** for AI features.
