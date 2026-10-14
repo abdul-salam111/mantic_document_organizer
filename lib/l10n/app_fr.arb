@@ -139,6 +139,7 @@
   "extractingTextStatus": "Extraction du texte…",
   "loadingPagesStatus": "Chargement des pages…",
   "organizingWithAiStatus": "Organisation avec l'IA…",
+  "reorganizeWithAi": "Réorganiser avec l'IA",
   "camera": "Appareil photo",
   "gallery": "Galerie",
   "files": "Fichiers",
@@ -237,6 +238,5 @@
   "draftSaveFailed": "Impossible d'enregistrer votre brouillon.",
   "draftSaving": "Enregistrement du brouillon…",
   "draftSaved": "Brouillon enregistré",
-  "draftHint": "Votre progression est enregistrée automatiquement.",
   "draftRetry": "Réessayer"
 }

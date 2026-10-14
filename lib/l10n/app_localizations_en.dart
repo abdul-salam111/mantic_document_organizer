@@ -497,6 +497,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get organizingWithAiStatus => 'Organizing with AI…';
 
   @override
+  String get reorganizeWithAi => 'Reorganize with AI';
+
+  @override
   String get camera => 'Camera';
 
   @override
@@ -877,9 +880,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get draftSaved => 'Draft saved';
-
-  @override
-  String get draftHint => 'Your progress is saved automatically.';
 
   @override
   String get draftRetry => 'Retry';

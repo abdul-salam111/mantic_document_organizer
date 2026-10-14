@@ -443,7 +443,16 @@ class AddDocumentViewModel extends ChangeNotifier {
     if (_disposed || _completed || _isSaving) return;
     final text = ocrText;
     if (text.trim().isEmpty) return;
+    await _analyze(text);
+  }
 
+  /// (Re-)runs AI analysis against [text] and applies whatever it
+  /// suggests. Shared by [_runOcrAndAi] (which only ever fires right
+  /// after a fresh pick) and [reorganizeWithAi] (an on-demand retrigger
+  /// for everything else -- resuming a draft with attachments already in
+  /// place never goes through a pick at all, so without this there'd be
+  /// no way to run AI organization on it a second time).
+  Future<void> _analyze(String text) async {
     _isAnalyzing = true;
     notifyListeners();
     final suggestion = await _processing.analyze(
@@ -460,6 +469,17 @@ class AddDocumentViewModel extends ChangeNotifier {
           : _applySuggestion(suggestion);
     }
     notifyListeners();
+  }
+
+  /// Manually triggers AI organization from the document's current,
+  /// already-OCR'd text -- the button next to the attachments grid calls
+  /// this. A no-op while OCR/AI is already running, or with nothing to
+  /// analyze yet.
+  Future<void> reorganizeWithAi() async {
+    if (_isProcessingOcr || _isAnalyzing) return;
+    final text = ocrText;
+    if (text.trim().isEmpty) return;
+    await _analyze(text);
   }
 
   /// Edit mode only: a newly added page can change what the document as a

@@ -882,6 +882,12 @@ abstract class AppLocalizations {
   /// **'Organizing with AI…'**
   String get organizingWithAiStatus;
 
+  /// Add Document screen button that manually re-runs AI organization on demand (e.g. after resuming a draft, where nothing was just scanned to trigger it automatically)
+  ///
+  /// In en, this message translates to:
+  /// **'Reorganize with AI'**
+  String get reorganizeWithAi;
+
   /// Add Document screen attachment source button label
   ///
   /// In en, this message translates to:
@@ -1433,12 +1439,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Draft saved'**
   String get draftSaved;
-
-  /// Add Document screen status line shown before any changes have been made yet
-  ///
-  /// In en, this message translates to:
-  /// **'Your progress is saved automatically.'**
-  String get draftHint;
 
   /// Button that retries a failed draft autosave
   ///

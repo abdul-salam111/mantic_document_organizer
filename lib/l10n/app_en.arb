@@ -326,6 +326,8 @@
   "@loadingPagesStatus": {"description": "Add Document screen inline status while an existing document's PDF attachments are being split back into individual editable pages"},
   "organizingWithAiStatus": "Organizing with AI…",
   "@organizingWithAiStatus": {"description": "Add Document screen inline status while the AI suggestion call is running"},
+  "reorganizeWithAi": "Reorganize with AI",
+  "@reorganizeWithAi": {"description": "Add Document screen button that manually re-runs AI organization on demand (e.g. after resuming a draft, where nothing was just scanned to trigger it automatically)"},
   "camera": "Camera",
   "@camera": {"description": "Add Document screen attachment source button label"},
   "gallery": "Gallery",
@@ -579,8 +581,6 @@
   "@draftSaving": {"description": "Add Document screen status line while the draft is being autosaved"},
   "draftSaved": "Draft saved",
   "@draftSaved": {"description": "Add Document screen status line once the draft has been autosaved"},
-  "draftHint": "Your progress is saved automatically.",
-  "@draftHint": {"description": "Add Document screen status line shown before any changes have been made yet"},
   "draftRetry": "Retry",
   "@draftRetry": {"description": "Button that retries a failed draft autosave"}
 }

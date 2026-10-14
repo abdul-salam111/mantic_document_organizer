@@ -139,6 +139,7 @@
   "extractingTextStatus": "استخراج النص…",
   "loadingPagesStatus": "جارٍ تحميل الصفحات…",
   "organizingWithAiStatus": "التنظيم باستخدام الذكاء الاصطناعي…",
+  "reorganizeWithAi": "إعادة التنظيم بالذكاء الاصطناعي",
   "camera": "الكاميرا",
   "gallery": "المعرض",
   "files": "الملفات",
@@ -237,6 +238,5 @@
   "draftSaveFailed": "تعذّر حفظ مسودتك.",
   "draftSaving": "جارٍ حفظ المسودة…",
   "draftSaved": "تم حفظ المسودة",
-  "draftHint": "يتم حفظ تقدمك تلقائيًا.",
   "draftRetry": "إعادة المحاولة"
 }

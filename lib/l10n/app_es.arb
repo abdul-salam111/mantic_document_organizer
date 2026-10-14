@@ -139,6 +139,7 @@
   "extractingTextStatus": "Extrayendo texto…",
   "loadingPagesStatus": "Cargando páginas…",
   "organizingWithAiStatus": "Organizando con IA…",
+  "reorganizeWithAi": "Reorganizar con IA",
   "camera": "Cámara",
   "gallery": "Galería",
   "files": "Archivos",
@@ -237,6 +238,5 @@
   "draftSaveFailed": "No se pudo guardar tu borrador.",
   "draftSaving": "Guardando borrador…",
   "draftSaved": "Borrador guardado",
-  "draftHint": "Tu progreso se guarda automáticamente.",
   "draftRetry": "Reintentar"
 }

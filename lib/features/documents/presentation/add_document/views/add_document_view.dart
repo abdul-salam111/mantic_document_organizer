@@ -112,98 +112,105 @@ class AddDocumentView extends StatelessWidget {
             return _DraftLifecycle(
               vm: vm,
               child: Scaffold(
-              appBar: CustomAppBar(
-                title: editingDocument != null
-                    ? AppLocalizations.of(context).editDocumentTitle
-                    : AppLocalizations.of(context).addDocumentTitle,
-                onBackPressed: () async {
-                  if (vm.isSaving || vm.isLoadingAttachments) return;
-                  if (await persistAction(context, vm.flushDraft) && context.mounted) {
-                    Navigator.of(context).pop();
-                  }
-                },
-                backgroundColor: context.background,
-                foregroundColor: context.textPrimary,
-              ),
-              body: SafeArea(
-                bottom: false,
-                child: Form(
-                  key: vm.formKey,
-                  child: ListView(
-                    padding: const .symmetric(horizontal: 14, vertical: 20),
-                    children: [
-                      if (vm.draftsEnabled) ...[
-                        _DraftStatus(vm: vm),
-                        heightBox(16),
-                      ],
-                      _AttachmentSection(vm: vm),
-                      heightBox(24),
-                      CustomTextFormField(
-                        label: AppLocalizations.of(context).documentTitleLabel,
-                        floatingLabel: true,
-                        controller: vm.titleController,
-                        // Match the elevated white form controls in light
-                        // mode while retaining the dark theme's surface.
-                        fillColor: context.surfaceElevated,
-                        // Same height as the Tags field's InputDecorator —
-                        // a minHeight constraint instead of tall vertical
-                        // padding, so the floating label doesn't inflate
-                        // this field well past that one.
-                        constraints: const BoxConstraints(
-                          minHeight: _formControlHeight,
+                appBar: CustomAppBar(
+                  title: editingDocument != null
+                      ? AppLocalizations.of(context).editDocumentTitle
+                      : AppLocalizations.of(context).addDocumentTitle,
+                  onBackPressed: () async {
+                    if (vm.isSaving || vm.isLoadingAttachments) return;
+                    if (await persistAction(context, vm.flushDraft) &&
+                        context.mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                  backgroundColor: context.background,
+                  foregroundColor: context.textPrimary,
+                ),
+                body: SafeArea(
+                  bottom: false,
+                  child: Form(
+                    key: vm.formKey,
+                    child: ListView(
+                      padding: const .symmetric(horizontal: 14, vertical: 20),
+                      children: [
+                        if (vm.draftsEnabled &&
+                            (vm.hasMissingDraftFiles ||
+                                vm.draftFailed ||
+                                vm.isSavingDraft ||
+                                vm.hasDraft)) ...[
+                          _DraftStatus(vm: vm),
+                          heightBox(16),
+                        ],
+                        _AttachmentSection(vm: vm),
+                        heightBox(24),
+                        CustomTextFormField(
+                          label: AppLocalizations.of(
+                            context,
+                          ).documentTitleLabel,
+                          floatingLabel: true,
+                          controller: vm.titleController,
+                          // Match the elevated white form controls in light
+                          // mode while retaining the dark theme's surface.
+                          fillColor: context.surfaceElevated,
+                          // Same height as the Tags field's InputDecorator —
+                          // a minHeight constraint instead of tall vertical
+                          // padding, so the floating label doesn't inflate
+                          // this field well past that one.
+                          constraints: const BoxConstraints(
+                            minHeight: _formControlHeight,
+                          ),
+                          contentPadding: const .symmetric(horizontal: 16),
+                          textCapitalization: .sentences,
                         ),
-                        contentPadding: const .symmetric(horizontal: 16),
-                        textCapitalization: .sentences,
-                      ),
-                      heightBox(20),
-                      _CategoryPickerTrigger(vm: vm),
-                      heightBox(20),
-                      _TagsField(vm: vm),
-                      heightBox(20),
-                      _ExpirableToggle(vm: vm),
-                      heightBox(20),
-                    ],
+                        heightBox(20),
+                        _CategoryPickerTrigger(vm: vm),
+                        heightBox(20),
+                        _TagsField(vm: vm),
+                        heightBox(20),
+                        _ExpirableToggle(vm: vm),
+                        heightBox(20),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              bottomNavigationBar: SafeArea(
-                top: false,
-                child: Container(
-                  padding: const .symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(),
-                  child: CustomButton(
-                    isLoading: vm.isSaving,
-                    text: vm.isEditing
-                        ? AppLocalizations.of(context).update
-                        : AppLocalizations.of(context).save,
-                    onPressed: () async {
-                      if (vm.isLoadingAttachments) return;
-                      if (!vm.validateAttachments()) return;
-                      if (!vm.formKey.currentState!.validate()) return;
-                      if (!await persistAction(context, () => vm.submit())) {
-                        return;
-                      }
-                      if (!context.mounted) return;
-                      // Compute the message and pop *before* showing the
-                      // toast — another_flushbar pushes its toast as its
-                      // own Navigator route, so popping this screen right
-                      // on top of that in-flight push corrupts the
-                      // navigator's route lifecycle.
-                      final title = vm.titleController.text.trim();
+                bottomNavigationBar: SafeArea(
+                  top: false,
+                  child: Container(
+                    padding: const .symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(),
+                    child: CustomButton(
+                      isLoading: vm.isSaving,
+                      text: vm.isEditing
+                          ? AppLocalizations.of(context).update
+                          : AppLocalizations.of(context).save,
+                      onPressed: () async {
+                        if (vm.isLoadingAttachments) return;
+                        if (!vm.validateAttachments()) return;
+                        if (!vm.formKey.currentState!.validate()) return;
+                        if (!await persistAction(context, () => vm.submit())) {
+                          return;
+                        }
+                        if (!context.mounted) return;
+                        // Compute the message and pop *before* showing the
+                        // toast — another_flushbar pushes its toast as its
+                        // own Navigator route, so popping this screen right
+                        // on top of that in-flight push corrupts the
+                        // navigator's route lifecycle.
+                        final title = vm.titleController.text.trim();
 
-                      final message = editingDocument != null
-                          ? AppLocalizations.of(
-                              context,
-                            ).documentUpdatedToast(title)
-                          : AppLocalizations.of(
-                              context,
-                            ).documentCreatedToast(title);
-                      AppNavigator.pop();
-                      AppToastsUtils.success(message);
-                    },
+                        final message = editingDocument != null
+                            ? AppLocalizations.of(
+                                context,
+                              ).documentUpdatedToast(title)
+                            : AppLocalizations.of(
+                                context,
+                              ).documentCreatedToast(title);
+                        AppNavigator.pop();
+                        AppToastsUtils.success(message);
+                      },
+                    ),
                   ),
                 ),
-              ),
               ),
             );
           },
@@ -314,6 +321,22 @@ class _AttachmentSection extends StatelessWidget {
             label: vm.isProcessingOcr
                 ? AppLocalizations.of(context).extractingTextStatus
                 : AppLocalizations.of(context).organizingWithAiStatus,
+          ),
+        ] else if (vm.attachments.isNotEmpty) ...[
+          heightBox(12),
+          Align(
+            alignment: .centerLeft,
+            child: TextButton.icon(
+              onPressed: vm.reorganizeWithAi,
+              icon: Icon(Iconsax.magicpen, size: 16, color: context.primary),
+              label: Text(AppLocalizations.of(context).reorganizeWithAi),
+              style: TextButton.styleFrom(
+                padding: const .symmetric(horizontal: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: .shrinkWrap,
+                foregroundColor: context.primary,
+              ),
+            ),
           ),
         ],
       ],
@@ -1173,23 +1196,38 @@ class _DraftLifecycle extends StatefulWidget {
   State<_DraftLifecycle> createState() => _DraftLifecycleState();
 }
 
-class _DraftLifecycleState extends State<_DraftLifecycle> with WidgetsBindingObserver {
+class _DraftLifecycleState extends State<_DraftLifecycle>
+    with WidgetsBindingObserver {
   bool _leaving = false;
   @override
-  void initState() { super.initState(); WidgetsBinding.instance.addObserver(this); }
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
   @override
-  void dispose() { WidgetsBinding.instance.removeObserver(this); super.dispose(); }
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == .inactive || state == .paused) {
       unawaited(widget.vm.flushDraft().catchError((Object _) {}));
     }
   }
+
   @override
   Widget build(BuildContext context) => PopScope(
     canPop: widget.vm.canLeave,
     onPopInvokedWithResult: (didPop, result) async {
-      if (didPop || _leaving || widget.vm.isSaving || widget.vm.isLoadingAttachments) return;
+      if (didPop ||
+          _leaving ||
+          widget.vm.isSaving ||
+          widget.vm.isLoadingAttachments) {
+        return;
+      }
       _leaving = true;
       final saved = await persistAction(context, widget.vm.flushDraft);
       // Let the provider rebuild PopScope with the now-durable state.
@@ -1197,7 +1235,10 @@ class _DraftLifecycleState extends State<_DraftLifecycle> with WidgetsBindingObs
       if (saved && context.mounted) Navigator.of(context).pop();
       _leaving = false;
     },
-    child: AbsorbPointer(absorbing: widget.vm.isSaving || widget.vm.isLoadingAttachments, child: widget.child),
+    child: AbsorbPointer(
+      absorbing: widget.vm.isSaving || widget.vm.isLoadingAttachments,
+      child: widget.child,
+    ),
   );
 }
 
@@ -1207,21 +1248,39 @@ class _DraftStatus extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final message = vm.hasMissingDraftFiles ? l10n.draftMissingFiles
-        : vm.draftFailed ? l10n.draftSaveFailed
-        : vm.isSavingDraft ? l10n.draftSaving
-        : vm.hasDraft ? l10n.draftSaved : l10n.draftHint;
+    // Only ever built once the caller's own guard confirms there's
+    // something to say -- no idle "your progress is saved automatically"
+    // filler state here, so the final branch is always the hasDraft case.
+    final message = vm.hasMissingDraftFiles
+        ? l10n.draftMissingFiles
+        : vm.draftFailed
+        ? l10n.draftSaveFailed
+        : vm.isSavingDraft
+        ? l10n.draftSaving
+        : l10n.draftSaved;
     return Container(
       padding: const .all(12),
-      decoration: BoxDecoration(color: context.surface, borderRadius: .circular(12)),
+      decoration: BoxDecoration(
+        color: context.surface,
+        borderRadius: .circular(12),
+      ),
       child: Row(
         children: [
-          Icon(vm.draftFailed || vm.hasMissingDraftFiles ? Icons.error_outline : Icons.edit_note_rounded,
-            color: vm.draftFailed || vm.hasMissingDraftFiles ? context.errorAccent : context.textSecondary),
+          Icon(
+            vm.draftFailed || vm.hasMissingDraftFiles
+                ? Icons.error_outline
+                : Icons.edit_note_rounded,
+            color: vm.draftFailed || vm.hasMissingDraftFiles
+                ? context.errorAccent
+                : context.textSecondary,
+          ),
           const SizedBox(width: 10),
           Expanded(child: Text(message, style: context.bodySmall)),
           if (vm.draftFailed)
-            TextButton(onPressed: () => persistAction(context, vm.flushDraft), child: Text(l10n.draftRetry)),
+            TextButton(
+              onPressed: () => persistAction(context, vm.flushDraft),
+              child: Text(l10n.draftRetry),
+            ),
         ],
       ),
     );

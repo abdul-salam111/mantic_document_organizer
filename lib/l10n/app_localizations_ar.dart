@@ -494,6 +494,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get organizingWithAiStatus => 'التنظيم باستخدام الذكاء الاصطناعي…';
 
   @override
+  String get reorganizeWithAi => 'إعادة التنظيم بالذكاء الاصطناعي';
+
+  @override
   String get camera => 'الكاميرا';
 
   @override
@@ -872,9 +875,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get draftSaved => 'تم حفظ المسودة';
-
-  @override
-  String get draftHint => 'يتم حفظ تقدمك تلقائيًا.';
 
   @override
   String get draftRetry => 'إعادة المحاولة';

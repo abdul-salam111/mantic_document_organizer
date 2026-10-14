@@ -500,6 +500,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get organizingWithAiStatus => 'Organisation avec l\'IA…';
 
   @override
+  String get reorganizeWithAi => 'Réorganiser avec l\'IA';
+
+  @override
   String get camera => 'Appareil photo';
 
   @override
@@ -887,9 +890,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get draftSaved => 'Brouillon enregistré';
-
-  @override
-  String get draftHint => 'Votre progression est enregistrée automatiquement.';
 
   @override
   String get draftRetry => 'Réessayer';
