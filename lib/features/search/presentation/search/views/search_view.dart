@@ -198,8 +198,29 @@ class _CategoryTabs extends StatelessWidget {
               Expanded(
                 child: TabBarView(
                   children: [
-                    for (final category in categories)
-                      _DocumentList(vm: vm, category: category),
+                    for (var i = 0; i < categories.length; i++)
+                      // TabBarView keeps the pages adjacent to the current
+                      // one built (so swiping between them is smooth),
+                      // which means a document under e.g. "Bank" renders
+                      // in both the "All" page and the "Bank" page at
+                      // once. HeroMode(enabled: false) keeps every page
+                      // but the selected one out of Hero tag discovery, so
+                      // that doesn't collide with the one tag each
+                      // document's cover actually registers on the active
+                      // page. AnimatedBuilder (rather than computing
+                      // `enabled` once per build) keeps this correct while
+                      // swiping, without rebuilding the document list
+                      // itself on every frame of the swipe — only the
+                      // cheap HeroMode wrapper does.
+                      AnimatedBuilder(
+                        animation: controller,
+                        builder: (context, child) =>
+                            HeroMode(enabled: controller.index == i, child: child!),
+                        child: _DocumentList(
+                          vm: vm,
+                          category: categories[i],
+                        ),
+                      ),
                   ],
                 ),
               ),

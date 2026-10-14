@@ -67,7 +67,22 @@ class _NavbarViewState extends State<NavbarView> {
               }
             },
             child: Scaffold(
-              body: IndexedStack(index: vm.selectedIndex, children: _tabs),
+              // IndexedStack keeps every tab mounted (just not painted) so
+              // switching tabs doesn't lose their scroll position/state —
+              // but that also means a document shown on more than one tab
+              // at once (e.g. Home's Recent Files and the Favorites tab)
+              // would register its cover's Hero tag twice in the same
+              // route. HeroMode(enabled: false) opts an offstage tab's
+              // Heroes out of that registration entirely, so only the
+              // actually-visible tab's cover can ever be a flight
+              // candidate.
+              body: IndexedStack(
+                index: vm.selectedIndex,
+                children: [
+                  for (var i = 0; i < _tabs.length; i++)
+                    HeroMode(enabled: vm.selectedIndex == i, child: _tabs[i]),
+                ],
+              ),
               bottomNavigationBar: MainBottomNavbar(
                 selectedIndex: vm.selectedIndex,
                 onTabSelected: vm.selectTab,

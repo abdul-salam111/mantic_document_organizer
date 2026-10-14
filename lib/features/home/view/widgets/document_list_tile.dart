@@ -84,13 +84,17 @@ class DocumentListTile extends StatelessWidget {
                         height: 76,
                         child: Stack(
                           children: [
-                            DocumentCoverThumbnail(
+                            DocumentCoverHero(
                               document: document,
                               color: accentColor,
-                              width: 76,
-                              height: 76,
-                              borderRadius: 12,
-                              iconSize: 26,
+                              child: DocumentCoverThumbnail(
+                                document: document,
+                                color: accentColor,
+                                width: 76,
+                                height: 76,
+                                borderRadius: 12,
+                                iconSize: 26,
+                              ),
                             ),
                             Positioned(
                               right: 4,

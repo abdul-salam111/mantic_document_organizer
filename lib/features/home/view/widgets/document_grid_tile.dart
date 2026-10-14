@@ -81,13 +81,17 @@ class DocumentGridTile extends StatelessWidget {
               aspectRatio: _coverAspectRatio,
               child: Stack(
                 children: [
-                  DocumentCoverThumbnail(
+                  DocumentCoverHero(
                     document: document,
                     color: accentColor,
-                    width: double.infinity,
-                    height: double.infinity,
-                    borderRadius: 0,
-                    iconSize: 30,
+                    child: DocumentCoverThumbnail(
+                      document: document,
+                      color: accentColor,
+                      width: double.infinity,
+                      height: double.infinity,
+                      borderRadius: 0,
+                      iconSize: 30,
+                    ),
                   ),
                   Positioned(
                     top: 8,

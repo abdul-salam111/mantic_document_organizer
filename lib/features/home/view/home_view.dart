@@ -446,13 +446,17 @@ class _RecentFileCard extends StatelessWidget {
                     children: [
                       Padding(
                         padding: const .all(4),
-                        child: DocumentCoverThumbnail(
+                        child: DocumentCoverHero(
                           document: document,
                           color: color,
-                          width: _height - 8,
-                          height: _height - 8,
-                          borderRadius: 8,
-                          iconSize: 24,
+                          child: DocumentCoverThumbnail(
+                            document: document,
+                            color: color,
+                            width: _height - 8,
+                            height: _height - 8,
+                            borderRadius: 8,
+                            iconSize: 24,
+                          ),
                         ),
                       ),
                       Positioned(

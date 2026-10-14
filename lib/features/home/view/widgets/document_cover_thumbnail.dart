@@ -74,3 +74,46 @@ class DocumentCoverThumbnail extends StatelessWidget {
     return _iconFallback();
   }
 }
+
+/// Wraps [child] (a document's cover on a card/tile, or the document
+/// viewer's own first-page preview) in the [Hero] that flies between the
+/// two. Both ends pass the same [document]/[color] so the tag and the
+/// mid-flight content line up without either side hand-building either.
+///
+/// The `flightShuttleBuilder` pins the mid-flight content to a cheap
+/// [DocumentCoverThumbnail] instead of Hero's default of using the
+/// destination's own child — which here would mean instantiating a second,
+/// throwaway copy of whatever expensive/stateful widget actually sits at
+/// the far end (a live `PdfZoomView`, a full-resolution `Image.file`) just
+/// for the ~300ms flight, only to discard it the instant the flight
+/// completes and the real content underneath takes over.
+class DocumentCoverHero extends StatelessWidget {
+  final DocumentItem document;
+  final Color color;
+  final Widget child;
+
+  const DocumentCoverHero({
+    super.key,
+    required this.document,
+    required this.color,
+    required this.child,
+  });
+
+  static String _tag(String documentId) => 'document-cover-$documentId';
+
+  @override
+  Widget build(BuildContext context) {
+    return Hero(
+      tag: _tag(document.id),
+      flightShuttleBuilder: (_, _, _, _, _) => DocumentCoverThumbnail(
+        document: document,
+        color: color,
+        width: double.infinity,
+        height: double.infinity,
+        borderRadius: 0,
+        iconSize: 32,
+      ),
+      child: child,
+    );
+  }
+}

@@ -664,11 +664,15 @@ class _PageAreaState extends State<_PageArea> {
     // list below instead -- already a plain vertical scroller of images.
     final singlePath = paths.length == 1 ? paths.first : null;
     if (singlePath != null && isPdfPath(singlePath)) {
-      return _SinglePdfPage(
-        path: singlePath,
-        isSelected: widget.selectedPaths.contains(singlePath),
-        selectionActive: widget.selectedPaths.isNotEmpty,
-        onToggleSelection: () => widget.onToggleSelection(singlePath),
+      return DocumentCoverHero(
+        document: widget.document,
+        color: categoryIconColor(context, widget.document.category),
+        child: _SinglePdfPage(
+          path: singlePath,
+          isSelected: widget.selectedPaths.contains(singlePath),
+          selectionActive: widget.selectedPaths.isNotEmpty,
+          onToggleSelection: () => widget.onToggleSelection(singlePath),
+        ),
       );
     }
 
@@ -680,9 +684,8 @@ class _PageAreaState extends State<_PageArea> {
           padding: const .fromLTRB(14, 14, 14, 24),
           itemCount: paths.length,
           separatorBuilder: (_, _) => heightBox(14),
-          itemBuilder: (context, index) => KeyedSubtree(
-            key: _fileKeys[index],
-            child: _SelectableFilePreview(
+          itemBuilder: (context, index) {
+            final preview = _SelectableFilePreview(
               path: paths[index],
               isSelected: widget.selectedPaths.contains(paths[index]),
               selectionActive: widget.selectedPaths.isNotEmpty,
@@ -691,8 +694,25 @@ class _PageAreaState extends State<_PageArea> {
                 RouteNames.filePreview,
                 extra: (widget.document.filePaths, index),
               ),
-            ),
-          ),
+            );
+            return KeyedSubtree(
+              key: _fileKeys[index],
+              // Only the first file is what the document's cover thumbnail
+              // (on the card/tile that was tapped to get here) actually
+              // shows, so it's the only one that has a matching Hero on
+              // the other end of the flight.
+              child: index == 0
+                  ? DocumentCoverHero(
+                      document: widget.document,
+                      color: categoryIconColor(
+                        context,
+                        widget.document.category,
+                      ),
+                      child: preview,
+                    )
+                  : preview,
+            );
+          },
         ),
         Positioned(
           top: 12,
