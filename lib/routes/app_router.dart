@@ -107,19 +107,30 @@ class AppRoutes {
       GoRoute(
         path: RoutePaths.addDocument,
         name: RouteNames.addDocument,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final extra = state.extra;
-          if (extra case (DocumentItem document, AttachmentSource source)) {
-            return AddDocumentView(
+          final child = switch (extra) {
+            (DocumentItem document, AttachmentSource source) => AddDocumentView(
               editingDocument: document,
               initialSource: source,
-            );
-          }
-          return AddDocumentView(
-            initialCategory: extra is CategoryItem ? extra : null,
-            editingDocument: extra is DocumentItem ? extra : null,
-            initialSharedFilePaths: extra is List<String> ? extra : null,
-            initialSource: extra is AttachmentSource ? extra : null,
+            ),
+            _ => AddDocumentView(
+              initialCategory: extra is CategoryItem ? extra : null,
+              editingDocument: extra is DocumentItem ? extra : null,
+              initialSharedFilePaths: extra is List<String> ? extra : null,
+              initialSource: extra is AttachmentSource ? extra : null,
+            ),
+          };
+          // Same fade+scale as RouteNames.aiAssistant -- reads as the
+          // document viewer's edit action handing off into its own editing
+          // screen, rather than go_router's default platform slide, which
+          // feels like an unrelated new page.
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: child,
+            transitionDuration: const Duration(milliseconds: 380),
+            reverseTransitionDuration: const Duration(milliseconds: 280),
+            transitionsBuilder: _fadeScaleTransition,
           );
         },
       ),
