@@ -94,7 +94,11 @@ class HomeView extends StatelessWidget {
                               ),
                             ],
                           ),
-                          heightBox(vm.recentFiles.isNotEmpty ? 14 : 20),
+                          heightBox(14),
+                          if (vm.expiringSoonCount > 0) ...[
+                            _ExpiringSoonBanner(count: vm.expiringSoonCount),
+                            heightBox(14),
+                          ],
                           const DraftInbox(),
                           if (vm.recentFiles.isNotEmpty) ...[
                             Row(
@@ -149,10 +153,6 @@ class HomeView extends StatelessWidget {
                                     ),
                               ),
                             ),
-                            heightBox(20),
-                          ],
-                          if (vm.expiringSoonCount > 0) ...[
-                            _ExpiringSoonBanner(count: vm.expiringSoonCount),
                             heightBox(20),
                           ],
                           Row(
@@ -537,25 +537,25 @@ class _ExpiringSoonBanner extends StatelessWidget {
         context.warning.withValues(alpha: 0.08),
         context.categoryCardSurface,
       ),
-      borderRadius: .circular(16),
+      borderRadius: .circular(10),
       clipBehavior: .antiAlias,
       child: InkWell(
         onTap: () => AppNavigator.pushNamed(RouteNames.expiringSoon),
         child: Padding(
-          padding: const .all(14),
+          padding: const .symmetric(horizontal: 10, vertical: 8),
           child: Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 30,
+                height: 30,
                 alignment: .center,
                 decoration: BoxDecoration(
                   color: context.warning.withValues(alpha: 0.15),
                   shape: .circle,
                 ),
-                child: Icon(Iconsax.timer_1, size: 20, color: context.warning),
+                child: Icon(Iconsax.timer_1, size: 15, color: context.warning),
               ),
-              widthBox(12),
+              widthBox(10),
               Expanded(
                 // Reuses the weekly digest notification's own string --
                 // same "N documents expire this month" framing either way,
@@ -563,12 +563,12 @@ class _ExpiringSoonBanner extends StatelessWidget {
                 // across locales.
                 child: Text(
                   AppLocalizations.of(context).expiringSoonDigestBody(count),
-                  style: context.bodyMedium.copyWith(fontWeight: .w600),
+                  style: context.bodySmall.copyWith(fontWeight: .w600),
                 ),
               ),
               Icon(
                 Iconsax.arrow_right_3,
-                size: 18,
+                size: 15,
                 color: context.textSecondary,
               ),
             ],
