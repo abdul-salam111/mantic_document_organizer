@@ -180,7 +180,7 @@ class HomeView extends StatelessWidget {
                             heightBox(7),
                             SizedBox(
                               height:
-                                  214 +
+                                  184 +
                                   (MediaQuery.textScalerOf(context).scale(14) -
                                           14) *
                                       7,
@@ -590,14 +590,14 @@ class _ExpiringSoonCard extends StatelessWidget {
     final expiry = document.expiryDate!;
     final accent = expiryUrgencyColor(context, expiry);
     return SizedBox(
-      width: 180,
+      width: 150,
       child: Material(
         color: Color.alphaBlend(
           accent.withValues(alpha: 0.07),
           context.categoryCardSurface,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: .circular(18),
+          borderRadius: .circular(16),
           side: BorderSide(color: accent.withValues(alpha: 0.22)),
         ),
         clipBehavior: .antiAlias,
@@ -607,7 +607,7 @@ class _ExpiringSoonCard extends StatelessWidget {
             extra: document,
           ),
           child: Padding(
-            padding: const .all(14),
+            padding: const .all(11),
             child: Column(
               crossAxisAlignment: .start,
               children: [
@@ -615,11 +615,11 @@ class _ExpiringSoonCard extends StatelessWidget {
                   crossAxisAlignment: .start,
                   children: [
                     Container(
-                      width: 60,
-                      padding: const .symmetric(vertical: 8),
+                      width: 48,
+                      padding: const .symmetric(vertical: 6),
                       decoration: BoxDecoration(
                         color: context.surface,
-                        borderRadius: .circular(12),
+                        borderRadius: .circular(10),
                         border: Border.all(
                           color: accent.withValues(alpha: 0.2),
                         ),
@@ -632,11 +632,12 @@ class _ExpiringSoonCard extends StatelessWidget {
                             style: context.labelSmall.copyWith(
                               color: context.textSecondary,
                               fontWeight: .w600,
+                              fontSize: 10,
                             ),
                           ),
                           Text(
                             expiry.format('dd'),
-                            style: context.headlineMedium.copyWith(
+                            style: context.titleLarge.copyWith(
                               color: context.textPrimary,
                               fontWeight: .w800,
                               height: 1.15,
@@ -646,20 +647,20 @@ class _ExpiringSoonCard extends StatelessWidget {
                       ),
                     ),
                     const Spacer(),
-                    PendingSyncBadge(documentId: document.id, size: 21),
+                    PendingSyncBadge(documentId: document.id, size: 18),
                   ],
                 ),
-                heightBox(12),
+                heightBox(9),
                 Text(
                   document.title,
                   maxLines: 2,
                   overflow: .ellipsis,
-                  style: context.bodyMedium.copyWith(
+                  style: context.labelLarge.copyWith(
                     fontWeight: .w700,
                     height: 1.2,
                   ),
                 ),
-                heightBox(4),
+                heightBox(3),
                 Text(
                   document.category,
                   maxLines: 1,
