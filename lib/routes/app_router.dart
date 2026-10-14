@@ -175,11 +175,24 @@ class AppRoutes {
       GoRoute(
         path: RoutePaths.filePreview,
         name: RouteNames.filePreview,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final (filePaths, initialIndex) = state.extra as (List<String>, int);
-          return FilePreviewView(
-            filePaths: filePaths,
-            initialIndex: initialIndex,
+          // Same fade+scale as RouteNames.addDocument/aiAssistant. Most
+          // pages also get their own FilePageHero flight on top of this,
+          // but the document's first page doesn't (it's already carrying
+          // DocumentCoverHero for the flight in from wherever the document
+          // itself was opened from -- a Hero can't run two flights at
+          // once) -- this chrome transition is what makes opening *that*
+          // one still feel intentional instead of an abrupt cut.
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: FilePreviewView(
+              filePaths: filePaths,
+              initialIndex: initialIndex,
+            ),
+            transitionDuration: const Duration(milliseconds: 380),
+            reverseTransitionDuration: const Duration(milliseconds: 280),
+            transitionsBuilder: _fadeScaleTransition,
           );
         },
       ),
