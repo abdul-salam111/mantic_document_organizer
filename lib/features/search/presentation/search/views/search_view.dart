@@ -81,10 +81,20 @@ class _SearchViewState extends State<SearchView> {
                 child: Column(
                   crossAxisAlignment: .start,
                   children: [
-                    CustomSearchField(
-                      hintText: AppLocalizations.of(context).allDocsSearchHint,
-                      focusNode: _searchFocusNode,
-                      onChanged: vm.updateQuery,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: CustomSearchField(
+                            hintText: AppLocalizations.of(
+                              context,
+                            ).allDocsSearchHint,
+                            focusNode: _searchFocusNode,
+                            onChanged: vm.updateQuery,
+                          ),
+                        ),
+                        widthBox(10),
+                        _FilterButton(vm: vm),
+                      ],
                     ),
                     heightBox(14),
                     Expanded(child: _CategoryTabs(vm: vm)),
@@ -190,8 +200,6 @@ class _CategoryTabs extends StatelessWidget {
                         onSelected: vm.setSort,
                         onAppBar: false,
                       ),
-                      widthBox(10),
-                      _FilterButton(vm: vm),
                     ],
                   );
                 },
@@ -333,6 +341,10 @@ class _DocumentList extends StatelessWidget {
 /// Opens [_FilterSheet] — a small red dot shows whenever a file-type/
 /// expiry/date filter is active, since the icon alone doesn't say so at a
 /// glance the way the sort/view-mode buttons next to it don't need to.
+/// Sits to the right of the search field, same rounded/bordered look as
+/// [CustomSearchField] so it reads as part of the same search bar rather
+/// than a stray icon — filled and outlined in the accent color whenever a
+/// filter is active, with a small dot badge as a second, glanceable cue.
 class _FilterButton extends StatelessWidget {
   final SearchViewModel vm;
 
@@ -342,30 +354,60 @@ class _FilterButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: vm,
-      builder: (context, _) => InkWell(
-        borderRadius: .circular(8),
-        onTap: () => _showFilterSheet(context, vm),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Icon(Iconsax.filter, size: 20, color: context.textPrimary),
-            if (vm.hasActiveFilters)
-              Positioned(
-                top: -2,
-                right: -2,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: context.errorAccent,
-                    shape: .circle,
-                    border: Border.all(color: context.background, width: 1.5),
-                  ),
+      builder: (context, _) {
+        final active = vm.hasActiveFilters;
+        return Tooltip(
+          message: 'Filters',
+          child: InkWell(
+            borderRadius: .circular(10),
+            onTap: () => _showFilterSheet(context, vm),
+            child: Container(
+              width: 46,
+              height: 46,
+              alignment: .center,
+              decoration: BoxDecoration(
+                color: active
+                    ? context.primaryAccent.withValues(alpha: 0.12)
+                    : context.surface,
+                borderRadius: .circular(10),
+                border: Border.all(
+                  color: active
+                      ? context.primaryAccent
+                      : context.grey300.withValues(alpha: 0.6),
                 ),
               ),
-          ],
-        ),
-      ),
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: .center,
+                children: [
+                  FaIcon(
+                    FontAwesomeIcons.sliders,
+                    size: 17,
+                    color: active ? context.primaryAccent : context.textPrimary,
+                  ),
+                  if (active)
+                    Positioned(
+                      top: -4,
+                      right: -4,
+                      child: Container(
+                        width: 9,
+                        height: 9,
+                        decoration: BoxDecoration(
+                          color: context.errorAccent,
+                          shape: .circle,
+                          border: Border.all(
+                            color: context.background,
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
