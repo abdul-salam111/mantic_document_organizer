@@ -66,6 +66,7 @@ import '../../features/bulk_import/data/gallery_discovery_datasource.dart';
 import '../../features/bulk_import/domain/usecases/bulk_import_usecases.dart';
 import '../../features/bulk_import/domain/usecases/gallery_discovery_usecases.dart';
 import '../background/auto_import_service.dart';
+import '../background/bulk_import_commit_service.dart';
 import '../background/document_sync_background_service.dart';
 import '../local_storage/local_storage_exports.dart';
 
@@ -162,6 +163,11 @@ Future<void> coreDependencies() async {
       notifications: sl(),
     ),
   );
+  sl.registerLazySingleton(
+    () => BulkImportCommitNotifications(sl()),
+    dispose: (service) => service.dispose(),
+  );
+  sl.registerLazySingleton(() => BulkImportCommitService(notifications: sl()));
   sl.registerLazySingleton(() => ShareIntentService());
   sl.registerLazySingleton(() => GallerySaverService());
   sl.registerLazySingleton(
@@ -253,8 +259,13 @@ Future<void> backupDependencies() async {
 }
 
 Future<void> documentStorageDependencies() async {
-  sl.registerLazySingleton<DraftLocalDataSource>(() => SqliteDraftDataSource(sl()));
-  sl.registerLazySingleton<IDraftRepository>(() => DraftRepositoryImpl(sl()), dispose: (repo) => (repo as DraftRepositoryImpl).dispose());
+  sl.registerLazySingleton<DraftLocalDataSource>(
+    () => SqliteDraftDataSource(sl()),
+  );
+  sl.registerLazySingleton<IDraftRepository>(
+    () => DraftRepositoryImpl(sl()),
+    dispose: (repo) => (repo as DraftRepositoryImpl).dispose(),
+  );
   sl.registerLazySingleton<DraftUseCases>(() => DraftUseCases(sl()));
   sl.registerLazySingleton<CategoryLocalDataSource>(
     () => SqliteCategoryDataSource(sl()),
@@ -273,10 +284,17 @@ Future<void> documentStorageDependencies() async {
 }
 
 Future<void> homeDependencies() async {
-  sl.registerLazySingleton<IReadinessRepository>(() => ReadinessRepositoryImpl());
-  sl.registerFactory<ReadinessViewModel>(() => ReadinessViewModel(
-    documents: sl(), categories: sl(), load: LoadReadiness(sl()), save: SaveReadiness(sl()),
-  ));
+  sl.registerLazySingleton<IReadinessRepository>(
+    () => ReadinessRepositoryImpl(),
+  );
+  sl.registerFactory<ReadinessViewModel>(
+    () => ReadinessViewModel(
+      documents: sl(),
+      categories: sl(),
+      load: LoadReadiness(sl()),
+      save: SaveReadiness(sl()),
+    ),
+  );
   sl.registerFactory<HomeViewModel>(
     () => HomeViewModel(
       categoryUseCases: sl(),

@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
 
+import '../../../core/background/bulk_import_commit_service.dart';
 import '../../../core/constants/constants_exports.dart';
+import '../../../core/di/di_exports.dart';
 import '../../../core/theme/theme_exports.dart';
 import '../../../core/utils/utils_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
@@ -13,19 +15,40 @@ import '../../home/home_exports.dart';
 import '../domain/entities/bulk_import_candidate.dart';
 import 'viewmodel/bulk_import_viewmodel.dart';
 
-class BulkImportReviewView extends StatelessWidget {
+/// Owns [viewModel]'s disposal -- a plain field here (not routed through
+/// [ChangeNotifierProvider]'s own create/dispose), because tapping Import
+/// hands the viewmodel off to [BulkImportCommitService] to keep saving in
+/// the background after this screen is gone, and that handoff must stop
+/// the normal "dispose on unmount" path from also disposing it. Leaving
+/// any other way (back button, close button) still disposes it here,
+/// exactly as before.
+class BulkImportReviewView extends StatefulWidget {
   final BulkImportViewModel viewModel;
   const BulkImportReviewView({super.key, required this.viewModel});
 
   @override
-  Widget build(BuildContext context) => ChangeNotifierProvider(
-    create: (_) => viewModel,
-    child: const _ReviewBody(),
+  State<BulkImportReviewView> createState() => _BulkImportReviewViewState();
+}
+
+class _BulkImportReviewViewState extends State<BulkImportReviewView> {
+  bool _handedOffToBackground = false;
+
+  @override
+  void dispose() {
+    if (!_handedOffToBackground) widget.viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => ChangeNotifierProvider.value(
+    value: widget.viewModel,
+    child: _ReviewBody(onImportStarted: () => _handedOffToBackground = true),
   );
 }
 
 class _ReviewBody extends StatelessWidget {
-  const _ReviewBody();
+  final VoidCallback onImportStarted;
+  const _ReviewBody({required this.onImportStarted});
 
   void _leave(BuildContext context) {
     if (context.canPop()) {
@@ -35,6 +58,11 @@ class _ReviewBody extends StatelessWidget {
     }
   }
 
+  /// Confirms (if suggestions are still running), then hands [vm] off to
+  /// [BulkImportCommitService] and leaves immediately -- saving continues
+  /// in the background, with progress and the result shown only through a
+  /// notification, so the user is free to keep using the app right away
+  /// instead of waiting on this screen.
   Future<void> _import(BuildContext context, BulkImportViewModel vm) async {
     FocusManager.instance.primaryFocus?.unfocus();
     if (vm.isProcessing) {
@@ -51,163 +79,80 @@ class _ReviewBody extends StatelessWidget {
       );
       if (!proceed || !context.mounted) return;
     }
-    final result = await vm.commit();
+    final count = vm.selectedCount;
+    onImportStarted();
+    sl<BulkImportCommitService>().runInBackground(vm);
     if (!context.mounted) return;
-    final allDone = result.failures.isEmpty && vm.candidates.isEmpty;
-    await _showResultDialog(
-      context,
-      icon: result.failures.isEmpty ? Iconsax.tick_circle : Iconsax.warning_2,
-      accent: result.failures.isEmpty ? context.success : context.warning,
-      title: result.failures.isEmpty
-          ? 'Import complete'
-          : 'Some documents need retrying',
-      message:
-          '${result.imported} documents imported.'
-          '${result.failures.isEmpty ? '' : '\n${result.failures.length} could not be saved. They remain in review with an error so you can retry. Saved documents will not be imported again.'}',
-      actionLabel: allDone ? 'Done' : 'Back to review',
-    );
-    if (!context.mounted) return;
-    if (allDone) context.goNamed(RouteNames.home);
-  }
-
-  Future<void> _showResultDialog(
-    BuildContext context, {
-    required IconData icon,
-    required Color accent,
-    required String title,
-    required String message,
-    required String actionLabel,
-  }) {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => Dialog(
-        backgroundColor: dialogContext.surfaceElevated,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 60,
-                height: 60,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: accent, size: 30),
-              ),
-              heightBox(18),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: dialogContext.titleMedium.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              heightBox(8),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: dialogContext.bodyMedium.copyWith(
-                  color: dialogContext.textSecondary,
-                ),
-              ),
-              heightBox(24),
-              SizedBox(
-                width: double.infinity,
-                child: CustomButton(
-                  text: actionLabel,
-                  radius: 14,
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+    _leave(context);
+    AppToastsUtils.info(
+      count == 1
+          ? 'Importing 1 document in the background.'
+          : 'Importing $count documents in the background.',
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<BulkImportViewModel>();
-    return PopScope(
-      canPop: !vm.isImporting,
-      child: Scaffold(
+    return Scaffold(
+      backgroundColor: context.background,
+      appBar: AppBar(
         backgroundColor: context.background,
-        appBar: AppBar(
-          backgroundColor: context.background,
-          foregroundColor: context.textPrimary,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          titleSpacing: 4,
-          leadingWidth: 56,
-          leading: Center(
-            child: _CircleIconButton(
-              icon: Icons.close_rounded,
-              tooltip: 'Cancel import',
-              onPressed: vm.isImporting ? null : () => _leave(context),
-            ),
-          ),
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Review documents',
-                style: context.titleMedium.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              Text(
-                vm.candidates.isEmpty
-                    ? 'Nothing left to review'
-                    : '${vm.selectedCount} of ${vm.candidates.length} selected',
-                style: context.labelSmall.copyWith(
-                  color: context.textSecondary,
-                ),
-              ),
-            ],
+        foregroundColor: context.textPrimary,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        titleSpacing: 4,
+        leadingWidth: 56,
+        leading: Center(
+          child: _CircleIconButton(
+            icon: Icons.close_rounded,
+            tooltip: 'Cancel import',
+            onPressed: () => _leave(context),
           ),
         ),
-        body: AbsorbPointer(
-          absorbing: vm.isImporting,
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-            children: [
-              if (vm.notice != null) ...[
-                _InfoBanner(icon: Iconsax.info_circle, message: vm.notice!),
-                heightBox(14),
-              ],
-              if (vm.isProcessing) ...[
-                _ProcessingBanner(vm: vm),
-                heightBox(14),
-              ],
-              if (vm.candidates.isEmpty) const _EmptyState(),
-              for (final c in vm.candidates)
-                _CandidateCard(key: ValueKey(c.id), candidate: c),
-            ],
-          ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Review documents',
+              style: context.titleMedium.copyWith(fontWeight: FontWeight.w700),
+            ),
+            Text(
+              vm.candidates.isEmpty
+                  ? 'Nothing left to review'
+                  : '${vm.selectedCount} of ${vm.candidates.length} selected',
+              style: context.labelSmall.copyWith(color: context.textSecondary),
+            ),
+          ],
         ),
-        bottomNavigationBar: SafeArea(
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-            decoration: BoxDecoration(
-              color: context.background,
-              border: Border(top: BorderSide(color: context.divider)),
-            ),
-            child: CustomButton(
-              onPressed: vm.canImport ? () => _import(context, vm) : null,
-              icon: vm.isImporting ? null : Iconsax.folder_add,
-              radius: 16,
-              size: const Size(double.infinity, 54),
-              text: vm.isImporting
-                  ? 'Importing ${vm.importCompleted} of ${vm.importTotal}…'
-                  : 'Import ${vm.selectedCount} documents',
-            ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+        children: [
+          if (vm.notice != null) ...[
+            _InfoBanner(icon: Iconsax.info_circle, message: vm.notice!),
+            heightBox(14),
+          ],
+          if (vm.isProcessing) ...[_ProcessingBanner(vm: vm), heightBox(14)],
+          if (vm.candidates.isEmpty) const _EmptyState(),
+          for (final c in vm.candidates)
+            _CandidateCard(key: ValueKey(c.id), candidate: c),
+        ],
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          decoration: BoxDecoration(
+            color: context.background,
+            border: Border(top: BorderSide(color: context.divider)),
+          ),
+          child: CustomButton(
+            onPressed: vm.canImport ? () => _import(context, vm) : null,
+            icon: Iconsax.folder_add,
+            radius: 16,
+            size: const Size(double.infinity, 54),
+            text: 'Import ${vm.selectedCount} documents',
           ),
         ),
       ),
