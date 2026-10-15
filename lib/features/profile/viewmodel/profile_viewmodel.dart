@@ -45,6 +45,7 @@ class ProfileViewModel extends ChangeNotifier {
   int get categoryCount => _categoryUseCases.categories.length;
   int get favoriteCount =>
       _documentUseCases.documents.where((d) => d.isFavorite).length;
+  int get expiringSoonCount => _documentUseCases.expiringSoon().length;
 
   String? _appVersion;
   String? get appVersion => _appVersion;

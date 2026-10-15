@@ -17,7 +17,7 @@ class BulkImportPopup {
   const BulkImportPopup._();
 
   static Future<void> show(BuildContext context) async {
-    if (!AppConstants.bulkImportEnabled) return;
+    if (!AppConstants.autoImportEnabled) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => const _BulkImportDialog(),

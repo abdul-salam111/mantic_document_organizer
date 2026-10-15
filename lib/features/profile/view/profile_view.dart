@@ -86,6 +86,12 @@ class ProfileView extends StatelessWidget {
                       onTap: () => _importMultipleDocuments(context),
                     ),
                     heightBox(10),
+                  ],
+                  // The whole-photo-library auto-scan entry point -- kept
+                  // under its own flag (off) so it stays hidden
+                  // independently of the manual "Import documents" option
+                  // above, which the user picks files for explicitly.
+                  if (AppConstants.autoImportEnabled) ...[
                     _ProfileMenuTile(
                       icon: Iconsax.document_upload,
                       iconColor: context.primary,
@@ -110,17 +116,19 @@ class ProfileView extends StatelessWidget {
                     subtitle: AppLocalizations.of(context).trashSubtitle,
                     onTap: () => AppNavigator.pushNamed(RouteNames.trash),
                   ),
-                  heightBox(10),
-                  _ProfileMenuTile(
-                    icon: Iconsax.timer_1,
-                    iconColor: context.warning,
-                    label: AppLocalizations.of(context).expiringSoonTitle,
-                    subtitle: AppLocalizations.of(
-                      context,
-                    ).expiringSoonMenuSubtitle,
-                    onTap: () =>
-                        AppNavigator.pushNamed(RouteNames.expiringSoon),
-                  ),
+                  if (vm.expiringSoonCount > 0) ...[
+                    heightBox(10),
+                    _ProfileMenuTile(
+                      icon: Iconsax.timer_1,
+                      iconColor: context.warning,
+                      label: AppLocalizations.of(context).expiringSoonTitle,
+                      subtitle: AppLocalizations.of(
+                        context,
+                      ).expiringSoonMenuSubtitle,
+                      onTap: () =>
+                          AppNavigator.pushNamed(RouteNames.expiringSoon),
+                    ),
+                  ],
                   heightBox(10),
                   _ProfileMenuTile(
                     icon: Iconsax.cloud_add,

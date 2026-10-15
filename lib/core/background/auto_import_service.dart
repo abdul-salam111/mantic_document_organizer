@@ -81,7 +81,7 @@ class AutoImportService {
   /// automatic first scan is -- the user tapped this expecting it to look
   /// through their entire history, not just recent files, all in one pass.
   Future<void> runManualScan() async {
-    if (!AppConstants.bulkImportEnabled || _running) return;
+    if (!AppConstants.autoImportEnabled || _running) return;
     await _runScan(
       _createViewModel(),
       allowPermissionPrompts: true,
