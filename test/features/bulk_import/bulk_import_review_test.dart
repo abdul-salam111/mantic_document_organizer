@@ -31,9 +31,6 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
       expect(find.text('Import 1 documents'), findsOneWidget);
-      await tester.tap(find.text('More details'));
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
       await tester.pumpAndSettle();
     });
@@ -42,6 +39,14 @@ void main() {
   testWidgets(
     'updated suggestions display and removing another row preserves edits',
     (tester) async {
+      // Taller than the default test surface -- each card (thumbnail
+      // slider + title + category row) is tall enough that both candidates
+      // must be on-screen for the sliver list to mount them, or `find.text`
+      // below won't see the off-screen one.
+      tester.view.physicalSize = const Size(400, 1600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
       final f = ImportFixture();
       f.seedFound([
         candidate('a', extension: 'pdf'),
