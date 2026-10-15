@@ -689,10 +689,11 @@ class AddDocumentViewModel extends ChangeNotifier {
       }
       _completed = true;
       if (draftsEnabled) {
-        // The database removed the draft atomically with the document write.
-        // Refresh failures must not turn a successful save into a second save.
+        // Saving the document doesn't remove its draft row by itself --
+        // discard it explicitly so it drops out of the Drafts inbox.
+        // Failures must not turn a successful save into a second save.
         try {
-          await _drafts!.init();
+          await _drafts!.discard(item.id);
         } catch (_) {}
         await _deleteDroppedFiles(_ownedPaths.toList(), item.filePaths);
       }
