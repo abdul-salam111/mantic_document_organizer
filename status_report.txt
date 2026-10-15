@@ -1,15 +1,13 @@
 MANTIC DOCUMENT ORGANIZER - ENGINEERING STATUS REPORT
-Date: October 14, 2026
+Date: October 15, 2026
 Branch: new_features
 
-
-5. GENTLE BACKUP REMINDER
-If a document isn't backed up yet, users now get a one-time, low-priority reminder the next day instead of nothing.
-Only applies once backup is actually connected, and clears itself automatically once everything's synced.
-
-6. DRAFTS - RESUME UNFINISHED DOCUMENTS
-In-progress documents now autosave as you go; a "Drafts" entry on Home lets you resume or discard them.
-Added a "Reorganize with AI" option so a resumed draft can still be re-analyzed, not just a first-time scan.
+1. GENTLE BACKUP REMINDER - One-time, low-priority reminder the next day if a document isn't backed up yet.
+2. DRAFTS - In-progress documents autosave; resume/discard from Home; "Reorganize with AI" on resume; fixed drafts not clearing after save.
+3. ANIMATED LOADING STATE - Prominent loaders now show the pulsing Dockitly mark instead of a plain spinner.
+4. AI-GROUPED DOCUMENT IMPORT - Sharing/importing multiple files at once now groups them into the right number of documents with one AI call, reviewed before saving.
+5. BULK IMPORT ENTRY POINTS - Added manual "Import documents" option in Profile; unsolicited auto-scan prompt now off by default.
+6. PROFILE CLEANUP - "Find more documents" and "Expiring Soon" tiles now hide when there's nothing to show.
 
 QUALITY
-No regressions - flutter analyze clean, all tests passing. Latest work not yet pushed to "new_features" branch.
+No regressions - flutter analyze clean, all tests passing except pre-existing unrelated failures. Pushed to "new_features" branch.
