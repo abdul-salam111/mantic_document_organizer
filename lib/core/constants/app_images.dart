@@ -13,5 +13,8 @@ class AppImages {
 
   static const String appLogo = 'assets/images/docketly_logo.png';
 
+  static const String dockitlyOrganizing =
+      'assets/images/dockitly_organizing.webp';
+
   static const String image = 'assets/images/image.png';
 }

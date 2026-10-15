@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'animated_loading_logo.dart';
+
 /// Shows a non-dismissible loading popup on the *root* navigator and returns
 /// a handle that [dismissLoadingPopup] uses to close this exact route —
 /// popping by identity avoids the "which navigator does this context
@@ -53,16 +55,8 @@ class _LoadingPopup extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SizedBox(
-                  width: 36,
-                  height: 36,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 3.2,
-                    color: colors.primary,
-                    strokeCap: StrokeCap.round,
-                  ),
-                ),
-                const SizedBox(height: 18),
+                const AnimatedLoadingLogo(size: 56),
+                const SizedBox(height: 10),
                 Text(
                   message,
                   textAlign: TextAlign.center,
