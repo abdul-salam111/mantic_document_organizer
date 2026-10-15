@@ -1,18 +1,14 @@
 {
   "@@locale": "ar",
-
   "splashTagline": "منظّم المستندات",
-
   "onboardingHeadline": "جميع مستنداتك،\nمنظَّمة بشكل رائع",
   "onboardingSubtitle": "امسح مستنداتك ضوئيًا، صنّفها، واعثر على أي مستند مهم خلال ثوانٍ — كل ذلك مخزَّن بأمان على جهازك، حتى بدون اتصال بالإنترنت.",
   "onboardingGetStarted": "ابدأ الآن",
   "onboardingNoSignIn": "لا حاجة لتسجيل الدخول — تبقى مستنداتك على هذا الجهاز فقط.",
-
   "navHome": "الرئيسية",
   "navAllDocs": "المستندات",
   "navFavorites": "المفضلة",
   "navProfile": "الملف الشخصي",
-
   "homeSearchHint": "ابحث في مستنداتك...",
   "askAi": "اسأل الذكاء الاصطناعي",
   "recentFiles": "الملفات الأخيرة",
@@ -23,7 +19,6 @@
   "fileCount": "{count, plural, one{{count} ملف} other{{count} ملفات}}",
   "pageCount": "{count, plural, one{{count} صفحة} other{{count} صفحات}}",
   "resultsCount": "{count, plural, one{{count} نتيجة} other{{count} نتائج}}",
-
   "allDocsTitle": "المستندات",
   "allDocsSearchHint": "ابحث عن مستندات أو فئات",
   "allCategoryTab": "الكل",
@@ -31,12 +26,10 @@
   "nothingInCategoryYet": "لا يوجد شيء في \"{category}\" بعد",
   "nothingMatchesQueryInCategory": "لا يوجد ما يطابق \"{query}\" في \"{category}\"",
   "nothingMatchesQuery": "لا يوجد ما يطابق \"{query}\"",
-
   "favoritesTitle": "المفضلة",
   "noFavoritesYet": "لا توجد عناصر مفضلة بعد",
   "favoritesEmptySubtitle": "ستظهر هنا المستندات التي تضيفها إلى المفضلة",
   "removeFromFavorites": "إزالة من المفضلة",
-
   "profileTitle": "الملف الشخصي",
   "guest": "ضيف",
   "account": "الحساب",
@@ -55,7 +48,6 @@
   "statDocuments": "المستندات",
   "statCategories": "الفئات",
   "statFavorites": "المفضلة",
-
   "settings": "الإعدادات",
   "appearance": "المظهر",
   "themeAuto": "تلقائي",
@@ -114,7 +106,6 @@
   "appLocked": "التطبيق مُقفل",
   "unlockToContinue": "صادِق للمتابعة",
   "unlock": "فتح القفل",
-
   "addDocumentTitle": "إضافة مستند",
   "addPageTitle": "إضافة صفحة",
   "add": "إضافة",
@@ -148,14 +139,12 @@
   "scanFailedToast": "فشل المسح — يرجى المحاولة مرة أخرى",
   "documentCreatedToast": "تمت إضافة \"{name}\"",
   "documentUpdatedToast": "تم تحديث \"{name}\"",
-
   "searchDocumentsHint": "ابحث عن المستندات",
   "sortBy": "ترتيب حسب",
   "sortNewestFirst": "الأحدث أولاً",
   "sortOldestFirst": "الأقدم أولاً",
   "sortNameAZ": "الاسم (أ-ي)",
   "addToFavorites": "إضافة إلى المفضلة",
-
   "share": "مشاركة",
   "exportAsPdf": "تصدير كملف PDF",
   "exportPdfFailedToast": "تعذر إنشاء ملف PDF. يرجى المحاولة مرة أخرى.",
@@ -205,7 +194,6 @@
   "expiringSoonTitle": "على وشك الانتهاء",
   "expiringSoonEmptyTitle": "لا يوجد شيء على وشك الانتهاء",
   "expiringSoonEmptySubtitle": "ستظهر هنا المستندات التي يقترب تاريخ انتهائها.",
-
   "aiAssistantTitle": "اسأل Dockitly",
   "aiAssistantInputHint": "اسأل عن مستنداتك...",
   "aiAssistantMicTooltip": "تحدث بسؤالك",
@@ -217,15 +205,12 @@
   "aiAssistantExample2": "أرني فواتير الشهر الماضي",
   "aiAssistantExample3": "ما كانت قيمة آخر فاتورة كهرباء؟",
   "aiAssistantGenericError": "تعذّر الوصول إلى المساعد الذكي — تحقق من اتصالك وحاول مرة أخرى.",
-
   "comingSoon": "قريبًا",
   "comingSoonToast": "{name} — قريبًا",
-
   "pageNotFound": "الصفحة غير موجودة",
   "pageNotFoundSubtitle": "تعذّر العثور على \"{path}\".",
   "goBack": "رجوع",
   "operationFailedToast": "تعذّر إكمال الإجراء. يُرجى المحاولة مرة أخرى.",
-
   "draftsTitle": "المسودات",
   "draftsCount": "{count, plural, one{مستند واحد غير مكتمل} other{{count} مستندات غير مكتملة}}",
   "draftsHelp": "تابع من حيث توقفت، أو تجاهل ما لم تعد بحاجة إليه.",
@@ -238,5 +223,34 @@
   "draftSaveFailed": "تعذّر حفظ مسودتك.",
   "draftSaving": "جارٍ حفظ المسودة…",
   "draftSaved": "تم حفظ المسودة",
-  "draftRetry": "إعادة المحاولة"
+  "draftRetry": "إعادة المحاولة",
+  "readinessTitle": "جاهزية المستندات",
+  "readinessRetry": "إعادة المحاولة",
+  "readinessAllExcluded": "تم تحديد جميع الأساسيات كغير منطبقة",
+  "readinessCount": "تم حفظ {saved} من {total} مستندات أساسية",
+  "readinessComplete": "تم حفظ الأساسيات · مراجعة القائمة",
+  "readinessReview": "اطّلع على ما يمكنك إضافته",
+  "readinessIdentity": "الهوية",
+  "readinessAddress": "إثبات العنوان",
+  "readinessBirth": "سجل الميلاد",
+  "readinessHealth": "السجلات الصحية",
+  "readinessFinance": "السجلات المالية",
+  "readinessIdentityExamples": "بطاقة الهوية الوطنية أو جواز السفر أو هوية رسمية أخرى.",
+  "readinessAddressExamples": "فاتورة خدمات أو عقد إيجار أو شهادة عنوان رسمية.",
+  "readinessBirthExamples": "شهادة ميلاد أو سجل مدني مكافئ.",
+  "readinessHealthExamples": "سجل تطعيم أو ملخص طبي أو تقرير طبي مهم.",
+  "readinessFinanceExamples": "كشف حساب مصرفي أو مستند رسمي للحساب البنكي.",
+  "readinessExplanation": "قائمة شخصية وليست متطلبًا قانونيًا. يعكس التقدم المستندات المحفوظة وليس صلاحيتها أو نسخها احتياطيًا. نتعرف على فئات وعناوين محددة؛ اربط ملفًا محفوظًا إذا لم نتعرف عليه. تُحفظ اختياراتك على هذا الجهاز.",
+  "readinessNotApplicable": "لا ينطبق",
+  "readinessSaved": "محفوظ في التطبيق",
+  "readinessConsider": "يُستحسن إضافته",
+  "readinessUntitled": "مستند بلا عنوان",
+  "readinessAdd": "إضافة مستند",
+  "readinessChange": "تغيير المستند المرتبط",
+  "readinessChoose": "استخدام مستند محفوظ",
+  "readinessInclude": "إدراج مجددًا",
+  "readinessAdditional": "يمكنك أيضًا التفكير في",
+  "readinessAdditionalExamples": "قد تفيدك مستندات رخصة القيادة والتأمين والتعليم والزواج والعقارات والعمل حسب ظروفك. لا تؤثر هذه الاقتراحات على النسبة.",
+  "readinessSearch": "البحث في المستندات المحفوظة",
+  "readinessNoDocuments": "لا توجد مستندات محفوظة مطابقة"
 }

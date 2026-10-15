@@ -1445,6 +1445,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Retry'**
   String get draftRetry;
+
+  /// No description provided for @readinessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Document readiness'**
+  String get readinessTitle;
+
+  /// No description provided for @readinessRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get readinessRetry;
+
+  /// No description provided for @readinessAllExcluded.
+  ///
+  /// In en, this message translates to:
+  /// **'All essentials marked not applicable'**
+  String get readinessAllExcluded;
+
+  /// No description provided for @readinessCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{saved} of {total} essentials saved'**
+  String readinessCount(int saved, int total);
+
+  /// No description provided for @readinessComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Your essentials are saved · Review checklist'**
+  String get readinessComplete;
+
+  /// No description provided for @readinessReview.
+  ///
+  /// In en, this message translates to:
+  /// **'See what to consider adding'**
+  String get readinessReview;
+
+  /// No description provided for @readinessIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity'**
+  String get readinessIdentity;
+
+  /// No description provided for @readinessAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Proof of address'**
+  String get readinessAddress;
+
+  /// No description provided for @readinessBirth.
+  ///
+  /// In en, this message translates to:
+  /// **'Birth record'**
+  String get readinessBirth;
+
+  /// No description provided for @readinessHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Health records'**
+  String get readinessHealth;
+
+  /// No description provided for @readinessFinance.
+  ///
+  /// In en, this message translates to:
+  /// **'Financial records'**
+  String get readinessFinance;
+
+  /// No description provided for @readinessIdentityExamples.
+  ///
+  /// In en, this message translates to:
+  /// **'National ID, passport, or another government-issued ID.'**
+  String get readinessIdentityExamples;
+
+  /// No description provided for @readinessAddressExamples.
+  ///
+  /// In en, this message translates to:
+  /// **'Utility bill, tenancy agreement, or official address certificate.'**
+  String get readinessAddressExamples;
+
+  /// No description provided for @readinessBirthExamples.
+  ///
+  /// In en, this message translates to:
+  /// **'Birth certificate or equivalent civil-registration record.'**
+  String get readinessBirthExamples;
+
+  /// No description provided for @readinessHealthExamples.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccination record, medical summary, or important medical report.'**
+  String get readinessHealthExamples;
+
+  /// No description provided for @readinessFinanceExamples.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank statement or official bank-account document.'**
+  String get readinessFinanceExamples;
+
+  /// No description provided for @readinessExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'A personal checklist, not a legal requirement. Progress reflects saved documents, not validity or cloud backup. We recognize specific categories and document titles; link an existing file if we missed it. Choices are stored on this device.'**
+  String get readinessExplanation;
+
+  /// No description provided for @readinessNotApplicable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not applicable'**
+  String get readinessNotApplicable;
+
+  /// No description provided for @readinessSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved in the app'**
+  String get readinessSaved;
+
+  /// No description provided for @readinessConsider.
+  ///
+  /// In en, this message translates to:
+  /// **'Consider adding'**
+  String get readinessConsider;
+
+  /// No description provided for @readinessUntitled.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled document'**
+  String get readinessUntitled;
+
+  /// No description provided for @readinessAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add document'**
+  String get readinessAdd;
+
+  /// No description provided for @readinessChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change linked document'**
+  String get readinessChange;
+
+  /// No description provided for @readinessChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a saved document'**
+  String get readinessChoose;
+
+  /// No description provided for @readinessInclude.
+  ///
+  /// In en, this message translates to:
+  /// **'Include again'**
+  String get readinessInclude;
+
+  /// No description provided for @readinessAdditional.
+  ///
+  /// In en, this message translates to:
+  /// **'Also consider'**
+  String get readinessAdditional;
+
+  /// No description provided for @readinessAdditionalExamples.
+  ///
+  /// In en, this message translates to:
+  /// **'Driving licence, insurance, education, marriage, property, and employment records may be useful depending on your circumstances. These suggestions do not affect your score.'**
+  String get readinessAdditionalExamples;
+
+  /// No description provided for @readinessSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search saved documents'**
+  String get readinessSearch;
+
+  /// No description provided for @readinessNoDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching saved documents'**
+  String get readinessNoDocuments;
 }
 
 class _AppLocalizationsDelegate

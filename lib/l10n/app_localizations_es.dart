@@ -890,4 +890,100 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get draftRetry => 'Reintentar';
+
+  @override
+  String get readinessTitle => 'Documentos esenciales';
+
+  @override
+  String get readinessRetry => 'Reintentar';
+
+  @override
+  String get readinessAllExcluded => 'Todos marcados como no aplicables';
+
+  @override
+  String readinessCount(int saved, int total) {
+    return '$saved de $total esenciales guardados';
+  }
+
+  @override
+  String get readinessComplete => 'Tus esenciales están guardados · Revisar';
+
+  @override
+  String get readinessReview => 'Descubre qué podrías añadir';
+
+  @override
+  String get readinessIdentity => 'Identidad';
+
+  @override
+  String get readinessAddress => 'Comprobante de domicilio';
+
+  @override
+  String get readinessBirth => 'Registro de nacimiento';
+
+  @override
+  String get readinessHealth => 'Registros médicos';
+
+  @override
+  String get readinessFinance => 'Registros financieros';
+
+  @override
+  String get readinessIdentityExamples =>
+      'Documento nacional de identidad, pasaporte u otra identificación oficial.';
+
+  @override
+  String get readinessAddressExamples =>
+      'Factura de servicios, contrato de alquiler o certificado oficial de domicilio.';
+
+  @override
+  String get readinessBirthExamples =>
+      'Certificado de nacimiento o registro civil equivalente.';
+
+  @override
+  String get readinessHealthExamples =>
+      'Registro de vacunación, resumen médico o informe médico importante.';
+
+  @override
+  String get readinessFinanceExamples =>
+      'Estado de cuenta o documento bancario oficial.';
+
+  @override
+  String get readinessExplanation =>
+      'Una lista personal, no un requisito legal. El progreso indica documentos guardados, no su validez ni copia en la nube. Reconocemos categorías específicas y títulos; vincula un archivo si no lo detectamos. Las opciones se guardan en este dispositivo.';
+
+  @override
+  String get readinessNotApplicable => 'No aplicable';
+
+  @override
+  String get readinessSaved => 'Guardado en la app';
+
+  @override
+  String get readinessConsider => 'Considera añadirlo';
+
+  @override
+  String get readinessUntitled => 'Documento sin título';
+
+  @override
+  String get readinessAdd => 'Añadir documento';
+
+  @override
+  String get readinessChange => 'Cambiar documento vinculado';
+
+  @override
+  String get readinessChoose => 'Usar un documento guardado';
+
+  @override
+  String get readinessInclude => 'Incluir de nuevo';
+
+  @override
+  String get readinessAdditional => 'También considera';
+
+  @override
+  String get readinessAdditionalExamples =>
+      'Los documentos de conducción, seguros, educación, matrimonio, propiedad y empleo pueden ser útiles según tus circunstancias. Estas sugerencias no afectan a la puntuación.';
+
+  @override
+  String get readinessSearch => 'Buscar documentos guardados';
+
+  @override
+  String get readinessNoDocuments => 'No hay documentos guardados coincidentes';
 }

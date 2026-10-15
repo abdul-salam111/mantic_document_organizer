@@ -205,7 +205,7 @@ class AddDocumentView extends StatelessWidget {
                             : AppLocalizations.of(
                                 context,
                               ).documentCreatedToast(title);
-                        AppNavigator.pop();
+                        Navigator.of(context).pop(vm.savedDocument);
                         AppToastsUtils.success(message);
                       },
                     ),

@@ -650,6 +650,8 @@ class AddDocumentViewModel extends ChangeNotifier {
     }
   }
 
+  DocumentItem? savedDocument;
+
   Future<void> submit() async {
     if (_isSaving) return;
     _isSaving = true;
@@ -687,6 +689,7 @@ class AddDocumentViewModel extends ChangeNotifier {
       } else {
         await _documentUseCases.addDocument(item);
       }
+      savedDocument = item;
       _completed = true;
       if (draftsEnabled) {
         // Saving the document doesn't remove its draft row by itself --

@@ -1,3 +1,4 @@
+// import 'widgets/document_readiness_card.dart'; // Hidden for now, see below.
 import '../../documents/documents_exports.dart' show DraftInbox;
 import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
 import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
@@ -99,6 +100,8 @@ class HomeView extends StatelessWidget {
                             _ExpiringSoonBanner(count: vm.expiringSoonCount),
                             heightBox(14),
                           ],
+                          // Hidden for now -- not ready to show on Home yet.
+                          // const DocumentReadinessCard(),
                           const DraftInbox(),
                           if (vm.recentFiles.isNotEmpty) ...[
                             Row(

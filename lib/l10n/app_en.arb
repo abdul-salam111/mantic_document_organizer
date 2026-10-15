@@ -1,586 +1,1144 @@
 {
   "@@locale": "en",
-
   "splashTagline": "Document Organizer",
-  "@splashTagline": {"description": "Subtitle shown under the logo on the splash screen"},
-
+  "@splashTagline": {
+    "description": "Subtitle shown under the logo on the splash screen"
+  },
   "onboardingHeadline": "All Your Documents,\nBeautifully Organized",
-  "@onboardingHeadline": {"description": "Onboarding screen headline"},
+  "@onboardingHeadline": {
+    "description": "Onboarding screen headline"
+  },
   "onboardingSubtitle": "Scan, categorize, and find every important document in seconds — all stored securely on your device, even offline.",
-  "@onboardingSubtitle": {"description": "Onboarding screen subtitle"},
+  "@onboardingSubtitle": {
+    "description": "Onboarding screen subtitle"
+  },
   "onboardingGetStarted": "Get Started",
-  "@onboardingGetStarted": {"description": "Onboarding CTA button"},
+  "@onboardingGetStarted": {
+    "description": "Onboarding CTA button"
+  },
   "onboardingNoSignIn": "No sign-in required — your documents stay on this device.",
-  "@onboardingNoSignIn": {"description": "Onboarding reassurance line under the CTA"},
-
+  "@onboardingNoSignIn": {
+    "description": "Onboarding reassurance line under the CTA"
+  },
   "navHome": "Home",
-  "@navHome": {"description": "Bottom nav tab label"},
+  "@navHome": {
+    "description": "Bottom nav tab label"
+  },
   "navAllDocs": "All Docs",
-  "@navAllDocs": {"description": "Bottom nav tab label"},
+  "@navAllDocs": {
+    "description": "Bottom nav tab label"
+  },
   "navFavorites": "Favorites",
-  "@navFavorites": {"description": "Bottom nav tab label"},
+  "@navFavorites": {
+    "description": "Bottom nav tab label"
+  },
   "navProfile": "Profile",
-  "@navProfile": {"description": "Bottom nav tab label"},
-
+  "@navProfile": {
+    "description": "Bottom nav tab label"
+  },
   "homeSearchHint": "Search your documents...",
-  "@homeSearchHint": {"description": "Home screen search field placeholder — tapping it jumps to the All Docs tab with search focused"},
+  "@homeSearchHint": {
+    "description": "Home screen search field placeholder — tapping it jumps to the All Docs tab with search focused"
+  },
   "askAi": "Ask AI",
-  "@askAi": {"description": "Button next to Home's search field that opens the AI Assistant chat"},
+  "@askAi": {
+    "description": "Button next to Home's search field that opens the AI Assistant chat"
+  },
   "recentFiles": "Recent Files",
-  "@recentFiles": {"description": "Home screen section heading"},
+  "@recentFiles": {
+    "description": "Home screen section heading"
+  },
   "seeAll": "See all",
-  "@seeAll": {"description": "Link that jumps to All Docs"},
+  "@seeAll": {
+    "description": "Link that jumps to All Docs"
+  },
   "categories": "Categories",
-  "@categories": {"description": "Home screen section heading"},
+  "@categories": {
+    "description": "Home screen section heading"
+  },
   "uncategorized": "Uncategorized",
-  "@uncategorized": {"description": "Fallback category tile shown after all real categories"},
+  "@uncategorized": {
+    "description": "Fallback category tile shown after all real categories"
+  },
   "newCategory": "New Category",
-  "@newCategory": {"description": "Add-a-category tile at the end of the category grid/list"},
+  "@newCategory": {
+    "description": "Add-a-category tile at the end of the category grid/list"
+  },
   "fileCount": "{count, plural, one{{count} file} other{{count} files}}",
   "@fileCount": {
     "description": "File count shown under a category",
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "pageCount": "{count, plural, one{{count} page} other{{count} pages}}",
   "@pageCount": {
     "description": "Page count badge shown on a document card (list tile, grid tile, recent card) -- document.filePaths.length, each entry being one scanned page or attached file",
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "resultsCount": "{count, plural, one{{count} result} other{{count} results}}",
   "@resultsCount": {
     "description": "Search result count shown next to sort/view controls once a query is typed",
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
-
   "allDocsTitle": "All Docs",
-  "@allDocsTitle": {"description": "All Docs screen title"},
+  "@allDocsTitle": {
+    "description": "All Docs screen title"
+  },
   "allDocsSearchHint": "Search documents or categories",
-  "@allDocsSearchHint": {"description": "All Docs screen search field placeholder"},
+  "@allDocsSearchHint": {
+    "description": "All Docs screen search field placeholder"
+  },
   "allCategoryTab": "All",
-  "@allCategoryTab": {"description": "The first category tab, showing every document"},
+  "@allCategoryTab": {
+    "description": "The first category tab, showing every document"
+  },
   "noDocumentsFound": "No documents found",
-  "@noDocumentsFound": {"description": "Empty state title on All Docs"},
+  "@noDocumentsFound": {
+    "description": "Empty state title on All Docs"
+  },
   "nothingInCategoryYet": "Nothing in \"{category}\" yet",
   "@nothingInCategoryYet": {
     "description": "Empty state subtitle when a category tab has no documents and no search is active",
-    "placeholders": {"category": {"type": "String"}}
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "nothingMatchesQueryInCategory": "Nothing matches \"{query}\" in \"{category}\"",
   "@nothingMatchesQueryInCategory": {
     "description": "Empty state subtitle when a search query has no matches within a category",
     "placeholders": {
-      "query": {"type": "String"},
-      "category": {"type": "String"}
+      "query": {
+        "type": "String"
+      },
+      "category": {
+        "type": "String"
+      }
     }
   },
   "nothingMatchesQuery": "Nothing matches \"{query}\"",
   "@nothingMatchesQuery": {
     "description": "Empty state subtitle when a search query has no matches, with no category scope (e.g. Favorites)",
-    "placeholders": {"query": {"type": "String"}}
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
   },
-
   "favoritesTitle": "Favorites",
-  "@favoritesTitle": {"description": "Favorites screen title"},
+  "@favoritesTitle": {
+    "description": "Favorites screen title"
+  },
   "noFavoritesYet": "No favorites yet",
-  "@noFavoritesYet": {"description": "Favorites empty state title"},
+  "@noFavoritesYet": {
+    "description": "Favorites empty state title"
+  },
   "favoritesEmptySubtitle": "Documents you favorite will show up here",
-  "@favoritesEmptySubtitle": {"description": "Favorites empty state subtitle"},
+  "@favoritesEmptySubtitle": {
+    "description": "Favorites empty state subtitle"
+  },
   "removeFromFavorites": "Remove from favorites",
-  "@removeFromFavorites": {"description": "Tooltip on a favorite tile's heart button"},
-
+  "@removeFromFavorites": {
+    "description": "Tooltip on a favorite tile's heart button"
+  },
   "profileTitle": "Profile",
-  "@profileTitle": {"description": "Profile screen title"},
+  "@profileTitle": {
+    "description": "Profile screen title"
+  },
   "guest": "Guest",
-  "@guest": {"description": "Profile header name shown when signed out"},
+  "@guest": {
+    "description": "Profile header name shown when signed out"
+  },
   "account": "Account",
-  "@account": {"description": "Profile header name fallback when signed in but no name is on file"},
+  "@account": {
+    "description": "Profile header name fallback when signed in but no name is on file"
+  },
   "localOnlyStatus": "Local-only — your documents stay on this device",
-  "@localOnlyStatus": {"description": "Profile header subtitle shown when signed out"},
+  "@localOnlyStatus": {
+    "description": "Profile header subtitle shown when signed out"
+  },
   "setUpBackup": "Set up backup",
-  "@setUpBackup": {"description": "CTA button shown when signed out"},
+  "@setUpBackup": {
+    "description": "CTA button shown when signed out"
+  },
   "signIn": "Sign in",
-  "@signIn": {"description": "Authentication action"},
+  "@signIn": {
+    "description": "Authentication action"
+  },
   "trash": "Trash",
-  "@trash": {"description": "Profile menu entry"},
+  "@trash": {
+    "description": "Profile menu entry"
+  },
   "trashSubtitle": "Recover recently deleted documents",
-  "@trashSubtitle": {"description": "Profile menu entry subtitle"},
+  "@trashSubtitle": {
+    "description": "Profile menu entry subtitle"
+  },
   "expiringSoonMenuSubtitle": "Documents with an upcoming expiry date",
-  "@expiringSoonMenuSubtitle": {"description": "Profile menu entry subtitle"},
+  "@expiringSoonMenuSubtitle": {
+    "description": "Profile menu entry subtitle"
+  },
   "settingsSubtitle": "Appearance, language, categories & security",
-  "@settingsSubtitle": {"description": "Profile menu entry subtitle"},
+  "@settingsSubtitle": {
+    "description": "Profile menu entry subtitle"
+  },
   "signOut": "Sign Out",
-  "@signOut": {"description": "Profile menu entry, shown when signed in"},
+  "@signOut": {
+    "description": "Profile menu entry, shown when signed in"
+  },
   "deleteAccount": "Delete Account",
-  "@deleteAccount": {"description": "Profile menu entry, shown when signed in; also the confirm button label"},
+  "@deleteAccount": {
+    "description": "Profile menu entry, shown when signed in; also the confirm button label"
+  },
   "deleteAccountSubtitle": "Permanently delete your account and data",
-  "@deleteAccountSubtitle": {"description": "Profile menu entry subtitle"},
+  "@deleteAccountSubtitle": {
+    "description": "Profile menu entry subtitle"
+  },
   "deleteAccountDialogTitle": "Delete account?",
-  "@deleteAccountDialogTitle": {"description": "Delete-account confirmation dialog title"},
+  "@deleteAccountDialogTitle": {
+    "description": "Delete-account confirmation dialog title"
+  },
   "deleteAccountDialogMessage": "This permanently deletes your account. Any shared categories you own will stop being shared with everyone in them, and your Google Drive backup will be disconnected. Documents already saved on this device are not affected and stay right here.",
-  "@deleteAccountDialogMessage": {"description": "Delete-account confirmation dialog body"},
+  "@deleteAccountDialogMessage": {
+    "description": "Delete-account confirmation dialog body"
+  },
   "statDocuments": "Documents",
-  "@statDocuments": {"description": "Profile stats row label"},
+  "@statDocuments": {
+    "description": "Profile stats row label"
+  },
   "statCategories": "Categories",
-  "@statCategories": {"description": "Profile stats row label"},
+  "@statCategories": {
+    "description": "Profile stats row label"
+  },
   "statFavorites": "Favorites",
-  "@statFavorites": {"description": "Profile stats row label"},
-
+  "@statFavorites": {
+    "description": "Profile stats row label"
+  },
   "settings": "Settings",
-  "@settings": {"description": "Settings screen title / Profile menu entry"},
+  "@settings": {
+    "description": "Settings screen title / Profile menu entry"
+  },
   "appearance": "Appearance",
-  "@appearance": {"description": "Settings section heading"},
+  "@appearance": {
+    "description": "Settings section heading"
+  },
   "themeAuto": "Auto",
-  "@themeAuto": {"description": "Theme mode option"},
+  "@themeAuto": {
+    "description": "Theme mode option"
+  },
   "themeLight": "Light",
-  "@themeLight": {"description": "Theme mode option"},
+  "@themeLight": {
+    "description": "Theme mode option"
+  },
   "themeDark": "Dark",
-  "@themeDark": {"description": "Theme mode option"},
+  "@themeDark": {
+    "description": "Theme mode option"
+  },
   "language": "Language",
-  "@language": {"description": "Settings section heading for the language picker"},
+  "@language": {
+    "description": "Settings section heading for the language picker"
+  },
   "addCategory": "Add Category",
-  "@addCategory": {"description": "Settings menu entry"},
+  "@addCategory": {
+    "description": "Settings menu entry"
+  },
   "manageCategories": "Manage Categories",
-  "@manageCategories": {"description": "Settings menu entry"},
+  "@manageCategories": {
+    "description": "Settings menu entry"
+  },
   "searchCategories": "Search categories",
-  "@searchCategories": {"description": "manage_categories search field placeholder"},
+  "@searchCategories": {
+    "description": "manage_categories search field placeholder"
+  },
   "noCategoriesFound": "No categories found",
-  "@noCategoriesFound": {"description": "manage_categories empty search result"},
+  "@noCategoriesFound": {
+    "description": "manage_categories empty search result"
+  },
   "categoryNameLabel": "Category Name",
-  "@categoryNameLabel": {"description": "New Category screen text field label"},
+  "@categoryNameLabel": {
+    "description": "New Category screen text field label"
+  },
   "categoryNameHint": "e.g. Bank Statements",
-  "@categoryNameHint": {"description": "New Category screen text field placeholder"},
+  "@categoryNameHint": {
+    "description": "New Category screen text field placeholder"
+  },
   "categoryNameRequired": "Category name is required",
-  "@categoryNameRequired": {"description": "New Category screen validation message"},
+  "@categoryNameRequired": {
+    "description": "New Category screen validation message"
+  },
   "categoryNameTaken": "This category already exists",
-  "@categoryNameTaken": {"description": "New Category screen validation message when the name is a duplicate"},
+  "@categoryNameTaken": {
+    "description": "New Category screen validation message when the name is a duplicate"
+  },
   "chooseIcon": "Choose an Icon",
-  "@chooseIcon": {"description": "New Category screen section heading"},
+  "@chooseIcon": {
+    "description": "New Category screen section heading"
+  },
   "searchIcons": "Search icons",
-  "@searchIcons": {"description": "Icon picker sheet search field placeholder"},
+  "@searchIcons": {
+    "description": "Icon picker sheet search field placeholder"
+  },
   "noIconsFound": "No icons found",
-  "@noIconsFound": {"description": "Icon picker sheet empty search result"},
+  "@noIconsFound": {
+    "description": "Icon picker sheet empty search result"
+  },
   "chooseColor": "Choose a Color",
-  "@chooseColor": {"description": "New Category screen section heading"},
+  "@chooseColor": {
+    "description": "New Category screen section heading"
+  },
   "create": "Create",
-  "@create": {"description": "New Category screen submit button"},
+  "@create": {
+    "description": "New Category screen submit button"
+  },
   "done": "Done",
-  "@done": {"description": "Generic confirm button, e.g. closing the color picker dialog"},
+  "@done": {
+    "description": "Generic confirm button, e.g. closing the color picker dialog"
+  },
   "categoryCreatedToast": "\"{name}\" category created",
   "@categoryCreatedToast": {
     "description": "Success toast shown after creating a category",
-    "placeholders": {"name": {"type": "String"}}
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "editCategory": "Edit Category",
-  "@editCategory": {"description": "Edit Category screen title / manage_categories row edit button tooltip"},
+  "@editCategory": {
+    "description": "Edit Category screen title / manage_categories row edit button tooltip"
+  },
   "save": "Save",
-  "@save": {"description": "Edit Category screen submit button"},
+  "@save": {
+    "description": "Edit Category screen submit button"
+  },
   "categoryUpdatedToast": "\"{name}\" category updated",
   "@categoryUpdatedToast": {
     "description": "Success toast shown after editing a category",
-    "placeholders": {"name": {"type": "String"}}
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "deleteCategory": "Delete Category",
-  "@deleteCategory": {"description": "manage_categories row delete button tooltip / confirm dialog title"},
+  "@deleteCategory": {
+    "description": "manage_categories row delete button tooltip / confirm dialog title"
+  },
   "deleteCategoryConfirm": "Delete \"{name}\"? This can't be undone.",
   "@deleteCategoryConfirm": {
     "description": "Confirm dialog body shown before deleting a category",
-    "placeholders": {"name": {"type": "String"}}
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "delete": "Delete",
-  "@delete": {"description": "Destructive confirm dialog action button"},
+  "@delete": {
+    "description": "Destructive confirm dialog action button"
+  },
   "categoryDeletedToast": "\"{name}\" category deleted",
   "@categoryDeletedToast": {
     "description": "Success toast shown after deleting a category",
-    "placeholders": {"name": {"type": "String"}}
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "selectedCount": "{count, plural, one{{count} selected} other{{count} selected}}",
   "@selectedCount": {
     "description": "manage_categories multi-select app bar title",
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "deleteCategoriesConfirm": "{count, plural, one{Delete this category? This can't be undone.} other{Delete {count} categories? This can't be undone.}}",
   "@deleteCategoriesConfirm": {
     "description": "Confirm dialog body shown before bulk-deleting selected categories",
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "categoriesDeletedToast": "{count, plural, one{Category deleted} other{{count} categories deleted}}",
   "@categoriesDeletedToast": {
     "description": "Success toast shown after bulk-deleting selected categories",
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "security": "Security",
-  "@security": {"description": "Settings section heading"},
+  "@security": {
+    "description": "Settings section heading"
+  },
   "biometricUnlock": "Fingerprint Unlock",
-  "@biometricUnlock": {"description": "Settings toggle label for biometric app lock (fingerprint hardware)"},
+  "@biometricUnlock": {
+    "description": "Settings toggle label for biometric app lock (fingerprint hardware)"
+  },
   "faceIdUnlock": "Face ID Unlock",
-  "@faceIdUnlock": {"description": "Settings toggle label for biometric app lock (iOS Face ID hardware)"},
+  "@faceIdUnlock": {
+    "description": "Settings toggle label for biometric app lock (iOS Face ID hardware)"
+  },
   "touchIdUnlock": "Touch ID Unlock",
-  "@touchIdUnlock": {"description": "Settings toggle label for biometric app lock (iOS Touch ID hardware)"},
+  "@touchIdUnlock": {
+    "description": "Settings toggle label for biometric app lock (iOS Touch ID hardware)"
+  },
   "biometricUnlockGeneric": "Biometric Unlock",
-  "@biometricUnlockGeneric": {"description": "Settings toggle label for biometric app lock (unknown/mixed hardware)"},
+  "@biometricUnlockGeneric": {
+    "description": "Settings toggle label for biometric app lock (unknown/mixed hardware)"
+  },
   "biometricUnlockSubtitle": "Require your fingerprint or face to open the app",
-  "@biometricUnlockSubtitle": {"description": "Settings toggle subtitle"},
+  "@biometricUnlockSubtitle": {
+    "description": "Settings toggle subtitle"
+  },
   "biometricUnavailable": "Biometric authentication isn't set up on this device",
-  "@biometricUnavailable": {"description": "Toast shown when the device has no usable biometrics"},
+  "@biometricUnavailable": {
+    "description": "Toast shown when the device has no usable biometrics"
+  },
   "biometricAuthFailed": "Authentication failed",
-  "@biometricAuthFailed": {"description": "Toast shown when a biometric prompt fails or is cancelled"},
+  "@biometricAuthFailed": {
+    "description": "Toast shown when a biometric prompt fails or is cancelled"
+  },
   "biometricPromptReason": "Authenticate to continue",
-  "@biometricPromptReason": {"description": "Reason string shown inside the OS biometric prompt"},
+  "@biometricPromptReason": {
+    "description": "Reason string shown inside the OS biometric prompt"
+  },
   "dataUsage": "Data Usage",
-  "@dataUsage": {"description": "Settings section heading"},
+  "@dataUsage": {
+    "description": "Settings section heading"
+  },
   "useMobileData": "Use Mobile Data",
-  "@useMobileData": {"description": "Settings toggle label for allowing sync over cellular data"},
+  "@useMobileData": {
+    "description": "Settings toggle label for allowing sync over cellular data"
+  },
   "useMobileDataSubtitle": "Allow syncing, uploading, and downloading over mobile data. When off, this only happens on Wi-Fi",
-  "@useMobileDataSubtitle": {"description": "Settings toggle subtitle"},
+  "@useMobileDataSubtitle": {
+    "description": "Settings toggle subtitle"
+  },
   "wifiOnlySyncToast": "Waiting for Wi-Fi to sync. Enable mobile data in Settings to sync anytime",
-  "@wifiOnlySyncToast": {"description": "Toast shown when a sync/backup is blocked because mobile data sync is disabled and the device isn't on Wi-Fi"},
+  "@wifiOnlySyncToast": {
+    "description": "Toast shown when a sync/backup is blocked because mobile data sync is disabled and the device isn't on Wi-Fi"
+  },
   "remindersSectionTitle": "Reminders",
-  "@remindersSectionTitle": {"description": "Settings section heading"},
+  "@remindersSectionTitle": {
+    "description": "Settings section heading"
+  },
   "remindBeforeExpiry": "Remind me before expiry",
-  "@remindBeforeExpiry": {"description": "Settings row label for the expiry-reminder lead-time preference"},
+  "@remindBeforeExpiry": {
+    "description": "Settings row label for the expiry-reminder lead-time preference"
+  },
   "remindBeforeExpirySubtitle": "Applies to every document with an expiry date",
-  "@remindBeforeExpirySubtitle": {"description": "Settings row subtitle"},
+  "@remindBeforeExpirySubtitle": {
+    "description": "Settings row subtitle"
+  },
   "reminderDaysValue": "{days, plural, one{1 day before} other{{days} days before}}",
   "@reminderDaysValue": {
     "description": "How the chosen reminder lead time is shown, e.g. '7 days before' — used both as the current value and as each option in its picker",
-    "placeholders": {"days": {"type": "int"}}
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
   },
   "snooze": "Snooze",
-  "@snooze": {"description": "Tooltip/label for the snooze action on an expiring document"},
+  "@snooze": {
+    "description": "Tooltip/label for the snooze action on an expiring document"
+  },
   "snoozeForDays": "{days, plural, one{1 day} other{{days} days}}",
   "@snoozeForDays": {
     "description": "Snooze duration option label, e.g. '3 days'",
-    "placeholders": {"days": {"type": "int"}}
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
   },
   "reminderSnoozedToast": "Reminder snoozed — we'll remind you again later",
-  "@reminderSnoozedToast": {"description": "Toast shown after snoozing a document's expiry reminder"},
+  "@reminderSnoozedToast": {
+    "description": "Toast shown after snoozing a document's expiry reminder"
+  },
   "support": "Support",
-  "@support": {"description": "Settings section heading"},
+  "@support": {
+    "description": "Settings section heading"
+  },
   "rateApp": "Rate App",
-  "@rateApp": {"description": "Settings menu entry"},
+  "@rateApp": {
+    "description": "Settings menu entry"
+  },
   "shareApp": "Share App",
-  "@shareApp": {"description": "Settings menu entry"},
+  "@shareApp": {
+    "description": "Settings menu entry"
+  },
   "shareAppMessage": "Check out Dockitly — scan, organize, and find every important document in seconds.",
-  "@shareAppMessage": {"description": "Text passed to the OS share sheet from Share App"},
+  "@shareAppMessage": {
+    "description": "Text passed to the OS share sheet from Share App"
+  },
   "appLocked": "App Locked",
-  "@appLocked": {"description": "Lock screen title"},
+  "@appLocked": {
+    "description": "Lock screen title"
+  },
   "unlockToContinue": "Authenticate to continue",
-  "@unlockToContinue": {"description": "Lock screen subtitle"},
+  "@unlockToContinue": {
+    "description": "Lock screen subtitle"
+  },
   "unlock": "Unlock",
-  "@unlock": {"description": "Lock screen button label"},
-
+  "@unlock": {
+    "description": "Lock screen button label"
+  },
   "addDocumentTitle": "Add Document",
-  "@addDocumentTitle": {"description": "Add Document screen title / category document-list 'add' button tooltip"},
+  "@addDocumentTitle": {
+    "description": "Add Document screen title / category document-list 'add' button tooltip"
+  },
   "addPageTitle": "Add Page",
-  "@addPageTitle": {"description": "Attachment-source picker sheet heading"},
+  "@addPageTitle": {
+    "description": "Attachment-source picker sheet heading"
+  },
   "add": "Add",
-  "@add": {"description": "Generic add action label"},
+  "@add": {
+    "description": "Generic add action label"
+  },
   "addPagesAction": "Add Pages",
-  "@addPagesAction": {"description": "Document Viewer bottom action bar button — opens the attachment-source picker to add more pages to this document"},
+  "@addPagesAction": {
+    "description": "Document Viewer bottom action bar button — opens the attachment-source picker to add more pages to this document"
+  },
   "addFiles": "Add files",
-  "@addFiles": {"description": "Document Viewer button to add more attachments"},
+  "@addFiles": {
+    "description": "Document Viewer button to add more attachments"
+  },
   "editDocumentTitle": "Edit file",
-  "@editDocumentTitle": {"description": "Edit Document screen title / document viewer edit button tooltip"},
+  "@editDocumentTitle": {
+    "description": "Edit Document screen title / document viewer edit button tooltip"
+  },
   "edit": "Edit",
-  "@edit": {"description": "Generic edit action label"},
+  "@edit": {
+    "description": "Generic edit action label"
+  },
   "update": "Update",
-  "@update": {"description": "Submit action for updating an existing document"},
+  "@update": {
+    "description": "Submit action for updating an existing document"
+  },
   "documentTitleLabel": "Title",
-  "@documentTitleLabel": {"description": "Add Document screen text field label"},
+  "@documentTitleLabel": {
+    "description": "Add Document screen text field label"
+  },
   "documentTitleHint": "e.g. Passport Scan",
-  "@documentTitleHint": {"description": "Add Document screen text field placeholder"},
+  "@documentTitleHint": {
+    "description": "Add Document screen text field placeholder"
+  },
   "documentTitleRequired": "Title is required",
-  "@documentTitleRequired": {"description": "Add Document screen validation message"},
+  "@documentTitleRequired": {
+    "description": "Add Document screen validation message"
+  },
   "categoryLabel": "Category",
-  "@categoryLabel": {"description": "Add Document screen category picker caption"},
+  "@categoryLabel": {
+    "description": "Add Document screen category picker caption"
+  },
   "selectCategory": "Select Category",
-  "@selectCategory": {"description": "Add Document screen category picker sheet heading"},
+  "@selectCategory": {
+    "description": "Add Document screen category picker sheet heading"
+  },
   "tags": "Tags",
-  "@tags": {"description": "Add Document screen text field label"},
+  "@tags": {
+    "description": "Add Document screen text field label"
+  },
   "tagErrorLimitReached": "You can add up to {maxCount} tags",
   "@tagErrorLimitReached": {
     "description": "Add Document screen tag validation error",
-    "placeholders": {"maxCount": {"type": "int"}}
+    "placeholders": {
+      "maxCount": {
+        "type": "int"
+      }
+    }
   },
   "tagErrorTooLong": "Tags must be {maxLength} characters or fewer",
   "@tagErrorTooLong": {
     "description": "Add Document screen tag validation error",
-    "placeholders": {"maxLength": {"type": "int"}}
+    "placeholders": {
+      "maxLength": {
+        "type": "int"
+      }
+    }
   },
   "tagErrorDuplicate": "That tag is already added",
-  "@tagErrorDuplicate": {"description": "Add Document screen tag validation error"},
+  "@tagErrorDuplicate": {
+    "description": "Add Document screen tag validation error"
+  },
   "documentExpirable": "This Document Expires",
-  "@documentExpirable": {"description": "Add Document screen toggle row label"},
+  "@documentExpirable": {
+    "description": "Add Document screen toggle row label"
+  },
   "expiresOn": "Expires on {date}",
   "@expiresOn": {
     "description": "Add Document screen expiry toggle subtitle showing the picked date/time",
-    "placeholders": {"date": {"type": "String"}}
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   },
   "tapToSetExpiryDate": "Tap to set the expiry date and time",
-  "@tapToSetExpiryDate": {"description": "Add Document screen expiry toggle subtitle hint before a date is picked"},
+  "@tapToSetExpiryDate": {
+    "description": "Add Document screen expiry toggle subtitle hint before a date is picked"
+  },
   "attachmentRequired": "Add at least one document to save",
-  "@attachmentRequired": {"description": "Add Document screen validation message when no attachment has been added"},
+  "@attachmentRequired": {
+    "description": "Add Document screen validation message when no attachment has been added"
+  },
   "extractingTextStatus": "Extracting text…",
-  "@extractingTextStatus": {"description": "Add Document screen inline status while on-device OCR is running"},
+  "@extractingTextStatus": {
+    "description": "Add Document screen inline status while on-device OCR is running"
+  },
   "loadingPagesStatus": "Loading pages…",
-  "@loadingPagesStatus": {"description": "Add Document screen inline status while an existing document's PDF attachments are being split back into individual editable pages"},
+  "@loadingPagesStatus": {
+    "description": "Add Document screen inline status while an existing document's PDF attachments are being split back into individual editable pages"
+  },
   "organizingWithAiStatus": "Organizing with AI…",
-  "@organizingWithAiStatus": {"description": "Add Document screen inline status while the AI suggestion call is running"},
+  "@organizingWithAiStatus": {
+    "description": "Add Document screen inline status while the AI suggestion call is running"
+  },
   "reorganizeWithAi": "Reorganize with AI",
-  "@reorganizeWithAi": {"description": "Add Document screen button that manually re-runs AI organization on demand (e.g. after resuming a draft, where nothing was just scanned to trigger it automatically)"},
+  "@reorganizeWithAi": {
+    "description": "Add Document screen button that manually re-runs AI organization on demand (e.g. after resuming a draft, where nothing was just scanned to trigger it automatically)"
+  },
   "camera": "Camera",
-  "@camera": {"description": "Add Document screen attachment source button label"},
+  "@camera": {
+    "description": "Add Document screen attachment source button label"
+  },
   "gallery": "Gallery",
-  "@gallery": {"description": "Add Document screen attachment source button label"},
+  "@gallery": {
+    "description": "Add Document screen attachment source button label"
+  },
   "files": "Files",
-  "@files": {"description": "Add Document screen attachment source button label"},
+  "@files": {
+    "description": "Add Document screen attachment source button label"
+  },
   "filesImagesNotAllowed": "Images aren't accepted here — use Camera or Gallery instead",
-  "@filesImagesNotAllowed": {"description": "Add Document screen warning toast when an image is picked via the Files button"},
+  "@filesImagesNotAllowed": {
+    "description": "Add Document screen warning toast when an image is picked via the Files button"
+  },
   "galleryImportFailedToast": "Could not import the selected photos. Open them in Photos and make sure they are available on this device, then try again or choose another photo.",
   "scanFailedToast": "Scanning failed — please try again",
-  "@scanFailedToast": {"description": "Add Document screen error toast when the document scanner fails"},
+  "@scanFailedToast": {
+    "description": "Add Document screen error toast when the document scanner fails"
+  },
   "documentCreatedToast": "\"{name}\" added",
   "@documentCreatedToast": {
     "description": "Success toast shown after saving a document",
-    "placeholders": {"name": {"type": "String"}}
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "documentUpdatedToast": "\"{name}\" updated",
   "@documentUpdatedToast": {
     "description": "Success toast shown after editing a document",
-    "placeholders": {"name": {"type": "String"}}
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
-
   "searchDocumentsHint": "Search documents",
-  "@searchDocumentsHint": {"description": "Category Documents screen search field placeholder"},
+  "@searchDocumentsHint": {
+    "description": "Category Documents screen search field placeholder"
+  },
   "sortBy": "Sort by",
-  "@sortBy": {"description": "Category Documents screen sort menu button tooltip"},
+  "@sortBy": {
+    "description": "Category Documents screen sort menu button tooltip"
+  },
   "sortNewestFirst": "Newest first",
-  "@sortNewestFirst": {"description": "Category Documents screen sort option"},
+  "@sortNewestFirst": {
+    "description": "Category Documents screen sort option"
+  },
   "sortOldestFirst": "Oldest first",
-  "@sortOldestFirst": {"description": "Category Documents screen sort option"},
+  "@sortOldestFirst": {
+    "description": "Category Documents screen sort option"
+  },
   "sortNameAZ": "Name (A-Z)",
-  "@sortNameAZ": {"description": "Category Documents screen sort option"},
+  "@sortNameAZ": {
+    "description": "Category Documents screen sort option"
+  },
   "addToFavorites": "Add to favorites",
-  "@addToFavorites": {"description": "Tooltip on a document tile's outline-heart button"},
-
+  "@addToFavorites": {
+    "description": "Tooltip on a document tile's outline-heart button"
+  },
   "share": "Share",
-  "@share": {"description": "Document Viewer app bar action tooltip / unsupported-file-preview button label"},
+  "@share": {
+    "description": "Document Viewer app bar action tooltip / unsupported-file-preview button label"
+  },
   "exportAsPdf": "Export as PDF",
-  "@exportAsPdf": {"description": "Document Viewer overflow menu entry — combines the document's image pages into a single PDF, then opens the share sheet"},
+  "@exportAsPdf": {
+    "description": "Document Viewer overflow menu entry — combines the document's image pages into a single PDF, then opens the share sheet"
+  },
   "exportPdfFailedToast": "Couldn't create PDF. Please try again.",
-  "@exportPdfFailedToast": {"description": "Error toast shown when generating a document's PDF export fails"},
+  "@exportPdfFailedToast": {
+    "description": "Error toast shown when generating a document's PDF export fails"
+  },
   "selectAll": "Select All",
-  "@selectAll": {"description": "Share sheet file-selection toggle label, shown when not every file is selected"},
+  "@selectAll": {
+    "description": "Share sheet file-selection toggle label, shown when not every file is selected"
+  },
   "deselectAll": "Deselect All",
-  "@deselectAll": {"description": "Share sheet file-selection toggle label, shown when every file is selected"},
+  "@deselectAll": {
+    "description": "Share sheet file-selection toggle label, shown when every file is selected"
+  },
   "shareOption": "Share",
-  "@shareOption": {"description": "Share sheet option: opens the native OS share sheet with the selected files attached, letting the user pick any installed app"},
+  "@shareOption": {
+    "description": "Share sheet option: opens the native OS share sheet with the selected files attached, letting the user pick any installed app"
+  },
   "preparingPdfMessage": "Preparing PDF…",
-  "@preparingPdfMessage": {"description": "Loading popup message shown while combining selected files into a PDF to share"},
+  "@preparingPdfMessage": {
+    "description": "Loading popup message shown while combining selected files into a PDF to share"
+  },
   "addingPagesMessage": "Adding pages…",
-  "@addingPagesMessage": {"description": "Loading popup message shown while the document viewer's Add Pages button scans/picks and saves new pages directly onto the open document"},
+  "@addingPagesMessage": {
+    "description": "Loading popup message shown while the document viewer's Add Pages button scans/picks and saves new pages directly onto the open document"
+  },
   "shareAsPdfOption": "Share as PDF",
-  "@shareAsPdfOption": {"description": "Share sheet option: combine the selected files into a single PDF and share it"},
+  "@shareAsPdfOption": {
+    "description": "Share sheet option: combine the selected files into a single PDF and share it"
+  },
   "shareAsImagesOption": "Share as Images",
-  "@shareAsImagesOption": {"description": "Share sheet option: share the selected files as separate images"},
+  "@shareAsImagesOption": {
+    "description": "Share sheet option: share the selected files as separate images"
+  },
   "exportEachPageAsPdfOption": "Export Each Page as PDF",
-  "@exportEachPageAsPdfOption": {"description": "Share sheet option: export every selected page as its own separate PDF file, then share them all together"},
+  "@exportEachPageAsPdfOption": {
+    "description": "Share sheet option: export every selected page as its own separate PDF file, then share them all together"
+  },
   "saveToGalleryOption": "Save to Gallery",
-  "@saveToGalleryOption": {"description": "Share sheet option: save the selected files to the device's photo gallery"},
+  "@saveToGalleryOption": {
+    "description": "Share sheet option: save the selected files to the device's photo gallery"
+  },
   "noFilesSelectedToast": "Select at least one file to share",
-  "@noFilesSelectedToast": {"description": "Warning toast shown when a share sheet action is tapped with no files selected"},
+  "@noFilesSelectedToast": {
+    "description": "Warning toast shown when a share sheet action is tapped with no files selected"
+  },
   "savedToGalleryToast": "Saved to gallery",
-  "@savedToGalleryToast": {"description": "Success toast shown after Save to Gallery finishes"},
+  "@savedToGalleryToast": {
+    "description": "Success toast shown after Save to Gallery finishes"
+  },
   "rename": "Rename",
-  "@rename": {"description": "Document Viewer overflow menu entry"},
+  "@rename": {
+    "description": "Document Viewer overflow menu entry"
+  },
   "move": "Move",
-  "@move": {"description": "Document Viewer overflow menu entry"},
+  "@move": {
+    "description": "Document Viewer overflow menu entry"
+  },
   "renameDocument": "Rename Document",
-  "@renameDocument": {"description": "Document Viewer rename dialog title"},
+  "@renameDocument": {
+    "description": "Document Viewer rename dialog title"
+  },
   "documentRenamedToast": "Renamed to \"{name}\"",
   "@documentRenamedToast": {
     "description": "Success toast shown after renaming a document",
-    "placeholders": {"name": {"type": "String"}}
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "documentMovedToast": "Moved to \"{category}\"",
   "@documentMovedToast": {
     "description": "Success toast shown after moving a document to another category",
-    "placeholders": {"category": {"type": "String"}}
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "deleteDocument": "Delete Document",
-  "@deleteDocument": {"description": "Document Viewer overflow menu entry / confirm dialog title"},
+  "@deleteDocument": {
+    "description": "Document Viewer overflow menu entry / confirm dialog title"
+  },
   "deleteDocumentConfirm": "Move \"{name}\" to Trash? You can restore it within {days} days before it's permanently deleted.",
   "@deleteDocumentConfirm": {
     "description": "Confirm dialog body shown before moving a document to Trash",
-    "placeholders": {"name": {"type": "String"}, "days": {"type": "int"}}
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
   },
   "documentTrashedToast": "\"{name}\" moved to Trash",
   "@documentTrashedToast": {
     "description": "Success toast shown after moving a document to Trash",
-    "placeholders": {"name": {"type": "String"}}
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "deleteSelectedFilesConfirm": "{count, plural, one{Delete this page? This can't be undone.} other{Delete {count} pages? This can't be undone.}}",
   "@deleteSelectedFilesConfirm": {
     "description": "Confirm dialog body shown before deleting the selected pages from a document's viewer",
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "selectedFilesDeletedToast": "{count, plural, one{Page deleted} other{{count} pages deleted}}",
   "@selectedFilesDeletedToast": {
     "description": "Success toast shown after deleting the selected pages from a document's viewer",
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "trashDocumentsConfirm": "{count, plural, one{Move this document to Trash? You can restore it within {days} days before it's permanently deleted.} other{Move {count} documents to Trash? You can restore them within {days} days before they're permanently deleted.}}",
   "@trashDocumentsConfirm": {
     "description": "Confirm dialog body shown before bulk-moving selected documents (in a category view) to Trash",
-    "placeholders": {"count": {"type": "int"}, "days": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
   },
   "documentsTrashedToast": "{count, plural, one{Document moved to Trash} other{{count} documents moved to Trash}}",
   "@documentsTrashedToast": {
     "description": "Success toast shown after bulk-moving selected documents to Trash",
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "trashEmptyTitle": "Trash is empty",
-  "@trashEmptyTitle": {"description": "Trash screen empty state title"},
+  "@trashEmptyTitle": {
+    "description": "Trash screen empty state title"
+  },
   "trashEmptySubtitle": "Deleted documents appear here until they're restored or removed permanently.",
-  "@trashEmptySubtitle": {"description": "Trash screen empty state subtitle"},
+  "@trashEmptySubtitle": {
+    "description": "Trash screen empty state subtitle"
+  },
   "trashRetentionRemaining": "{days, plural, =0{Deletes today} =1{1 day left} other{{days} days left}}",
   "@trashRetentionRemaining": {
     "description": "Per-item countdown badge in Trash before auto-purge",
-    "placeholders": {"days": {"type": "int"}}
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
   },
   "restore": "Restore",
-  "@restore": {"description": "Trash row action tooltip — restores a document out of Trash"},
+  "@restore": {
+    "description": "Trash row action tooltip — restores a document out of Trash"
+  },
   "documentRestoredToast": "\"{name}\" restored",
   "@documentRestoredToast": {
     "description": "Success toast shown after restoring a document from Trash",
-    "placeholders": {"name": {"type": "String"}}
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "deleteForeverTitle": "Delete Forever",
-  "@deleteForeverTitle": {"description": "Trash row action tooltip / confirm dialog title for permanent delete"},
+  "@deleteForeverTitle": {
+    "description": "Trash row action tooltip / confirm dialog title for permanent delete"
+  },
   "deleteForeverConfirm": "Permanently delete \"{name}\"? This can't be undone.",
   "@deleteForeverConfirm": {
     "description": "Confirm dialog body shown before permanently deleting a trashed document",
-    "placeholders": {"name": {"type": "String"}}
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "documentPermanentlyDeletedToast": "\"{name}\" permanently deleted",
   "@documentPermanentlyDeletedToast": {
     "description": "Success toast shown after permanently deleting a trashed document",
-    "placeholders": {"name": {"type": "String"}}
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "emptyTrash": "Empty Trash",
-  "@emptyTrash": {"description": "Trash screen app bar action tooltip / confirm dialog destructive button label"},
+  "@emptyTrash": {
+    "description": "Trash screen app bar action tooltip / confirm dialog destructive button label"
+  },
   "emptyTrashTitle": "Empty Trash?",
-  "@emptyTrashTitle": {"description": "Confirm dialog title for emptying Trash"},
+  "@emptyTrashTitle": {
+    "description": "Confirm dialog title for emptying Trash"
+  },
   "emptyTrashConfirm": "{count, plural, one{Permanently delete 1 item from Trash?} other{Permanently delete all {count} items from Trash?}} This can't be undone.",
   "@emptyTrashConfirm": {
     "description": "Confirm dialog body shown before emptying Trash",
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "trashEmptiedToast": "Trash emptied",
-  "@trashEmptiedToast": {"description": "Success toast shown after emptying Trash"},
+  "@trashEmptiedToast": {
+    "description": "Success toast shown after emptying Trash"
+  },
   "noPreviewAvailable": "Preview not available for this file type",
-  "@noPreviewAvailable": {"description": "Document Viewer shown for an attachment that isn't an image (e.g. PDF/docx)"},
+  "@noPreviewAvailable": {
+    "description": "Document Viewer shown for an attachment that isn't an image (e.g. PDF/docx)"
+  },
   "documentExpiringSoonTitle": "Document expiring soon",
-  "@documentExpiringSoonTitle": {"description": "Title of the local notification shown N days before a document's expiry date"},
+  "@documentExpiringSoonTitle": {
+    "description": "Title of the local notification shown N days before a document's expiry date"
+  },
   "documentExpiringSoonBody": "\"{title}\" expires in {days} days",
   "@documentExpiringSoonBody": {
     "description": "Body of the local notification shown N days before a document's expiry date",
-    "placeholders": {"title": {"type": "String"}, "days": {"type": "int"}}
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
   },
   "documentExpiresTodayTitle": "Document expires today",
-  "@documentExpiresTodayTitle": {"description": "Title of the local notification shown on a document's expiry date"},
+  "@documentExpiresTodayTitle": {
+    "description": "Title of the local notification shown on a document's expiry date"
+  },
   "documentExpiresTodayBody": "\"{title}\" expires today",
   "@documentExpiresTodayBody": {
     "description": "Body of the local notification shown on a document's expiry date",
-    "placeholders": {"title": {"type": "String"}}
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "addedOn": "Added {date}",
   "@addedOn": {
     "description": "Document Viewer info panel — when the document was created",
-    "placeholders": {"date": {"type": "String"}}
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   },
   "expiringSoonDigestTitle": "Documents expiring soon",
-  "@expiringSoonDigestTitle": {"description": "Title of the weekly local notification summarizing how many documents expire soon"},
+  "@expiringSoonDigestTitle": {
+    "description": "Title of the weekly local notification summarizing how many documents expire soon"
+  },
   "expiringSoonDigestBody": "{count, plural, one{1 document expires this month} other{{count} documents expire this month}}",
   "@expiringSoonDigestBody": {
     "description": "Body of the weekly local notification summarizing how many documents expire soon",
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "expiringSoonTitle": "Expiring Soon",
-  "@expiringSoonTitle": {"description": "Expiring Soon screen title — the filtered list opened by tapping the weekly digest notification"},
+  "@expiringSoonTitle": {
+    "description": "Expiring Soon screen title — the filtered list opened by tapping the weekly digest notification"
+  },
   "expiringSoonEmptyTitle": "Nothing expiring soon",
-  "@expiringSoonEmptyTitle": {"description": "Expiring Soon screen empty state title"},
+  "@expiringSoonEmptyTitle": {
+    "description": "Expiring Soon screen empty state title"
+  },
   "expiringSoonEmptySubtitle": "Documents with an expiry date coming up will show here.",
-  "@expiringSoonEmptySubtitle": {"description": "Expiring Soon screen empty state subtitle"},
-
+  "@expiringSoonEmptySubtitle": {
+    "description": "Expiring Soon screen empty state subtitle"
+  },
   "aiAssistantTitle": "Ask Dockitly",
-  "@aiAssistantTitle": {"description": "AI Assistant screen app bar title"},
+  "@aiAssistantTitle": {
+    "description": "AI Assistant screen app bar title"
+  },
   "aiAssistantInputHint": "Ask about your documents...",
-  "@aiAssistantInputHint": {"description": "AI Assistant screen chat input placeholder"},
+  "@aiAssistantInputHint": {
+    "description": "AI Assistant screen chat input placeholder"
+  },
   "aiAssistantMicTooltip": "Speak your question",
-  "@aiAssistantMicTooltip": {"description": "AI Assistant screen mic button tooltip, before recording starts"},
+  "@aiAssistantMicTooltip": {
+    "description": "AI Assistant screen mic button tooltip, before recording starts"
+  },
   "aiAssistantMicListeningTooltip": "Listening — tap to stop",
-  "@aiAssistantMicListeningTooltip": {"description": "AI Assistant screen mic button tooltip, while recording"},
+  "@aiAssistantMicListeningTooltip": {
+    "description": "AI Assistant screen mic button tooltip, while recording"
+  },
   "micUnavailableToast": "Couldn't access the microphone. Check the app's microphone permission in Settings.",
-  "@micUnavailableToast": {"description": "Error toast when speech-to-text can't start (permission denied or no recognizer on this device)"},
+  "@micUnavailableToast": {
+    "description": "Error toast when speech-to-text can't start (permission denied or no recognizer on this device)"
+  },
   "aiAssistantEmptyTitle": "Ask me anything about your documents",
-  "@aiAssistantEmptyTitle": {"description": "AI Assistant screen empty-state heading, shown before the first message"},
+  "@aiAssistantEmptyTitle": {
+    "description": "AI Assistant screen empty-state heading, shown before the first message"
+  },
   "aiAssistantEmptySubtitle": "I can look through what you've scanned and pull out the answer — try one of these, or type your own question.",
-  "@aiAssistantEmptySubtitle": {"description": "AI Assistant screen empty-state subtitle"},
+  "@aiAssistantEmptySubtitle": {
+    "description": "AI Assistant screen empty-state subtitle"
+  },
   "aiAssistantExample1": "When does my ID card expire?",
-  "@aiAssistantExample1": {"description": "AI Assistant screen tappable example question"},
+  "@aiAssistantExample1": {
+    "description": "AI Assistant screen tappable example question"
+  },
   "aiAssistantExample2": "Show me last month's invoices",
-  "@aiAssistantExample2": {"description": "AI Assistant screen tappable example question"},
+  "@aiAssistantExample2": {
+    "description": "AI Assistant screen tappable example question"
+  },
   "aiAssistantExample3": "What was my last electricity bill?",
-  "@aiAssistantExample3": {"description": "AI Assistant screen tappable example question"},
+  "@aiAssistantExample3": {
+    "description": "AI Assistant screen tappable example question"
+  },
   "aiAssistantGenericError": "I couldn't reach the AI assistant — check your connection and try again.",
-  "@aiAssistantGenericError": {"description": "AI Assistant screen fallback chat bubble shown when the AI call fails for any reason (offline, API error, bad response)"},
-
+  "@aiAssistantGenericError": {
+    "description": "AI Assistant screen fallback chat bubble shown when the AI call fails for any reason (offline, API error, bad response)"
+  },
   "comingSoon": "Coming soon",
-  "@comingSoon": {"description": "Generic placeholder subtitle for an unbuilt screen"},
+  "@comingSoon": {
+    "description": "Generic placeholder subtitle for an unbuilt screen"
+  },
   "comingSoonToast": "{name} — coming soon",
   "@comingSoonToast": {
     "description": "Toast shown when tapping a not-yet-built item",
-    "placeholders": {"name": {"type": "String"}}
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "pageNotFound": "Page not found",
-  "@pageNotFound": {"description": "Route error page title"},
+  "@pageNotFound": {
+    "description": "Route error page title"
+  },
   "pageNotFoundSubtitle": "We couldn't find \"{path}\".",
   "@pageNotFoundSubtitle": {
     "description": "Route error page subtitle",
-    "placeholders": {"path": {"type": "String"}}
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
   },
   "goBack": "Go back",
-  "@goBack": {"description": "Route error page button"},
+  "@goBack": {
+    "description": "Route error page button"
+  },
   "operationFailedToast": "Could not complete the action. Please try again.",
-
   "draftsTitle": "Drafts",
-  "@draftsTitle": {"description": "Heading for unfinished/unsaved documents -- the Home entry and the drafts sheet title"},
+  "@draftsTitle": {
+    "description": "Heading for unfinished/unsaved documents -- the Home entry and the drafts sheet title"
+  },
   "draftsCount": "{count, plural, one{1 unfinished document} other{{count} unfinished documents}}",
   "@draftsCount": {
     "description": "Subtitle under draftsTitle on Home's compact drafts entry",
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "draftsHelp": "Pick up where you left off, or discard what you no longer need.",
-  "@draftsHelp": {"description": "Subtitle under the drafts sheet's title"},
+  "@draftsHelp": {
+    "description": "Subtitle under the drafts sheet's title"
+  },
   "noDrafts": "No drafts",
-  "@noDrafts": {"description": "Drafts sheet empty state"},
+  "@noDrafts": {
+    "description": "Drafts sheet empty state"
+  },
   "untitledDraft": "Untitled document",
-  "@untitledDraft": {"description": "Fallback title for a draft with no title yet"},
+  "@untitledDraft": {
+    "description": "Fallback title for a draft with no title yet"
+  },
   "resumeDraft": "Resume",
-  "@resumeDraft": {"description": "Button that reopens a draft to keep editing it"},
+  "@resumeDraft": {
+    "description": "Button that reopens a draft to keep editing it"
+  },
   "discardDraft": "Discard",
-  "@discardDraft": {"description": "Button label, confirm-dialog title, and confirm label that permanently deletes a draft"},
+  "@discardDraft": {
+    "description": "Button label, confirm-dialog title, and confirm label that permanently deletes a draft"
+  },
   "discardDraftMessage": "This draft and its pages will be permanently deleted.",
-  "@discardDraftMessage": {"description": "Confirmation message before discarding a draft"},
+  "@discardDraftMessage": {
+    "description": "Confirmation message before discarding a draft"
+  },
   "draftMissingFiles": "Some pages from this draft could no longer be found.",
-  "@draftMissingFiles": {"description": "Add Document screen status line when a restored draft is missing one or more of its attached files"},
+  "@draftMissingFiles": {
+    "description": "Add Document screen status line when a restored draft is missing one or more of its attached files"
+  },
   "draftSaveFailed": "Couldn't save your draft.",
-  "@draftSaveFailed": {"description": "Add Document screen status line when autosaving the draft fails"},
+  "@draftSaveFailed": {
+    "description": "Add Document screen status line when autosaving the draft fails"
+  },
   "draftSaving": "Saving draft…",
-  "@draftSaving": {"description": "Add Document screen status line while the draft is being autosaved"},
+  "@draftSaving": {
+    "description": "Add Document screen status line while the draft is being autosaved"
+  },
   "draftSaved": "Draft saved",
-  "@draftSaved": {"description": "Add Document screen status line once the draft has been autosaved"},
+  "@draftSaved": {
+    "description": "Add Document screen status line once the draft has been autosaved"
+  },
   "draftRetry": "Retry",
-  "@draftRetry": {"description": "Button that retries a failed draft autosave"}
+  "@draftRetry": {
+    "description": "Button that retries a failed draft autosave"
+  },
+  "readinessTitle": "Document readiness",
+  "readinessRetry": "Retry",
+  "readinessAllExcluded": "All essentials marked not applicable",
+  "readinessCount": "{saved} of {total} essentials saved",
+  "readinessComplete": "Your essentials are saved · Review checklist",
+  "readinessReview": "See what to consider adding",
+  "readinessIdentity": "Identity",
+  "readinessAddress": "Proof of address",
+  "readinessBirth": "Birth record",
+  "readinessHealth": "Health records",
+  "readinessFinance": "Financial records",
+  "readinessIdentityExamples": "National ID, passport, or another government-issued ID.",
+  "readinessAddressExamples": "Utility bill, tenancy agreement, or official address certificate.",
+  "readinessBirthExamples": "Birth certificate or equivalent civil-registration record.",
+  "readinessHealthExamples": "Vaccination record, medical summary, or important medical report.",
+  "readinessFinanceExamples": "Bank statement or official bank-account document.",
+  "readinessExplanation": "A personal checklist, not a legal requirement. Progress reflects saved documents, not validity or cloud backup. We recognize specific categories and document titles; link an existing file if we missed it. Choices are stored on this device.",
+  "readinessNotApplicable": "Not applicable",
+  "readinessSaved": "Saved in the app",
+  "readinessConsider": "Consider adding",
+  "readinessUntitled": "Untitled document",
+  "readinessAdd": "Add document",
+  "readinessChange": "Change linked document",
+  "readinessChoose": "Use a saved document",
+  "readinessInclude": "Include again",
+  "readinessAdditional": "Also consider",
+  "readinessAdditionalExamples": "Driving licence, insurance, education, marriage, property, and employment records may be useful depending on your circumstances. These suggestions do not affect your score.",
+  "readinessSearch": "Search saved documents",
+  "readinessNoDocuments": "No matching saved documents",
+  "@readinessCount": {
+    "placeholders": {
+      "saved": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  }
 }

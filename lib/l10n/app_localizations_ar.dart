@@ -878,4 +878,99 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get draftRetry => 'إعادة المحاولة';
+
+  @override
+  String get readinessTitle => 'جاهزية المستندات';
+
+  @override
+  String get readinessRetry => 'إعادة المحاولة';
+
+  @override
+  String get readinessAllExcluded => 'تم تحديد جميع الأساسيات كغير منطبقة';
+
+  @override
+  String readinessCount(int saved, int total) {
+    return 'تم حفظ $saved من $total مستندات أساسية';
+  }
+
+  @override
+  String get readinessComplete => 'تم حفظ الأساسيات · مراجعة القائمة';
+
+  @override
+  String get readinessReview => 'اطّلع على ما يمكنك إضافته';
+
+  @override
+  String get readinessIdentity => 'الهوية';
+
+  @override
+  String get readinessAddress => 'إثبات العنوان';
+
+  @override
+  String get readinessBirth => 'سجل الميلاد';
+
+  @override
+  String get readinessHealth => 'السجلات الصحية';
+
+  @override
+  String get readinessFinance => 'السجلات المالية';
+
+  @override
+  String get readinessIdentityExamples =>
+      'بطاقة الهوية الوطنية أو جواز السفر أو هوية رسمية أخرى.';
+
+  @override
+  String get readinessAddressExamples =>
+      'فاتورة خدمات أو عقد إيجار أو شهادة عنوان رسمية.';
+
+  @override
+  String get readinessBirthExamples => 'شهادة ميلاد أو سجل مدني مكافئ.';
+
+  @override
+  String get readinessHealthExamples =>
+      'سجل تطعيم أو ملخص طبي أو تقرير طبي مهم.';
+
+  @override
+  String get readinessFinanceExamples =>
+      'كشف حساب مصرفي أو مستند رسمي للحساب البنكي.';
+
+  @override
+  String get readinessExplanation =>
+      'قائمة شخصية وليست متطلبًا قانونيًا. يعكس التقدم المستندات المحفوظة وليس صلاحيتها أو نسخها احتياطيًا. نتعرف على فئات وعناوين محددة؛ اربط ملفًا محفوظًا إذا لم نتعرف عليه. تُحفظ اختياراتك على هذا الجهاز.';
+
+  @override
+  String get readinessNotApplicable => 'لا ينطبق';
+
+  @override
+  String get readinessSaved => 'محفوظ في التطبيق';
+
+  @override
+  String get readinessConsider => 'يُستحسن إضافته';
+
+  @override
+  String get readinessUntitled => 'مستند بلا عنوان';
+
+  @override
+  String get readinessAdd => 'إضافة مستند';
+
+  @override
+  String get readinessChange => 'تغيير المستند المرتبط';
+
+  @override
+  String get readinessChoose => 'استخدام مستند محفوظ';
+
+  @override
+  String get readinessInclude => 'إدراج مجددًا';
+
+  @override
+  String get readinessAdditional => 'يمكنك أيضًا التفكير في';
+
+  @override
+  String get readinessAdditionalExamples =>
+      'قد تفيدك مستندات رخصة القيادة والتأمين والتعليم والزواج والعقارات والعمل حسب ظروفك. لا تؤثر هذه الاقتراحات على النسبة.';
+
+  @override
+  String get readinessSearch => 'البحث في المستندات المحفوظة';
+
+  @override
+  String get readinessNoDocuments => 'لا توجد مستندات محفوظة مطابقة';
 }

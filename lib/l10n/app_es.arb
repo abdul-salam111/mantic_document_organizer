@@ -1,18 +1,14 @@
 {
   "@@locale": "es",
-
   "splashTagline": "Organizador de Documentos",
-
   "onboardingHeadline": "Todos tus documentos,\norganizados con estilo",
   "onboardingSubtitle": "Escanea, clasifica y encuentra cualquier documento importante en segundos, todo almacenado de forma segura en tu dispositivo, incluso sin conexión.",
   "onboardingGetStarted": "Comenzar",
   "onboardingNoSignIn": "No se requiere iniciar sesión: tus documentos permanecen en este dispositivo.",
-
   "navHome": "Inicio",
   "navAllDocs": "Documentos",
   "navFavorites": "Favoritos",
   "navProfile": "Perfil",
-
   "homeSearchHint": "Busca en tus documentos...",
   "askAi": "Preguntar a la IA",
   "recentFiles": "Archivos recientes",
@@ -23,7 +19,6 @@
   "fileCount": "{count, plural, one{{count} archivo} other{{count} archivos}}",
   "pageCount": "{count, plural, one{{count} página} other{{count} páginas}}",
   "resultsCount": "{count, plural, one{{count} resultado} other{{count} resultados}}",
-
   "allDocsTitle": "Documentos",
   "allDocsSearchHint": "Buscar documentos o categorías",
   "allCategoryTab": "Todos",
@@ -31,12 +26,10 @@
   "nothingInCategoryYet": "Nada en \"{category}\" todavía",
   "nothingMatchesQueryInCategory": "Nada coincide con \"{query}\" en \"{category}\"",
   "nothingMatchesQuery": "Nada coincide con \"{query}\"",
-
   "favoritesTitle": "Favoritos",
   "noFavoritesYet": "Sin favoritos todavía",
   "favoritesEmptySubtitle": "Los documentos que marques como favoritos aparecerán aquí",
   "removeFromFavorites": "Quitar de favoritos",
-
   "profileTitle": "Perfil",
   "guest": "Invitado",
   "account": "Cuenta",
@@ -55,7 +48,6 @@
   "statDocuments": "Documentos",
   "statCategories": "Categorías",
   "statFavorites": "Favoritos",
-
   "settings": "Configuración",
   "appearance": "Apariencia",
   "themeAuto": "Automático",
@@ -114,7 +106,6 @@
   "appLocked": "App bloqueada",
   "unlockToContinue": "Autentícate para continuar",
   "unlock": "Desbloquear",
-
   "addDocumentTitle": "Agregar documento",
   "addPageTitle": "Añadir página",
   "add": "Agregar",
@@ -148,14 +139,12 @@
   "scanFailedToast": "Error al escanear — inténtalo de nuevo",
   "documentCreatedToast": "\"{name}\" agregado",
   "documentUpdatedToast": "\"{name}\" actualizado",
-
   "searchDocumentsHint": "Buscar documentos",
   "sortBy": "Ordenar por",
   "sortNewestFirst": "Más recientes primero",
   "sortOldestFirst": "Más antiguos primero",
   "sortNameAZ": "Nombre (A-Z)",
   "addToFavorites": "Añadir a favoritos",
-
   "share": "Compartir",
   "exportAsPdf": "Exportar como PDF",
   "exportPdfFailedToast": "No se pudo crear el PDF. Inténtalo de nuevo.",
@@ -205,7 +194,6 @@
   "expiringSoonTitle": "Por vencer",
   "expiringSoonEmptyTitle": "Nada por vencer",
   "expiringSoonEmptySubtitle": "Aquí aparecerán los documentos con una fecha de vencimiento próxima.",
-
   "aiAssistantTitle": "Pregunta a Dockitly",
   "aiAssistantInputHint": "Pregunta sobre tus documentos...",
   "aiAssistantMicTooltip": "Habla tu pregunta",
@@ -217,15 +205,12 @@
   "aiAssistantExample2": "Muéstrame las facturas del mes pasado",
   "aiAssistantExample3": "¿Cuál fue mi última factura de electricidad?",
   "aiAssistantGenericError": "No pude contactar al asistente de IA — revisa tu conexión e inténtalo de nuevo.",
-
   "comingSoon": "Próximamente",
   "comingSoonToast": "{name} — próximamente",
-
   "pageNotFound": "Página no encontrada",
   "pageNotFoundSubtitle": "No pudimos encontrar \"{path}\".",
   "goBack": "Volver",
   "operationFailedToast": "No se pudo completar la acción. Inténtalo de nuevo.",
-
   "draftsTitle": "Borradores",
   "draftsCount": "{count, plural, one{1 documento sin terminar} other{{count} documentos sin terminar}}",
   "draftsHelp": "Continúa donde lo dejaste o descarta lo que ya no necesites.",
@@ -238,5 +223,34 @@
   "draftSaveFailed": "No se pudo guardar tu borrador.",
   "draftSaving": "Guardando borrador…",
   "draftSaved": "Borrador guardado",
-  "draftRetry": "Reintentar"
+  "draftRetry": "Reintentar",
+  "readinessTitle": "Documentos esenciales",
+  "readinessRetry": "Reintentar",
+  "readinessAllExcluded": "Todos marcados como no aplicables",
+  "readinessCount": "{saved} de {total} esenciales guardados",
+  "readinessComplete": "Tus esenciales están guardados · Revisar",
+  "readinessReview": "Descubre qué podrías añadir",
+  "readinessIdentity": "Identidad",
+  "readinessAddress": "Comprobante de domicilio",
+  "readinessBirth": "Registro de nacimiento",
+  "readinessHealth": "Registros médicos",
+  "readinessFinance": "Registros financieros",
+  "readinessIdentityExamples": "Documento nacional de identidad, pasaporte u otra identificación oficial.",
+  "readinessAddressExamples": "Factura de servicios, contrato de alquiler o certificado oficial de domicilio.",
+  "readinessBirthExamples": "Certificado de nacimiento o registro civil equivalente.",
+  "readinessHealthExamples": "Registro de vacunación, resumen médico o informe médico importante.",
+  "readinessFinanceExamples": "Estado de cuenta o documento bancario oficial.",
+  "readinessExplanation": "Una lista personal, no un requisito legal. El progreso indica documentos guardados, no su validez ni copia en la nube. Reconocemos categorías específicas y títulos; vincula un archivo si no lo detectamos. Las opciones se guardan en este dispositivo.",
+  "readinessNotApplicable": "No aplicable",
+  "readinessSaved": "Guardado en la app",
+  "readinessConsider": "Considera añadirlo",
+  "readinessUntitled": "Documento sin título",
+  "readinessAdd": "Añadir documento",
+  "readinessChange": "Cambiar documento vinculado",
+  "readinessChoose": "Usar un documento guardado",
+  "readinessInclude": "Incluir de nuevo",
+  "readinessAdditional": "También considera",
+  "readinessAdditionalExamples": "Los documentos de conducción, seguros, educación, matrimonio, propiedad y empleo pueden ser útiles según tus circunstancias. Estas sugerencias no afectan a la puntuación.",
+  "readinessSearch": "Buscar documentos guardados",
+  "readinessNoDocuments": "No hay documentos guardados coincidentes"
 }

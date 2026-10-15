@@ -1,18 +1,14 @@
 {
   "@@locale": "fr",
-
   "splashTagline": "Organisateur de documents",
-
   "onboardingHeadline": "Tous vos documents,\nparfaitement organisés",
   "onboardingSubtitle": "Numérisez, classez et retrouvez chaque document important en quelques secondes — le tout stocké en toute sécurité sur votre appareil, même hors ligne.",
   "onboardingGetStarted": "Commencer",
   "onboardingNoSignIn": "Aucune connexion requise — vos documents restent sur cet appareil.",
-
   "navHome": "Accueil",
   "navAllDocs": "Documents",
   "navFavorites": "Favoris",
   "navProfile": "Profil",
-
   "homeSearchHint": "Rechercher dans vos documents...",
   "askAi": "Demander à l'IA",
   "recentFiles": "Fichiers récents",
@@ -23,7 +19,6 @@
   "fileCount": "{count, plural, one{{count} fichier} other{{count} fichiers}}",
   "pageCount": "{count, plural, one{{count} page} other{{count} pages}}",
   "resultsCount": "{count, plural, one{{count} résultat} other{{count} résultats}}",
-
   "allDocsTitle": "Documents",
   "allDocsSearchHint": "Rechercher des documents ou des catégories",
   "allCategoryTab": "Tous",
@@ -31,12 +26,10 @@
   "nothingInCategoryYet": "Rien dans « {category} » pour l'instant",
   "nothingMatchesQueryInCategory": "Rien ne correspond à « {query} » dans « {category} »",
   "nothingMatchesQuery": "Rien ne correspond à « {query} »",
-
   "favoritesTitle": "Favoris",
   "noFavoritesYet": "Aucun favori pour l'instant",
   "favoritesEmptySubtitle": "Les documents que vous ajoutez aux favoris apparaîtront ici",
   "removeFromFavorites": "Retirer des favoris",
-
   "profileTitle": "Profil",
   "guest": "Invité",
   "account": "Compte",
@@ -55,7 +48,6 @@
   "statDocuments": "Documents",
   "statCategories": "Catégories",
   "statFavorites": "Favoris",
-
   "settings": "Paramètres",
   "appearance": "Apparence",
   "themeAuto": "Auto",
@@ -114,7 +106,6 @@
   "appLocked": "Application verrouillée",
   "unlockToContinue": "Authentifiez-vous pour continuer",
   "unlock": "Déverrouiller",
-
   "addDocumentTitle": "Ajouter un document",
   "addPageTitle": "Ajouter une page",
   "add": "Ajouter",
@@ -148,14 +139,12 @@
   "scanFailedToast": "Échec de la numérisation — veuillez réessayer",
   "documentCreatedToast": "« {name} » ajouté",
   "documentUpdatedToast": "« {name} » mis à jour",
-
   "searchDocumentsHint": "Rechercher des documents",
   "sortBy": "Trier par",
   "sortNewestFirst": "Plus récents d'abord",
   "sortOldestFirst": "Plus anciens d'abord",
   "sortNameAZ": "Nom (A-Z)",
   "addToFavorites": "Ajouter aux favoris",
-
   "share": "Partager",
   "exportAsPdf": "Exporter en PDF",
   "exportPdfFailedToast": "Impossible de créer le PDF. Veuillez réessayer.",
@@ -205,7 +194,6 @@
   "expiringSoonTitle": "Bientôt expirés",
   "expiringSoonEmptyTitle": "Rien à signaler",
   "expiringSoonEmptySubtitle": "Les documents dont la date d'expiration approche s'afficheront ici.",
-
   "aiAssistantTitle": "Demander à Dockitly",
   "aiAssistantInputHint": "Posez une question sur vos documents...",
   "aiAssistantMicTooltip": "Posez votre question à voix haute",
@@ -217,15 +205,12 @@
   "aiAssistantExample2": "Montre-moi les factures du mois dernier",
   "aiAssistantExample3": "Quelle était ma dernière facture d'électricité ?",
   "aiAssistantGenericError": "Impossible de contacter l'assistant IA — vérifiez votre connexion et réessayez.",
-
   "comingSoon": "Bientôt disponible",
   "comingSoonToast": "{name} — bientôt disponible",
-
   "pageNotFound": "Page introuvable",
   "pageNotFoundSubtitle": "Nous n'avons pas trouvé « {path} ».",
   "goBack": "Retour",
   "operationFailedToast": "Impossible de terminer cette action. Réessayez.",
-
   "draftsTitle": "Brouillons",
   "draftsCount": "{count, plural, one{1 document inachevé} other{{count} documents inachevés}}",
   "draftsHelp": "Reprenez là où vous vous étiez arrêté, ou supprimez ce dont vous n'avez plus besoin.",
@@ -238,5 +223,34 @@
   "draftSaveFailed": "Impossible d'enregistrer votre brouillon.",
   "draftSaving": "Enregistrement du brouillon…",
   "draftSaved": "Brouillon enregistré",
-  "draftRetry": "Réessayer"
+  "draftRetry": "Réessayer",
+  "readinessTitle": "Documents essentiels",
+  "readinessRetry": "Réessayer",
+  "readinessAllExcluded": "Tous les essentiels sont non applicables",
+  "readinessCount": "{saved} essentiels sur {total} enregistrés",
+  "readinessComplete": "Vos essentiels sont enregistrés · Consulter",
+  "readinessReview": "Voir les documents à envisager",
+  "readinessIdentity": "Identité",
+  "readinessAddress": "Justificatif de domicile",
+  "readinessBirth": "Acte de naissance",
+  "readinessHealth": "Dossier médical",
+  "readinessFinance": "Documents financiers",
+  "readinessIdentityExamples": "Carte nationale d’identité, passeport ou autre pièce d’identité officielle.",
+  "readinessAddressExamples": "Facture de services, bail ou certificat officiel de domicile.",
+  "readinessBirthExamples": "Acte de naissance ou document d’état civil équivalent.",
+  "readinessHealthExamples": "Carnet de vaccination, résumé médical ou rapport médical important.",
+  "readinessFinanceExamples": "Relevé bancaire ou document bancaire officiel.",
+  "readinessExplanation": "Une liste personnelle, pas une obligation légale. La progression reflète les documents enregistrés, pas leur validité ni leur sauvegarde en ligne. Nous reconnaissons certaines catégories et certains titres ; associez un fichier si nécessaire. Vos choix restent sur cet appareil.",
+  "readinessNotApplicable": "Non applicable",
+  "readinessSaved": "Enregistré dans l’app",
+  "readinessConsider": "À envisager",
+  "readinessUntitled": "Document sans titre",
+  "readinessAdd": "Ajouter un document",
+  "readinessChange": "Changer le document associé",
+  "readinessChoose": "Utiliser un document enregistré",
+  "readinessInclude": "Inclure à nouveau",
+  "readinessAdditional": "À envisager également",
+  "readinessAdditionalExamples": "Permis de conduire, assurances, diplômes, mariage, propriété et emploi peuvent être utiles selon votre situation. Ces suggestions ne modifient pas votre score.",
+  "readinessSearch": "Rechercher des documents",
+  "readinessNoDocuments": "Aucun document correspondant"
 }

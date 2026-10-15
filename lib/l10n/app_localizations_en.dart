@@ -883,4 +883,101 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get draftRetry => 'Retry';
+
+  @override
+  String get readinessTitle => 'Document readiness';
+
+  @override
+  String get readinessRetry => 'Retry';
+
+  @override
+  String get readinessAllExcluded => 'All essentials marked not applicable';
+
+  @override
+  String readinessCount(int saved, int total) {
+    return '$saved of $total essentials saved';
+  }
+
+  @override
+  String get readinessComplete =>
+      'Your essentials are saved · Review checklist';
+
+  @override
+  String get readinessReview => 'See what to consider adding';
+
+  @override
+  String get readinessIdentity => 'Identity';
+
+  @override
+  String get readinessAddress => 'Proof of address';
+
+  @override
+  String get readinessBirth => 'Birth record';
+
+  @override
+  String get readinessHealth => 'Health records';
+
+  @override
+  String get readinessFinance => 'Financial records';
+
+  @override
+  String get readinessIdentityExamples =>
+      'National ID, passport, or another government-issued ID.';
+
+  @override
+  String get readinessAddressExamples =>
+      'Utility bill, tenancy agreement, or official address certificate.';
+
+  @override
+  String get readinessBirthExamples =>
+      'Birth certificate or equivalent civil-registration record.';
+
+  @override
+  String get readinessHealthExamples =>
+      'Vaccination record, medical summary, or important medical report.';
+
+  @override
+  String get readinessFinanceExamples =>
+      'Bank statement or official bank-account document.';
+
+  @override
+  String get readinessExplanation =>
+      'A personal checklist, not a legal requirement. Progress reflects saved documents, not validity or cloud backup. We recognize specific categories and document titles; link an existing file if we missed it. Choices are stored on this device.';
+
+  @override
+  String get readinessNotApplicable => 'Not applicable';
+
+  @override
+  String get readinessSaved => 'Saved in the app';
+
+  @override
+  String get readinessConsider => 'Consider adding';
+
+  @override
+  String get readinessUntitled => 'Untitled document';
+
+  @override
+  String get readinessAdd => 'Add document';
+
+  @override
+  String get readinessChange => 'Change linked document';
+
+  @override
+  String get readinessChoose => 'Use a saved document';
+
+  @override
+  String get readinessInclude => 'Include again';
+
+  @override
+  String get readinessAdditional => 'Also consider';
+
+  @override
+  String get readinessAdditionalExamples =>
+      'Driving licence, insurance, education, marriage, property, and employment records may be useful depending on your circumstances. These suggestions do not affect your score.';
+
+  @override
+  String get readinessSearch => 'Search saved documents';
+
+  @override
+  String get readinessNoDocuments => 'No matching saved documents';
 }

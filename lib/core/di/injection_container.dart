@@ -1,3 +1,7 @@
+import '../../features/home/data/repository_impl/readiness_repository_impl.dart';
+import '../../features/home/domain/repositories/readiness_repository.dart';
+import '../../features/home/domain/usecases/readiness_usecases.dart';
+import '../../features/home/viewmodel/readiness_viewmodel.dart';
 import '../../features/documents/documents_domain_exports.dart';
 import '../../features/documents/data/datasources/draft_local_datasource.dart';
 import '../../features/documents/data/repository_impl/draft_repository_impl.dart';
@@ -269,6 +273,10 @@ Future<void> documentStorageDependencies() async {
 }
 
 Future<void> homeDependencies() async {
+  sl.registerLazySingleton<IReadinessRepository>(() => ReadinessRepositoryImpl());
+  sl.registerFactory<ReadinessViewModel>(() => ReadinessViewModel(
+    documents: sl(), categories: sl(), load: LoadReadiness(sl()), save: SaveReadiness(sl()),
+  ));
   sl.registerFactory<HomeViewModel>(
     () => HomeViewModel(
       categoryUseCases: sl(),

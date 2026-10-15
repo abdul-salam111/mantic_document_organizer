@@ -893,4 +893,100 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get draftRetry => 'Réessayer';
+
+  @override
+  String get readinessTitle => 'Documents essentiels';
+
+  @override
+  String get readinessRetry => 'Réessayer';
+
+  @override
+  String get readinessAllExcluded => 'Tous les essentiels sont non applicables';
+
+  @override
+  String readinessCount(int saved, int total) {
+    return '$saved essentiels sur $total enregistrés';
+  }
+
+  @override
+  String get readinessComplete => 'Vos essentiels sont enregistrés · Consulter';
+
+  @override
+  String get readinessReview => 'Voir les documents à envisager';
+
+  @override
+  String get readinessIdentity => 'Identité';
+
+  @override
+  String get readinessAddress => 'Justificatif de domicile';
+
+  @override
+  String get readinessBirth => 'Acte de naissance';
+
+  @override
+  String get readinessHealth => 'Dossier médical';
+
+  @override
+  String get readinessFinance => 'Documents financiers';
+
+  @override
+  String get readinessIdentityExamples =>
+      'Carte nationale d’identité, passeport ou autre pièce d’identité officielle.';
+
+  @override
+  String get readinessAddressExamples =>
+      'Facture de services, bail ou certificat officiel de domicile.';
+
+  @override
+  String get readinessBirthExamples =>
+      'Acte de naissance ou document d’état civil équivalent.';
+
+  @override
+  String get readinessHealthExamples =>
+      'Carnet de vaccination, résumé médical ou rapport médical important.';
+
+  @override
+  String get readinessFinanceExamples =>
+      'Relevé bancaire ou document bancaire officiel.';
+
+  @override
+  String get readinessExplanation =>
+      'Une liste personnelle, pas une obligation légale. La progression reflète les documents enregistrés, pas leur validité ni leur sauvegarde en ligne. Nous reconnaissons certaines catégories et certains titres ; associez un fichier si nécessaire. Vos choix restent sur cet appareil.';
+
+  @override
+  String get readinessNotApplicable => 'Non applicable';
+
+  @override
+  String get readinessSaved => 'Enregistré dans l’app';
+
+  @override
+  String get readinessConsider => 'À envisager';
+
+  @override
+  String get readinessUntitled => 'Document sans titre';
+
+  @override
+  String get readinessAdd => 'Ajouter un document';
+
+  @override
+  String get readinessChange => 'Changer le document associé';
+
+  @override
+  String get readinessChoose => 'Utiliser un document enregistré';
+
+  @override
+  String get readinessInclude => 'Inclure à nouveau';
+
+  @override
+  String get readinessAdditional => 'À envisager également';
+
+  @override
+  String get readinessAdditionalExamples =>
+      'Permis de conduire, assurances, diplômes, mariage, propriété et emploi peuvent être utiles selon votre situation. Ces suggestions ne modifient pas votre score.';
+
+  @override
+  String get readinessSearch => 'Rechercher des documents';
+
+  @override
+  String get readinessNoDocuments => 'Aucun document correspondant';
 }
