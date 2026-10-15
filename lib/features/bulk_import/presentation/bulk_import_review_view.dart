@@ -201,7 +201,7 @@ class _ReviewBody extends StatelessWidget {
             ),
             child: CustomButton(
               onPressed: vm.canImport ? () => _import(context, vm) : null,
-              icon: vm.isImporting ? null : Iconsax.document_upload,
+              icon: vm.isImporting ? null : Iconsax.folder_add,
               radius: 16,
               size: const Size(double.infinity, 54),
               text: vm.isImporting
