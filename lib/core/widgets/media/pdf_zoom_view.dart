@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pdfx/pdfx.dart';
 
+import '../feedback/loading_indicator.dart';
+
 /// Full pinch-zoom/pan PDF viewer (wraps pdfx's `PdfViewPinch`, which
 /// already owns its own zoom/pan/multi-page-swipe gestures — don't nest
 /// this inside another zoom widget, they'll fight over the same gestures).
@@ -56,8 +58,7 @@ class _PdfZoomViewState extends State<PdfZoomView> {
           widget.onPageChanged?.call(_controller.page, document.pagesCount),
       builders: PdfViewPinchBuilders<DefaultBuilderOptions>(
         options: const DefaultBuilderOptions(),
-        documentLoaderBuilder: (context) =>
-            const Center(child: CircularProgressIndicator()),
+        documentLoaderBuilder: (context) => const LoadingIndicator(),
         errorBuilder: (context, error) => widget.fallback,
       ),
     );

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../core/di/di_exports.dart';
 import '../../../core/local_storage/local_storage_exports.dart';
+import '../../../core/widgets/feedback/animated_loading_logo.dart';
 import 'viewmodel/bulk_import_viewmodel.dart';
 
 /// The actual "find my documents" prompt/progress/error UI, with no
@@ -214,9 +215,8 @@ class _ScanStatus extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const LinearProgressIndicator(),
+            const AnimatedLoadingLogo(size: 48),
             const SizedBox(height: 8),
             Text(
               started
