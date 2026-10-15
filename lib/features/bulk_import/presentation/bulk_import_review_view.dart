@@ -271,21 +271,28 @@ class _CandidateCardState extends State<_CandidateCard> {
           children: [
             Row(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: SizedBox(
-                    width: 52,
+                if (c.attachments.length == 1)
+                  _CandidateThumbnail(
+                    path: c.attachments.single.path,
+                    fallback: fallback,
+                  )
+                else
+                  SizedBox(
+                    // Wide enough to hint there's more to scroll to, while
+                    // still leaving room for the status text/checkbox/close
+                    // button that follow in this same Row.
+                    width: 96,
                     height: 60,
-                    child: isImagePath(c.attachment.path)
-                        ? Image.file(
-                            File(c.attachment.path),
-                            fit: BoxFit.cover,
-                            cacheWidth: 156,
-                            errorBuilder: (_, _, _) => fallback,
-                          )
-                        : fallback,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: c.attachments.length,
+                      separatorBuilder: (_, _) => const SizedBox(width: 4),
+                      itemBuilder: (_, i) => _CandidateThumbnail(
+                        path: c.attachments[i].path,
+                        fallback: fallback,
+                      ),
+                    ),
                   ),
-                ),
                 const SizedBox(width: 12),
                 Expanded(child: Text(status, style: theme.textTheme.bodySmall)),
                 Checkbox(
@@ -393,8 +400,14 @@ class _CandidateCardState extends State<_CandidateCard> {
                           final date = await showDatePicker(
                             context: context,
                             initialDate: initialDate,
-                            firstDate: DateTime(initialDate.year < 1900 ? initialDate.year : 1900),
-                            lastDate: DateTime(initialDate.year > 2200 ? initialDate.year + 1 : 2201),
+                            firstDate: DateTime(
+                              initialDate.year < 1900 ? initialDate.year : 1900,
+                            ),
+                            lastDate: DateTime(
+                              initialDate.year > 2200
+                                  ? initialDate.year + 1
+                                  : 2201,
+                            ),
                           );
                           if (date != null && context.mounted) {
                             vm.updateExpiry(c.id, date);
@@ -416,6 +429,12 @@ class _CandidateCardState extends State<_CandidateCard> {
                 icon: const Icon(Icons.refresh),
                 label: const Text('Retry analysis'),
               ),
+            if (c.attachments.length > 1)
+              TextButton.icon(
+                onPressed: () => vm.splitCandidate(c.id),
+                icon: const Icon(Icons.call_split, size: 18),
+                label: const Text('Split into separate documents'),
+              ),
             if (c.importError != null)
               Text(
                 c.importError!,
@@ -426,4 +445,27 @@ class _CandidateCardState extends State<_CandidateCard> {
       ),
     );
   }
+}
+
+class _CandidateThumbnail extends StatelessWidget {
+  final String path;
+  final Widget fallback;
+  const _CandidateThumbnail({required this.path, required this.fallback});
+
+  @override
+  Widget build(BuildContext context) => ClipRRect(
+    borderRadius: BorderRadius.circular(10),
+    child: SizedBox(
+      width: 52,
+      height: 60,
+      child: isImagePath(path)
+          ? Image.file(
+              File(path),
+              fit: BoxFit.cover,
+              cacheWidth: 156,
+              errorBuilder: (_, _, _) => fallback,
+            )
+          : fallback,
+    ),
+  );
 }

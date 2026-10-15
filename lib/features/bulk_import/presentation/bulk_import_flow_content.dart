@@ -211,7 +211,14 @@ class _ScanStatus extends StatelessWidget {
       final examined = viewModel.scanExamined;
       final started = examined > 0;
       // No fixed budget to measure progress against any more (the scan is
-      // deliberately uncapped) -- always indeterminate.
+      // deliberately uncapped) -- always indeterminate. isGroupingWithAi
+      // covers the one phase that isn't per-asset: the single batch AI
+      // call that clusters everything scanned so far into documents.
+      final label = viewModel.isGroupingWithAi
+          ? 'Organizing what was found…'
+          : started
+          ? 'Scanning… $examined checked · ${viewModel.scanFound} found'
+          : 'Looking through your photos…';
       return Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: Column(
@@ -219,9 +226,7 @@ class _ScanStatus extends StatelessWidget {
             const AnimatedLoadingLogo(size: 48),
             const SizedBox(height: 8),
             Text(
-              started
-                  ? 'Scanning… $examined checked · ${viewModel.scanFound} found'
-                  : 'Looking through your photos…',
+              label,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodySmall,
             ),

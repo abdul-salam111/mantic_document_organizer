@@ -1,9 +1,18 @@
 class AppConstants {
   /// Feature switch for gallery/filesystem-based document discovery and
-  /// import -- covers both the manual "Find more documents" entry point and
-  /// AutoImportService's one-time automatic scan, which share the same
-  /// review screen.
-  static const bool bulkImportEnabled = false;
+  /// import -- covers the manual Profile entry points ("Import documents",
+  /// "Find more documents"). See [autoImportEnabled] for the separate,
+  /// unsolicited automatic scan.
+  static const bool bulkImportEnabled = true;
+
+  /// Separate switch for the *unsolicited* parts of bulk import: the
+  /// one-time consent sheet shown automatically on first launch
+  /// (AutoImportConsentSheet, see navbar_view.dart) and
+  /// AutoImportService's resulting one-time automatic scan. Kept false
+  /// while [bulkImportEnabled] is true so the manual "Import documents"/
+  /// "Find more documents" Profile tiles stay available without the app
+  /// prompting the user to scan their whole library on its own.
+  static const bool autoImportEnabled = false;
 
   /// The numeric App Store Connect ID Apple assigns once the app exists
   /// there (App Information page) -- required by

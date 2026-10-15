@@ -105,12 +105,14 @@ class BulkImportLocalDataSource implements BulkImportRepository {
         candidates.add(
           BulkImportCandidate(
             id: id,
-            attachment: AttachmentItem(
-              path: staged.path,
-              type: isImagePath(staged.path)
-                  ? AttachmentType.image
-                  : AttachmentType.file,
-            ),
+            attachments: [
+              AttachmentItem(
+                path: staged.path,
+                type: isImagePath(staged.path)
+                    ? AttachmentType.image
+                    : AttachmentType.file,
+              ),
+            ],
             title: title.isEmpty ? 'Untitled document' : title,
             categoryId: uncategorizedCategoryId,
           ),
@@ -132,21 +134,28 @@ class BulkImportLocalDataSource implements BulkImportRepository {
   }
 
   @override
-  Future<String> promote(BulkImportCandidate candidate) async {
+  Future<List<String>> promote(BulkImportCandidate candidate) async {
     final root = await _rootDirectory();
     final directory = Directory(p.join(root.path, 'documents'));
     await directory.create(recursive: true);
-    final target = File(
-      p.join(
-        directory.path,
-        'bulk_${candidate.id}${p.extension(candidate.attachment.path)}',
-      ),
-    );
+    final promoted = <String>[];
     try {
-      await File(candidate.attachment.path).copy(target.path);
-      return target.path;
+      for (var i = 0; i < candidate.attachments.length; i++) {
+        final attachment = candidate.attachments[i];
+        final target = File(
+          p.join(
+            directory.path,
+            'bulk_${candidate.id}_$i${p.extension(attachment.path)}',
+          ),
+        );
+        await File(attachment.path).copy(target.path);
+        promoted.add(target.path);
+      }
+      return promoted;
     } catch (_) {
-      await _deleteIfExists(target);
+      for (final path in promoted) {
+        await _deleteIfExists(File(path));
+      }
       rethrow;
     }
   }
@@ -154,8 +163,10 @@ class BulkImportLocalDataSource implements BulkImportRepository {
   @override
   Future<void> removeStaged(BulkImportCandidate candidate) async {
     final session = await _sessionDirectory();
-    if (p.dirname(candidate.attachment.path) == session.path) {
-      await _deleteIfExists(File(candidate.attachment.path));
+    for (final attachment in candidate.attachments) {
+      if (p.dirname(attachment.path) == session.path) {
+        await _deleteIfExists(File(attachment.path));
+      }
     }
   }
 

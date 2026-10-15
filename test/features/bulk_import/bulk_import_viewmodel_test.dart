@@ -21,9 +21,10 @@ void main() {
     () async {
       f.seedFound([candidate('a'), candidate('b')]);
       await f.vm.discover();
-      // Discovery already called analyze() for both candidates, inline.
+      // Discovery OCRs each candidate individually, then clusters/suggests
+      // for the whole batch with one AI call.
       expect(f.processing.calls.length, 2);
-      expect(f.processing.analysisCalls, 2);
+      expect(f.processing.groupAnalysisCalls, 1);
       f.vm.updateTitle('a', ' My title ');
       f.vm.updateDescription('a', 'Summary');
       f.vm.updateExpiry('a', DateTime(2030));
@@ -65,7 +66,7 @@ void main() {
       final result = await f.vm.commit();
       expect(result.imported, 1);
       expect(result.failures.keys, ['b', 'c']);
-      expect(f.imports.rolledBack, ['/permanent/b.jpg']);
+      expect(f.imports.rolledBack, ['/permanent/b_0.jpg']);
       expect(f.vm.candidates.map((c) => c.id), ['b', 'c']);
       expect(f.vm.candidates.every((c) => c.importError != null), true);
       expect(f.imports.removed, ['a']);
@@ -120,53 +121,50 @@ void main() {
     },
   );
 
-  test(
-    'an asset already marked examined is never re-staged, even when the '
-    'date-based watermark alone would have let it through again -- this is '
-    'the exact-id defense against a copied-in file carrying a misleading '
-    'date (see GalleryDiscoveryDataSource.findCandidates)',
-    () async {
-      f.seedFound([candidate('a')]);
-      await f.vm.discover();
-      expect(f.imports.stageCalls, 1);
-      expect(f.examinedAssetsStore.examined, {'a'});
-      // Force the watermark back far enough that date alone would offer
-      // 'a' again -- the exact-id record must still catch it regardless.
-      f.watermarkStore.stored = DateTime(2000, 1, 1);
-      f.seedFound([candidate('a')]);
-      final found = await f.vm.discover();
-      expect(found, false);
-      expect(f.imports.stageCalls, 1); // unchanged -- never re-staged
-    },
-  );
-
-  test(
-    'a candidate the AI rejected is marked examined too, so it never '
-    'resurfaces even once the same file would otherwise qualify',
-    () async {
-      f.seedFound([candidate('a')]);
-      f.processing.suggestion = const AiDocumentSuggestion(isDocument: false);
-      await f.vm.discover();
-      expect(f.vm.candidates, isEmpty);
-      expect(f.examinedAssetsStore.examined, {'a'});
-      // Even if the AI would now accept it, the asset was already examined
-      // and decided on -- it must not come back for a second opinion.
-      f.processing.suggestion = FakeProcessing().suggestion;
-      f.seedFound([candidate('a')]);
-      final found = await f.vm.discover();
-      expect(found, false);
-      expect(f.vm.candidates, isEmpty);
-    },
-  );
-
-  test('declined gallery permission is reported without staging anything', () async {
-    f.discovery.permission = DiscoveryPermission.denied;
+  test('an asset already marked examined is never re-staged, even when the '
+      'date-based watermark alone would have let it through again -- this is '
+      'the exact-id defense against a copied-in file carrying a misleading '
+      'date (see GalleryDiscoveryDataSource.findCandidates)', () async {
+    f.seedFound([candidate('a')]);
+    await f.vm.discover();
+    expect(f.imports.stageCalls, 1);
+    expect(f.examinedAssetsStore.examined, {'a'});
+    // Force the watermark back far enough that date alone would offer
+    // 'a' again -- the exact-id record must still catch it regardless.
+    f.watermarkStore.stored = DateTime(2000, 1, 1);
     f.seedFound([candidate('a')]);
     final found = await f.vm.discover();
     expect(found, false);
-    expect(f.vm.permissionDenied, true);
-    expect(f.imports.stageCalls, 0);
+    expect(f.imports.stageCalls, 1); // unchanged -- never re-staged
   });
+
+  test('a candidate the AI rejected is marked examined too, so it never '
+      'resurfaces even once the same file would otherwise qualify', () async {
+    f.seedFound([candidate('a')]);
+    f.processing.suggestion = const AiDocumentSuggestion(isDocument: false);
+    await f.vm.discover();
+    expect(f.vm.candidates, isEmpty);
+    expect(f.examinedAssetsStore.examined, {'a'});
+    // Even if the AI would now accept it, the asset was already examined
+    // and decided on -- it must not come back for a second opinion.
+    f.processing.suggestion = FakeProcessing().suggestion;
+    f.seedFound([candidate('a')]);
+    final found = await f.vm.discover();
+    expect(found, false);
+    expect(f.vm.candidates, isEmpty);
+  });
+
+  test(
+    'declined gallery permission is reported without staging anything',
+    () async {
+      f.discovery.permission = DiscoveryPermission.denied;
+      f.seedFound([candidate('a')]);
+      final found = await f.vm.discover();
+      expect(found, false);
+      expect(f.vm.permissionDenied, true);
+      expect(f.imports.stageCalls, 0);
+    },
+  );
 
   test(
     'discover() refuses to run offline, without touching discovery at all',
@@ -211,7 +209,7 @@ void main() {
   test(
     'a failed AI analysis keeps the candidate, retryable and importable',
     () async {
-      f.processing.suggestion = null; // AiDocumentService.analyze() collapses
+      f.processing.groupAnalysisFails = true; // analyzeGroups() collapses
       // every failure mode (offline mid-call, bad JSON, etc.) to null.
       f.seedFound([candidate('a')]);
       await f.vm.discover();
@@ -229,7 +227,7 @@ void main() {
   test(
     'user edits made before a retry survive the retried suggestion',
     () async {
-      f.processing.suggestion = null;
+      f.processing.groupAnalysisFails = true;
       f.seedFound([candidate('a')]);
       await f.vm.discover();
       expect(f.vm.candidates.single.state, CandidateProcessingState.failed);
@@ -251,30 +249,30 @@ void main() {
     },
   );
 
-  test(
-    'discovery is uncapped -- a batch larger than the old 25-candidate cap '
-    'is still found entirely in one pass',
-    () async {
-      f.seedFound(List.generate(30, (i) => candidate('$i')));
-      final found = await f.vm.discover();
-      expect(found, true);
-      expect(f.vm.candidates.length, 30);
-      expect(f.imports.stageCalls, 30);
-      expect(f.imports.removed, isEmpty);
-      // Discovery's OCR + AI-analysis pass is a single sequential loop.
-      expect(f.processing.maxConcurrent, 1);
-      expect(f.processing.maxAnalyzeConcurrent, 1);
-    },
-  );
+  test('discovery is uncapped -- a batch larger than the old 25-candidate cap '
+      'is still found entirely in one pass', () async {
+    f.seedFound(List.generate(30, (i) => candidate('$i')));
+    final found = await f.vm.discover();
+    expect(found, true);
+    expect(f.vm.candidates.length, 30);
+    expect(f.imports.stageCalls, 30);
+    expect(f.imports.removed, isEmpty);
+    // Discovery's OCR pass is a single sequential loop; grouping/
+    // suggestion happens afterward in exactly one batch AI call.
+    expect(f.processing.maxConcurrent, 1);
+    expect(f.processing.groupAnalysisCalls, 1);
+  });
 
   test(
     'deselecting a queued retry cancels it; reselecting retries exactly once',
     () async {
-      f.processing.suggestion = null; // both discovery analyses fail
+      f.processing.groupAnalysisFails = true; // discovery's grouping fails
       f.seedFound([candidate('a'), candidate('b')]);
       await f.vm.discover();
       expect(
-        f.vm.candidates.every((c) => c.state == CandidateProcessingState.failed),
+        f.vm.candidates.every(
+          (c) => c.state == CandidateProcessingState.failed,
+        ),
         true,
       );
       f.processing.suggestion = FakeProcessing().suggestion;
@@ -297,7 +295,7 @@ void main() {
   test(
     'removing an active retry waits for analysis, then deletes without late updates',
     () async {
-      f.processing.suggestion = null;
+      f.processing.groupAnalysisFails = true;
       f.seedFound([candidate('a')]);
       await f.vm.discover();
       expect(f.vm.candidates.single.state, CandidateProcessingState.failed);
@@ -351,7 +349,7 @@ void main() {
   test(
     'dispose during an active retry does not notify or start the next item',
     () async {
-      f.processing.suggestion = null;
+      f.processing.groupAnalysisFails = true;
       f.seedFound([candidate('a'), candidate('b')]);
       await f.vm.discover();
       f.processing.suggestion = FakeProcessing().suggestion;

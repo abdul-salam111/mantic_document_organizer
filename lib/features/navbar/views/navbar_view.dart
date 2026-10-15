@@ -44,7 +44,7 @@ class _NavbarViewState extends State<NavbarView> {
   }
 
   Future<void> _maybeShowBulkImportPrompt() async {
-    if (!AppConstants.bulkImportEnabled || !mounted) return;
+    if (!AppConstants.autoImportEnabled || !mounted) return;
     final hasSeenImport = await storage.readValues(
       StorageKeys.hasSeenBulkImportPrompt,
     );

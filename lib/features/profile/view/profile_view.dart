@@ -8,8 +8,48 @@ import '../../../core/utils/utils_exports.dart';
 import '../../../core/widgets/widgets_exports.dart';
 import '../../../routes/routes_exports.dart';
 import '../../bulk_import/bulk_import_exports.dart';
+import '../../documents/domain/usecases/document_processing_usecases.dart';
+import '../../documents/presentation/add_document/add_document_exports.dart';
 import '../../navbar/viewmodel/navbar_viewmodel.dart';
 import '../viewmodel/profile_viewmodel.dart';
+
+/// Lets the user pick several photos/files right now (as opposed to
+/// [BulkImportPopup]'s passive whole-library scan) and routes them through
+/// the same OCR -> AI-grouping -> review pipeline as sharing multiple files
+/// in from another app (see `ShareIntentListener`) -- reuses
+/// [AttachmentSourceSheet] (Camera/Gallery/Files) and
+/// [BulkImportViewModel.seedFromSharedFiles] rather than building either
+/// a new picker UI or a new grouping pipeline.
+Future<void> _importMultipleDocuments(BuildContext context) async {
+  final source = await AttachmentSourceSheet.show(context);
+  if (source == null || !context.mounted) return;
+  final processing = sl<DocumentProcessingUseCases>();
+  final selection = switch (source) {
+    AttachmentSource.camera => await processing.pickFromCamera(),
+    AttachmentSource.gallery => await processing.pickFromGallery(),
+    AttachmentSource.file => await processing.pickFile(),
+  };
+  if (selection.items.isEmpty || !context.mounted) return;
+  final dismiss = showLoadingPopup(
+    context,
+    message: 'Organizing your documents…',
+  );
+  final vm = sl<BulkImportViewModel>();
+  final found = await vm.seedFromSharedFiles([
+    for (final attachment in selection.items) attachment.path,
+  ]);
+  await dismissLoadingPopup(dismiss);
+  if (!context.mounted) {
+    vm.dispose();
+    return;
+  }
+  if (!found) {
+    AppToastsUtils.error(vm.notice ?? 'Could not organize these files.');
+    vm.dispose();
+    return;
+  }
+  AppNavigator.pushNamed(RouteNames.bulkImportReview, extra: vm);
+}
 
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
@@ -37,6 +77,15 @@ class ProfileView extends StatelessWidget {
                   _StatsRow(vm: vm),
                   heightBox(24),
                   if (AppConstants.bulkImportEnabled) ...[
+                    _ProfileMenuTile(
+                      icon: Iconsax.gallery_add,
+                      iconColor: context.primary,
+                      label: 'Import documents',
+                      subtitle:
+                          'Pick several photos or files — AI organizes them for you',
+                      onTap: () => _importMultipleDocuments(context),
+                    ),
+                    heightBox(10),
                     _ProfileMenuTile(
                       icon: Iconsax.document_upload,
                       iconColor: context.primary,

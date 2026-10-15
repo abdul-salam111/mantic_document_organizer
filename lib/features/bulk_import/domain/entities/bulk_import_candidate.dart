@@ -4,7 +4,11 @@ enum CandidateProcessingState { queued, processing, ready, failed }
 
 class BulkImportCandidate {
   final String id;
-  final AttachmentItem attachment;
+
+  /// One entry for a plain, un-grouped candidate; more than one when AI
+  /// grouping (or a manual merge in the review screen) decided several
+  /// files are pages of the same physical document. Always non-empty.
+  final List<AttachmentItem> attachments;
   final String title;
   final String categoryId;
   final List<String> tags;
@@ -23,7 +27,7 @@ class BulkImportCandidate {
 
   BulkImportCandidate({
     required this.id,
-    required this.attachment,
+    required List<AttachmentItem> attachments,
     required this.title,
     required this.categoryId,
     List<String> tags = const [],
@@ -39,7 +43,12 @@ class BulkImportCandidate {
     this.hasUserEditedDescription = false,
     this.hasUserEditedExpiry = false,
     this.importError,
-  }) : tags = List.unmodifiable(tags);
+  }) : assert(
+         attachments.isNotEmpty,
+         'A candidate must have at least one attachment',
+       ),
+       attachments = List.unmodifiable(attachments),
+       tags = List.unmodifiable(tags);
 
   BulkImportCandidate copyWith({
     String? title,
@@ -62,7 +71,7 @@ class BulkImportCandidate {
     bool clearError = false,
   }) => BulkImportCandidate(
     id: id,
-    attachment: attachment,
+    attachments: attachments,
     title: title ?? this.title,
     categoryId: categoryId ?? this.categoryId,
     tags: List.unmodifiable(tags ?? this.tags),

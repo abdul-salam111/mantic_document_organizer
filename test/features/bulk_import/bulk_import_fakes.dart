@@ -15,6 +15,7 @@ import 'package:mantic_doc_org/features/categories/domain/usecases/category_usec
 import 'package:mantic_doc_org/features/documents/domain/entities/attachment_item.dart';
 import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
 import 'package:mantic_doc_org/features/documents/domain/entities/document_suggestion.dart';
+import 'package:mantic_doc_org/features/documents/domain/entities/document_group_suggestion.dart';
 import 'package:mantic_doc_org/features/documents/domain/repositories/document_repository.dart';
 import 'package:mantic_doc_org/features/documents/domain/repositories/document_processing_repository.dart';
 import 'package:mantic_doc_org/features/documents/domain/usecases/document_usecases.dart';
@@ -23,10 +24,12 @@ import 'package:mantic_doc_org/features/documents/domain/usecases/document_proce
 BulkImportCandidate candidate(String id, {String extension = 'jpg'}) =>
     BulkImportCandidate(
       id: id,
-      attachment: AttachmentItem(
-        path: '/staged/$id.$extension',
-        type: AttachmentType.file,
-      ),
+      attachments: [
+        AttachmentItem(
+          path: '/staged/$id.$extension',
+          type: AttachmentType.file,
+        ),
+      ],
       title: 'Original $id',
       categoryId: uncategorizedCategoryId,
     );
@@ -63,15 +66,27 @@ class FakeImports implements BulkImportRepository {
     this.limit = limit;
     stageCalls++;
     if (pickGate != null) return pickGate!.future;
-    if (picked.isEmpty) return const BulkPickResult([]);
-    return BulkPickResult([picked.removeAt(0)]);
+    // Pops one candidate per input file (up to limit/availability) --
+    // every existing call site passes exactly one file, so this is
+    // unchanged for them; a batch call (seedFromSharedFiles) passing
+    // several files at once now gets several candidates back, matching
+    // the real datasource's per-call behavior.
+    final count = [
+      files.length,
+      limit,
+      picked.length,
+    ].reduce((a, b) => a < b ? a : b);
+    return BulkPickResult([for (var i = 0; i < count; i++) picked.removeAt(0)]);
   }
 
   @override
-  Future<String> promote(BulkImportCandidate candidate) async {
+  Future<List<String>> promote(BulkImportCandidate candidate) async {
     if (copyFailures.contains(candidate.id)) throw StateError('copy failed');
     promoted.add(candidate.id);
-    return '/permanent/${candidate.id}.jpg';
+    return [
+      for (var i = 0; i < candidate.attachments.length; i++)
+        '/permanent/${candidate.id}_$i.jpg',
+    ];
   }
 
   @override
@@ -156,8 +171,10 @@ class FakeExaminedAssetsStore implements DiscoveryExaminedAssetsRepository {
   int markExaminedCalls = 0;
 
   @override
-  Future<List<String>> filterUnexamined(List<String> assetIds) async =>
-      [for (final id in assetIds) if (!examined.contains(id)) id];
+  Future<List<String>> filterUnexamined(List<String> assetIds) async => [
+    for (final id in assetIds)
+      if (!examined.contains(id)) id,
+  ];
 
   @override
   Future<void> markExamined(List<String> assetIds) async {
@@ -254,6 +271,43 @@ class FakeProcessing implements IDocumentProcessingRepository {
     } finally {
       _analyzeConcurrent--;
     }
+  }
+
+  int groupAnalysisCalls = 0;
+  final groupCallTexts = <List<String>>[];
+  // Simulates analyzeGroups() collapsing a hard failure to null -- distinct
+  // from `suggestion == null`, which only means "no title/category/etc.
+  // fields," not an AI/network failure (a group is still built, just blank).
+  bool groupAnalysisFails = false;
+  // null -- the common-case default -- builds one group per input text
+  // using [suggestion]'s fields, so a test that doesn't care about
+  // grouping specifics behaves like today's one-candidate-per-asset model.
+  List<DocumentGroupSuggestion>? groupSuggestions;
+  Completer<List<DocumentGroupSuggestion>?>? groupSuggestionGate;
+  @override
+  Future<List<DocumentGroupSuggestion>?> analyzeGroups({
+    required List<String> ocrTexts,
+    required List<String> availableCategories,
+  }) async {
+    groupAnalysisCalls++;
+    groupCallTexts.add(ocrTexts);
+    if (groupAnalysisFails) return null;
+    if (groupSuggestionGate != null) return groupSuggestionGate!.future;
+    if (groupSuggestions != null) return groupSuggestions;
+    final s = suggestion;
+    return [
+      for (var i = 0; i < ocrTexts.length; i++)
+        DocumentGroupSuggestion(
+          memberIndices: [i],
+          isDocument: s?.isDocument ?? true,
+          title: s?.title,
+          categoryName: s?.categoryName,
+          description: s?.description ?? '',
+          tags: s?.tags ?? const [],
+          isExpirable: s?.isExpirable ?? false,
+          expiryDate: s?.expiryDate,
+        ),
+    ];
   }
 
   @override

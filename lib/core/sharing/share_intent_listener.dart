@@ -3,12 +3,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../di/di_exports.dart';
+import '../../features/bulk_import/presentation/viewmodel/bulk_import_viewmodel.dart';
 import '../../routes/routes_exports.dart';
 import 'share_intent_service.dart';
 
 /// Wraps the whole app (via `MaterialApp.router`'s `builder`, alongside
 /// AppLockGate) and routes any file "shared into Docketly" from another app
-/// (see [ShareIntentService]) straight into Add Document.
+/// (see [ShareIntentService]) into Add Document -- or, when more than one
+/// file arrived at once, into Bulk Import's review screen instead, so a
+/// batch of unrelated photos gets grouped/categorized per document rather
+/// than dumped onto a single one.
 ///
 /// The cold-start share is deliberately not consumed until the router has
 /// actually navigated away from Splash, rather than on this widget's own
@@ -52,7 +56,25 @@ class _ShareIntentListenerState extends State<ShareIntentListener> {
 
   void _openAddDocument(List<String> paths) {
     if (paths.isEmpty) return;
-    AppNavigator.pushNamed(RouteNames.addDocument, extra: paths);
+    if (paths.length <= 1) {
+      AppNavigator.pushNamed(RouteNames.addDocument, extra: paths);
+      return;
+    }
+    unawaited(_openBulkImportReview(paths));
+  }
+
+  Future<void> _openBulkImportReview(List<String> paths) async {
+    final vm = sl<BulkImportViewModel>();
+    final found = await vm.seedFromSharedFiles(paths);
+    if (!mounted) {
+      vm.dispose();
+      return;
+    }
+    if (!found) {
+      vm.dispose();
+      return;
+    }
+    AppNavigator.pushNamed(RouteNames.bulkImportReview, extra: vm);
   }
 
   @override

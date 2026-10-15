@@ -14,7 +14,11 @@ abstract interface class BulkImportRepository {
     List<({String? path, String name})> files, {
     required int limit,
   });
-  Future<String> promote(BulkImportCandidate candidate);
+
+  /// Moves every one of [candidate]'s staged attachments to permanent
+  /// storage, in order. If any copy fails partway through, the siblings
+  /// already promoted for this candidate are rolled back before rethrowing.
+  Future<List<String>> promote(BulkImportCandidate candidate);
   Future<void> removeStaged(BulkImportCandidate candidate);
   Future<void> removePromoted(String path);
   Future<void> discard();

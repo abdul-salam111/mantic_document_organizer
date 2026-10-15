@@ -1,6 +1,7 @@
 import '../entities/document_item.dart';
 import '../entities/attachment_item.dart';
 import '../entities/document_suggestion.dart';
+import '../entities/document_group_suggestion.dart';
 import '../repositories/document_processing_repository.dart';
 
 class DocumentProcessingUseCases {
@@ -20,6 +21,13 @@ class DocumentProcessingUseCases {
     ocrText: ocrText,
     availableCategories: availableCategories,
   );
+  Future<List<DocumentGroupSuggestion>?> analyzeGroups({
+    required List<String> ocrTexts,
+    required List<String> availableCategories,
+  }) => _repository.analyzeGroups(
+    ocrTexts: ocrTexts,
+    availableCategories: availableCategories,
+  );
   Future<void> share(DocumentItem document) => _repository.share(document);
   Future<void> exportPdf(DocumentItem document) =>
       _repository.exportPdf(document);
@@ -33,5 +41,4 @@ class DocumentProcessingUseCases {
       _repository.exportPagesAsPdf(paths, title: title);
   Future<void> saveToGallery(List<String> paths) =>
       _repository.saveToGallery(paths);
-      
 }

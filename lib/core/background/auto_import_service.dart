@@ -38,7 +38,7 @@ class AutoImportService {
   /// permission dialog, or (for filesystem access) silently launching the
   /// device Settings app, with no action taken this session to justify it.
   Future<void> maybeRunInitialScan() async {
-    if (!AppConstants.bulkImportEnabled || _running) return;
+    if (!AppConstants.autoImportEnabled || _running) return;
     if ((await storage.readValues(StorageKeys.hasRunInitialAutoImport)) ==
         'true') {
       return;
@@ -62,7 +62,7 @@ class AutoImportService {
   /// next app launch. Permission prompts are fine here -- this is a direct
   /// continuation of the user's own "Allow" tap.
   Future<void> onPermissionGranted() async {
-    if (!AppConstants.bulkImportEnabled || _running) return;
+    if (!AppConstants.autoImportEnabled || _running) return;
     if ((await storage.readValues(StorageKeys.hasRunInitialAutoImport)) ==
         'true') {
       return;

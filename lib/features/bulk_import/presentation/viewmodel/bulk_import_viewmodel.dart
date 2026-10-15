@@ -6,6 +6,7 @@ import '../../../categories/domain/entities/category_item.dart';
 import '../../../categories/domain/usecases/category_usecases.dart';
 import '../../../documents/domain/entities/document_item.dart';
 import '../../../documents/domain/entities/document_suggestion.dart';
+import '../../../documents/domain/entities/document_group_suggestion.dart';
 import '../../../documents/domain/usecases/document_usecases.dart';
 import '../../../documents/domain/usecases/document_processing_usecases.dart';
 import '../../domain/entities/bulk_import_candidate.dart';
@@ -88,6 +89,11 @@ class BulkImportViewModel extends ChangeNotifier {
   int scanFound = 0;
   int importCompleted = 0;
   int importTotal = 0;
+  // The one phase of a scan/seed that isn't already covered by
+  // scanExamined/scanFound's per-asset counting -- a single batch AI call
+  // across everything OCR'd so far, with no natural "N of M" progress of
+  // its own.
+  bool isGroupingWithAi = false;
 
   List<BulkImportCandidate> get candidates => List.unmodifiable(_candidates);
   List<CategoryItem> get categories =>
@@ -169,7 +175,8 @@ class BulkImportViewModel extends ChangeNotifier {
       // the AI call is now the inclusion decision, not an optional extra.
       if (!await _checkConnectivity()) {
         offline = true;
-        notice = 'Connect to the internet to find your documents automatically.';
+        notice =
+            'Connect to the internet to find your documents automatically.';
         return false;
       }
       if (_closed || _disposed) return false;
@@ -190,8 +197,7 @@ class BulkImportViewModel extends ChangeNotifier {
       _event('discovered', scanFound);
       return scanFound > 0;
     } catch (_) {
-      notice =
-          'Could not scan your photo library. Check access and try again.';
+      notice = 'Could not scan your photo library. Check access and try again.';
       _event('discovery_failed', 1);
       return false;
     } finally {
@@ -240,7 +246,8 @@ class BulkImportViewModel extends ChangeNotifier {
     try {
       if (!await _checkConnectivity()) {
         offline = true;
-        notice = 'Connect to the internet to find your documents automatically.';
+        notice =
+            'Connect to the internet to find your documents automatically.';
         return false;
       }
       if (_closed || _disposed) return false;
@@ -320,8 +327,11 @@ class BulkImportViewModel extends ChangeNotifier {
     // overrides the missing watermark with the epoch instead of leaving it
     // null for the datasource to narrow down itself.
     final stored = await watermark.read();
-    final since = stored ??
-        (restrictToRecentWindow ? null : DateTime.fromMillisecondsSinceEpoch(0));
+    final since =
+        stored ??
+        (restrictToRecentWindow
+            ? null
+            : DateTime.fromMillisecondsSinceEpoch(0));
     final found = await discovery.findCandidates(
       since: since,
       maxExamined: unboundedExamineLimit,
@@ -344,8 +354,8 @@ class BulkImportViewModel extends ChangeNotifier {
       for (final asset in found)
         if (unexaminedIds.contains(asset.id)) asset,
     ];
-    final availableCategories = [for (final c in categories) c.name];
     DateTime? processedThrough;
+    final ocrCompleted = <BulkImportCandidate>[];
     for (final asset in toExamine) {
       scanExamined++;
       // The watermark must advance to the *newest* examined timestamp, not
@@ -372,7 +382,9 @@ class BulkImportViewModel extends ChangeNotifier {
       if (_closed || _disposed) return false;
       if (staged.candidates.isEmpty) continue;
       final candidate = staged.candidates.first;
-      final text = await _extractTextForScoring(candidate.attachment.path);
+      final text = await _extractTextForScoring(
+        candidate.attachments.single.path,
+      );
       if (_closed || _disposed) {
         await _bestEffort(() => _imports.removeStaged(candidate));
         return false;
@@ -383,40 +395,11 @@ class BulkImportViewModel extends ChangeNotifier {
         await _bestEffort(() => _imports.removeStaged(candidate));
         continue;
       }
-      AiDocumentSuggestion? suggestion;
-      try {
-        suggestion = await _processing.analyze(
-          ocrText: text,
-          availableCategories: availableCategories,
-        );
-      } catch (_) {
-        suggestion = null;
-      }
-      if (_closed || _disposed) {
-        await _bestEffort(() => _imports.removeStaged(candidate));
-        return false;
-      }
-      if (suggestion != null && !suggestion.isDocument) {
-        await _bestEffort(() => _imports.removeStaged(candidate));
-        continue;
-      }
-      scanFound++;
-      final withText = candidate.copyWith(ocrText: text);
-      if (suggestion == null) {
-        // A transient AI/network failure must never silently drop a real
-        // document -- include it, retryable, rather than lose it.
-        _candidates.add(
-          withText.copyWith(
-            state: CandidateProcessingState.failed,
-            error: 'Could not analyze this file. Retry, or import it as-is.',
-          ),
-        );
-      } else {
-        _candidates.add(_applySuggestion(withText, suggestion));
-      }
+      ocrCompleted.add(candidate.copyWith(ocrText: text));
       _notify();
     }
     if (processedThrough != null) await watermark.write(processedThrough);
+    await _groupAndBuildCandidates(ocrCompleted, enforceDocumentFilter: true);
     return false;
   }
 
@@ -428,6 +411,168 @@ class BulkImportViewModel extends ChangeNotifier {
       return null;
     }
   }
+
+  /// A defensive ceiling on one share-into-app batch -- unlike discovery's
+  /// deliberately uncapped gallery scan, these are all OCR'd eagerly before
+  /// review even opens, so an unreasonably large share (hundreds of files)
+  /// would otherwise stall on the AI call for a long time with no progress
+  /// to show in between.
+  static const int maxSharedFiles = 30;
+
+  /// The share-into-app entry point: files the user explicitly picked in
+  /// another app and shared into Dockitly, as opposed to [_scanSource]'s
+  /// passive gallery/filesystem discovery. Skips permission/watermark/
+  /// `findCandidates` entirely -- these are already-chosen local files, not
+  /// assets to decide whether to look at -- but shares the same OCR ->
+  /// batch-grouping core via [_groupAndBuildCandidates]. Returns true if at
+  /// least one candidate ended up in [candidates].
+  Future<bool> seedFromSharedFiles(List<String> paths) async {
+    if (!_editable || _isScanning || paths.isEmpty) return false;
+    final done = Completer<void>();
+    _scanningDone = done.future;
+    _isScanning = true;
+    notice = null;
+    offline = false;
+    scanExamined = 0;
+    scanFound = 0;
+    _notify();
+    try {
+      if (!await _checkConnectivity()) {
+        offline = true;
+        notice = 'Connect to the internet to organize these documents.';
+        return false;
+      }
+      if (_closed || _disposed) return false;
+      final staged = await _imports.stage([
+        for (final path in paths.take(maxSharedFiles))
+          (path: path, name: p.basename(path)),
+      ], limit: maxSharedFiles);
+      if (_closed || _disposed) return false;
+      final ocrCompleted = <BulkImportCandidate>[];
+      for (final candidate in staged.candidates) {
+        scanExamined++;
+        _notify();
+        // An explicitly shared file is kept even with no readable text --
+        // unlike a passively-scanned gallery photo, the user already chose
+        // this one, so it still deserves a place in review rather than a
+        // silent drop.
+        final text =
+            await _extractTextForScoring(candidate.attachments.single.path) ??
+            '';
+        ocrCompleted.add(candidate.copyWith(ocrText: text));
+      }
+      // The user already decided these files are worth keeping by sharing
+      // them -- an AI "not a document" verdict should only withhold a
+      // title/category suggestion, never silently drop one.
+      await _groupAndBuildCandidates(
+        ocrCompleted,
+        enforceDocumentFilter: false,
+      );
+      if (scanFound == 0) notice = 'No documents could be organized.';
+      _event('shared_in', scanFound);
+      return scanFound > 0;
+    } catch (_) {
+      notice = 'Could not organize these files. You can still try again.';
+      _event('share_seed_failed', 1);
+      return false;
+    } finally {
+      _isScanning = false;
+      done.complete();
+      _notify();
+    }
+  }
+
+  /// Clusters every OCR'd-but-not-yet-grouped candidate in [ocrCompleted]
+  /// into document groups with one batch AI call, then adds the resulting
+  /// (possibly multi-attachment) candidates to [_candidates]. Shared by
+  /// [_scanSource] (gallery/filesystem discovery) and [seedFromSharedFiles]
+  /// (files shared in from another app) so both entry points converge on
+  /// the same grouping behavior.
+  ///
+  /// [enforceDocumentFilter] controls what an `isDocument: false` group
+  /// means: discovery (`true`) drops it, since a passively-scanned gallery
+  /// photo was never confirmed to be a document by the user. A share-intent
+  /// seed (`false`) keeps it -- the user already chose to share that file,
+  /// so an AI "not a document" verdict should only mean "no suggested
+  /// title/category," never a silently dropped file.
+  Future<void> _groupAndBuildCandidates(
+    List<BulkImportCandidate> ocrCompleted, {
+    required bool enforceDocumentFilter,
+  }) async {
+    if (ocrCompleted.isEmpty || _closed || _disposed) return;
+    isGroupingWithAi = true;
+    _notify();
+    List<DocumentGroupSuggestion>? groups;
+    try {
+      groups = await _processing.analyzeGroups(
+        ocrTexts: [for (final c in ocrCompleted) c.ocrText],
+        availableCategories: [for (final c in categories) c.name],
+      );
+    } catch (_) {
+      groups = null;
+    }
+    isGroupingWithAi = false;
+    if (_closed || _disposed) return;
+    final aiSucceeded = groups != null;
+    groups ??= [
+      for (var i = 0; i < ocrCompleted.length; i++)
+        DocumentGroupSuggestion(memberIndices: [i]),
+    ];
+    for (final group in groups) {
+      if (enforceDocumentFilter && !group.isDocument) {
+        for (final index in group.memberIndices) {
+          await _bestEffort(() => _imports.removeStaged(ocrCompleted[index]));
+        }
+        continue;
+      }
+      final members = [
+        for (final index in group.memberIndices) ocrCompleted[index],
+      ];
+      if (members.isEmpty) continue;
+      scanFound++;
+      _candidates.add(
+        _buildGroupedCandidate(members, group, aiSucceeded: aiSucceeded),
+      );
+    }
+    _notify();
+  }
+
+  BulkImportCandidate _buildGroupedCandidate(
+    List<BulkImportCandidate> members,
+    DocumentGroupSuggestion group, {
+    required bool aiSucceeded,
+  }) {
+    // The overwhelmingly common case is a group of one -- keep that staged
+    // candidate's own id/attachments/ocrText as-is rather than wrapping it
+    // in a synthetic id, so a single ungrouped document behaves exactly
+    // like discovery always has. Only a genuine multi-file group needs a
+    // new combined candidate.
+    final base = members.length == 1
+        ? members.single
+        : BulkImportCandidate(
+            id: 'group_${members.map((m) => m.id).join('_')}',
+            attachments: [for (final m in members) m.attachments.single],
+            title: members.first.title,
+            categoryId: uncategorizedCategoryId,
+            ocrText: _joinOcrTexts([for (final m in members) m.ocrText]),
+          );
+    if (!aiSucceeded) {
+      // A transient AI/network failure must never silently drop a real
+      // document -- include it, retryable, rather than lose it.
+      return base.copyWith(
+        state: CandidateProcessingState.failed,
+        error: 'Could not analyze this file. Retry, or import it as-is.',
+      );
+    }
+    return _applySuggestion(base, group.toAiDocumentSuggestion());
+  }
+
+  String _joinOcrTexts(List<String> texts) => texts.length <= 1
+      ? (texts.firstOrNull ?? '')
+      : [
+          for (var i = 0; i < texts.length; i++)
+            '--- Page ${i + 1} ---\n${texts[i]}',
+        ].join('\n\n');
 
   /// Applies an AI suggestion's title/category/tags/description/expiry onto
   /// a candidate, respecting any field the user has already edited by hand.
@@ -561,6 +706,68 @@ class BulkImportViewModel extends ChangeNotifier {
     await _bestEffort(() => _imports.removeStaged(current));
   }
 
+  /// Combines several candidates (at least 2) into one multi-attachment
+  /// candidate, for when AI grouping split one physical document across
+  /// separate cards -- the opposite of [splitCandidate]. The merged
+  /// candidate is re-analyzed as a single document over its combined OCR
+  /// text, never re-clustered, so a grouping the user just fixed can't be
+  /// silently redone by a second AI call.
+  void mergeCandidates(List<String> ids) {
+    if (!_editable || ids.length < 2) return;
+    final indices = <int>[];
+    for (final id in ids.toSet()) {
+      final index = _candidates.indexWhere((c) => c.id == id);
+      if (index >= 0) indices.add(index);
+    }
+    if (indices.length < 2) return;
+    indices.sort();
+    final ordered = [for (final index in indices) _candidates[index]];
+    for (final c in ordered) {
+      _revisions[c.id] = (_revisions[c.id] ?? 0) + 1;
+    }
+    final mergedIds = ordered.map((c) => c.id).toSet();
+    _candidates.removeWhere((c) => mergedIds.contains(c.id));
+    final merged = BulkImportCandidate(
+      id: 'merged_${ordered.map((c) => c.id).join('_')}',
+      attachments: [for (final c in ordered) ...c.attachments],
+      title: ordered.first.title,
+      categoryId: ordered.first.categoryId,
+      ocrText: _joinOcrTexts([for (final c in ordered) c.ocrText]),
+    );
+    _candidates.insert(indices.first.clamp(0, _candidates.length), merged);
+    _notify();
+    _enqueue(merged.id);
+  }
+
+  /// Breaks a multi-attachment candidate back into one singleton candidate
+  /// per attachment -- the opposite of [mergeCandidates]. Each new
+  /// candidate re-extracts its own OCR text and gets a fresh single-document
+  /// AI suggestion, rather than trying to recover its slice of the merged
+  /// candidate's joined text.
+  void splitCandidate(String id) {
+    if (!_editable) return;
+    final index = _candidates.indexWhere((c) => c.id == id);
+    if (index < 0) return;
+    final current = _candidates[index];
+    if (current.attachments.length < 2) return;
+    _revisions[id] = (_revisions[id] ?? 0) + 1;
+    _candidates.removeAt(index);
+    final split = [
+      for (var i = 0; i < current.attachments.length; i++)
+        BulkImportCandidate(
+          id: '${current.id}_split$i',
+          attachments: [current.attachments[i]],
+          title: '${current.title} (${i + 1})',
+          categoryId: current.categoryId,
+        ),
+    ];
+    _candidates.insertAll(index, split);
+    _notify();
+    for (final c in split) {
+      _enqueue(c.id);
+    }
+  }
+
   void retry(String id) {
     final current = _find(id);
     if (!_editable ||
@@ -598,8 +805,8 @@ class BulkImportViewModel extends ChangeNotifier {
     );
     try {
       final current = _find(id)!;
-      if (!isImagePath(current.attachment.path) &&
-          !isPdfPath(current.attachment.path)) {
+      final primaryPath = current.attachments.first.path;
+      if (!isImagePath(primaryPath) && !isPdfPath(primaryPath)) {
         _replace(id, (c) => c.copyWith(state: CandidateProcessingState.ready));
         return;
       }
@@ -609,7 +816,7 @@ class BulkImportViewModel extends ChangeNotifier {
       // against before a candidate ever reaches this state.
       final text = current.ocrText.isNotEmpty
           ? current.ocrText
-          : await _processing.extractText(current.attachment.path);
+          : await _processing.extractText(primaryPath);
       if (!_accepts(id, revision)) return;
       _replace(id, (c) => c.copyWith(ocrText: text));
       if (text.trim().isEmpty) throw StateError('No readable text');
@@ -665,10 +872,10 @@ class BulkImportViewModel extends ChangeNotifier {
     final failures = <String, String>{};
     try {
       for (final candidate in selected) {
-        String? path;
+        List<String>? paths;
         final id = 'bulk_${candidate.id}';
         try {
-          path = await _imports.promote(candidate);
+          paths = await _imports.promote(candidate);
           final category = categories
               .where((c) => c.id == candidate.categoryId)
               .firstOrNull;
@@ -679,7 +886,7 @@ class BulkImportViewModel extends ChangeNotifier {
               category: category?.name ?? 'Uncategorized',
               categoryId: category?.id ?? uncategorizedCategoryId,
               iconKey: category?.iconKey ?? 'solidFolder',
-              filePaths: [path],
+              filePaths: paths,
               tags: candidate.tags,
               ocrText: candidate.ocrText,
               description: candidate.description.trim(),
@@ -699,8 +906,10 @@ class BulkImportViewModel extends ChangeNotifier {
             _candidates.removeWhere((c) => c.id == candidate.id);
             unawaited(_removeAfterProcessing(candidate));
           } else {
-            if (path != null) {
-              await _bestEffort(() => _imports.removePromoted(path!));
+            if (paths != null) {
+              for (final path in paths) {
+                await _bestEffort(() => _imports.removePromoted(path));
+              }
             }
             const message =
                 'Could not save this document. Its file is kept for retry.';

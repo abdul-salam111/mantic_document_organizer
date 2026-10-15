@@ -1,6 +1,7 @@
 import '../entities/document_item.dart';
 import '../entities/attachment_item.dart';
 import '../entities/document_suggestion.dart';
+import '../entities/document_group_suggestion.dart';
 
 abstract interface class IDocumentProcessingRepository {
   Future<AttachmentSelection> pickFromCamera();
@@ -10,6 +11,17 @@ abstract interface class IDocumentProcessingRepository {
   Future<String> extractText(String path);
   Future<AiDocumentSuggestion?> analyze({
     required String ocrText,
+    required List<String> availableCategories,
+  });
+
+  /// Clusters several OCR'd files into logical documents in one AI call --
+  /// used when importing a batch (Bulk Import's gallery scan, or several
+  /// files shared in at once) rather than one document at a time. The
+  /// result always partitions every index of [ocrTexts] into exactly one
+  /// group (see the impl's repair step); only a hard AI/network failure
+  /// returns null.
+  Future<List<DocumentGroupSuggestion>?> analyzeGroups({
+    required List<String> ocrTexts,
     required List<String> availableCategories,
   });
   Future<void> share(DocumentItem document);

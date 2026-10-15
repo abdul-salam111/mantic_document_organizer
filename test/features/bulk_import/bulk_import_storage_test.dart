@@ -26,10 +26,13 @@ void main() {
       ], limit: 25);
       final c = result.candidates.single;
       expect(c.title, 'My statement');
-      expect(await File(c.attachment.path).readAsString(), 'source bytes');
-      expect(c.attachment.path, contains('import_staging'));
+      expect(
+        await File(c.attachments.single.path).readAsString(),
+        'source bytes',
+      );
+      expect(c.attachments.single.path, contains('import_staging'));
       await imports.discard();
-      expect(await File(c.attachment.path).exists(), false);
+      expect(await File(c.attachments.single.path).exists(), false);
       expect(await file.readAsString(), 'source bytes');
     },
   );
@@ -71,12 +74,12 @@ void main() {
         (path: file.path, name: 'valid.pdf'),
       ], limit: 25);
       final c = result.candidates.single;
-      final saved = await imports.promote(c);
+      final saved = (await imports.promote(c)).single;
       expect(await File(saved).readAsString(), 'source bytes');
       await imports.removePromoted(saved);
       expect(await File(saved).exists(), false);
-      expect(await File(c.attachment.path).exists(), true);
-      final retried = await imports.promote(c);
+      expect(await File(c.attachments.single.path).exists(), true);
+      final retried = (await imports.promote(c)).single;
       await imports.removeStaged(c);
       await imports.discard();
       expect(await File(retried).exists(), true);
@@ -95,7 +98,7 @@ void main() {
       await imports.removeStaged(c);
       await imports.removePromoted(file.path);
       await imports.discard();
-      expect(await File(c.attachment.path).exists(), true);
+      expect(await File(c.attachments.single.path).exists(), true);
       expect(await file.exists(), true);
     },
   );
@@ -107,11 +110,11 @@ void main() {
       final c = (await imports.stage([
         (path: file.path, name: 'valid.pdf'),
       ], limit: 25)).candidates.single;
-      final saved = await imports.promote(c);
+      final saved = (await imports.promote(c)).single;
       await BulkImportLocalDataSource.cleanupStaleSessions(
         rootDirectory: () async => root,
       );
-      expect(await File(c.attachment.path).exists(), false);
+      expect(await File(c.attachments.single.path).exists(), false);
       expect(await File(saved).exists(), true);
       expect(await file.exists(), true);
     },
