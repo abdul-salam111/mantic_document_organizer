@@ -26,4 +26,16 @@ abstract interface class IDocumentRepository {
   /// A no-op if [documentId] isn't an active document (e.g. it was
   /// trashed between the snooze button being shown and tapped).
   Future<void> snoozeExpiryReminder(String documentId, Duration by);
+
+  /// The document that already has an attachment with the exact same
+  /// bytes as the file at [path] -- a candidate page/photo not yet saved
+  /// -- or null if nothing matches. Checks both active and trashed
+  /// documents (callers distinguish via [DocumentItem.isTrashed] and
+  /// label a trashed match differently, never restoring it implicitly).
+  /// [excludeDocumentId] leaves out the document currently being edited,
+  /// so re-saving its own unchanged pages never flags itself.
+  Future<DocumentItem?> findDuplicateOf(
+    String path, {
+    String? excludeDocumentId,
+  });
 }

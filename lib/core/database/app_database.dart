@@ -1,7 +1,10 @@
 import '../../features/documents/documents_domain_exports.dart' show DocumentDraft;
 import 'package:mantic_doc_org/features/categories/domain/entities/category_item.dart';
 import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -52,11 +55,31 @@ class AppDatabase {
   String _resolveAttachmentPath(String storedPath, String documentsDirPath) =>
       join(documentsDirPath, _attachmentStorageSuffix(storedPath));
 
+  /// SHA-256 of an attachment's bytes, used to recognize an exact duplicate
+  /// regardless of filename -- `null` (rather than throwing) for a file
+  /// that's missing or unreadable, since a hash failure must never block
+  /// the document save it's attached to.
+  Future<String?> _hashFile(String absolutePath) async {
+    try {
+      final bytes = await File(absolutePath).readAsBytes();
+      return sha256.convert(bytes).toString();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Public entry point for hashing a candidate attachment that isn't
+  /// saved yet (e.g. a freshly picked/captured file) -- the same
+  /// fingerprint stored for already-saved attachments, so the two are
+  /// directly comparable via [findAttachmentMatch].
+  Future<String?> hashAttachment(String absolutePath) =>
+      _hashFile(absolutePath);
+
   Future<void> init() async {
     final path = join(await getDatabasesPath(), 'mantic.db');
     _db = await openDatabase(
       path,
-      version: 9,
+      version: 10,
       onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: (db, version) async {
         await db.execute('''
@@ -100,9 +123,13 @@ class AppDatabase {
             document_id TEXT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
             path TEXT NOT NULL,
             sort_order INTEGER NOT NULL,
+            content_hash TEXT,
             PRIMARY KEY (document_id, sort_order)
           )
         ''');
+        await db.execute(
+          'CREATE INDEX idx_document_attachments_hash ON document_attachments(content_hash)',
+        );
         await _createSyncOutbox(db);
         await _createSyncState(db);
         await _createUploadedAttachments(db);
@@ -136,9 +163,25 @@ class AppDatabase {
           await db.execute('ALTER TABLE categories ADD COLUMN space_id TEXT');
           await db.execute('ALTER TABLE categories ADD COLUMN my_role TEXT');
         }
+        if (oldVersion < 10) {
+          await db.execute(
+            'ALTER TABLE document_attachments ADD COLUMN content_hash TEXT',
+          );
+          await db.execute(
+            'CREATE INDEX IF NOT EXISTS idx_document_attachments_hash '
+            'ON document_attachments(content_hash)',
+          );
+        }
       },
     );
     await _refreshPendingDocumentIds();
+    // Existing attachments saved before duplicate detection shipped have no
+    // hash yet -- backfill them in the background so the library's current
+    // documents gain duplicate protection too, not just newly-added ones.
+    // Fire-and-forget: it must never delay startup, and a failure here
+    // (e.g. a file removed outside the app) just leaves that one row
+    // unhashed to retry next launch.
+    unawaited(backfillAttachmentHashes());
   }
 
   Future<void> _createDrafts(DatabaseExecutor db) => db.execute('''
@@ -711,10 +754,12 @@ class AppDatabase {
         whereArgs: [document.id],
       );
       for (var i = 0; i < document.filePaths.length; i++) {
+        final path = document.filePaths[i];
         await txn.insert('document_attachments', {
           'document_id': document.id,
-          'path': _attachmentStorageSuffix(document.filePaths[i]),
+          'path': _attachmentStorageSuffix(path),
           'sort_order': i,
+          'content_hash': await _hashFile(path),
         });
       }
       await _enqueueDocumentMutation(txn, document, 'upsert');
@@ -748,10 +793,12 @@ class AppDatabase {
           });
         }
         for (var i = 0; i < document.filePaths.length; i++) {
+          final path = document.filePaths[i];
           await txn.insert('document_attachments', {
             'document_id': document.id,
-            'path': _attachmentStorageSuffix(document.filePaths[i]),
+            'path': _attachmentStorageSuffix(path),
             'sort_order': i,
+            'content_hash': await _hashFile(path),
           });
         }
       });
@@ -846,6 +893,64 @@ class AppDatabase {
       where: 'deleted_at IS NOT NULL AND deleted_at < ?',
       whereArgs: [cutoff],
     );
+  }
+
+  /// The document (if any) that already has an attachment with the exact
+  /// same byte content as [contentHash] -- used to warn before saving an
+  /// accidental re-scan/re-import of something already stored, never to
+  /// delete anything automatically. [excludeDocumentId] leaves out the
+  /// document currently being edited, so re-saving its own unchanged pages
+  /// doesn't flag itself as a duplicate of itself.
+  Future<({String documentId, bool isTrashed})?> findAttachmentMatch(
+    String contentHash, {
+    String? excludeDocumentId,
+  }) async {
+    final rows = await _requireDb.rawQuery(
+      '''
+      SELECT da.document_id AS document_id, d.deleted_at AS deleted_at
+      FROM document_attachments da
+      JOIN documents d ON d.id = da.document_id
+      WHERE da.content_hash = ?
+        ${excludeDocumentId != null ? 'AND da.document_id != ?' : ''}
+      LIMIT 1
+      ''',
+      [contentHash, if (excludeDocumentId != null) excludeDocumentId],
+    );
+    if (rows.isEmpty) return null;
+    return (
+      documentId: rows.first['document_id'] as String,
+      isTrashed: rows.first['deleted_at'] != null,
+    );
+  }
+
+  /// Hashes every attachment saved before duplicate detection existed (or
+  /// whose hash failed last time, e.g. the file wasn't readable yet) so the
+  /// library's existing documents gain the same protection as new ones,
+  /// without needing a schema change that forces it to happen synchronously
+  /// at startup. Safe to re-run -- it only ever touches rows still missing
+  /// a hash, and failures just leave a row to retry on the next launch.
+  Future<void> backfillAttachmentHashes() async {
+    final rows = await _requireDb.query(
+      'document_attachments',
+      columns: ['document_id', 'path', 'sort_order'],
+      where: 'content_hash IS NULL',
+    );
+    if (rows.isEmpty) return;
+    final documentsDir = await getApplicationDocumentsDirectory();
+    for (final row in rows) {
+      final absolutePath = _resolveAttachmentPath(
+        row['path'] as String,
+        documentsDir.path,
+      );
+      final hash = await _hashFile(absolutePath);
+      if (hash == null) continue;
+      await _requireDb.update(
+        'document_attachments',
+        {'content_hash': hash},
+        where: 'document_id = ? AND sort_order = ?',
+        whereArgs: [row['document_id'], row['sort_order']],
+      );
+    }
   }
 
   Future<void> _refreshPendingDocumentIds() async {

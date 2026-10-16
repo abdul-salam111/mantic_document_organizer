@@ -11,6 +11,11 @@ abstract interface class DocumentLocalDataSource {
   Future<void> restoreDocument(String id);
   Future<void> deleteDocument(String id);
   Future<void> deleteDocuments(Iterable<String> ids);
+  Future<({String documentId, bool isTrashed})?> findAttachmentMatch(
+    String contentHash, {
+    String? excludeDocumentId,
+  });
+  Future<String?> hashAttachment(String path);
 }
 
 class SqliteDocumentDataSource implements DocumentLocalDataSource {
@@ -40,4 +45,15 @@ class SqliteDocumentDataSource implements DocumentLocalDataSource {
   @override
   Future<void> deleteDocuments(Iterable<String> ids) =>
       _database.deleteDocuments(ids);
+  @override
+  Future<({String documentId, bool isTrashed})?> findAttachmentMatch(
+    String contentHash, {
+    String? excludeDocumentId,
+  }) => _database.findAttachmentMatch(
+    contentHash,
+    excludeDocumentId: excludeDocumentId,
+  );
+  @override
+  Future<String?> hashAttachment(String path) =>
+      _database.hashAttachment(path);
 }

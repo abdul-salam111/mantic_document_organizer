@@ -885,6 +885,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get draftRetry => 'Retry';
 
   @override
+  String get duplicateFoundTitle => 'You already have this';
+
+  @override
+  String get duplicateFoundMessage =>
+      'This page looks identical to one already saved below. You can open it, skip adding this page, or keep both.';
+
+  @override
+  String get duplicateFoundTrashed => 'This match is in Trash';
+
+  @override
+  String get duplicateOpenExisting => 'Open existing';
+
+  @override
+  String get duplicateSkipPage => 'Skip this page';
+
+  @override
+  String get duplicateKeepBoth => 'Keep both';
+
+  @override
   String get readinessTitle => 'Document readiness';
 
   @override

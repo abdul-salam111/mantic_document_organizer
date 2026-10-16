@@ -534,11 +534,36 @@ class BulkImportViewModel extends ChangeNotifier {
       ];
       if (members.isEmpty) continue;
       scanFound++;
-      _candidates.add(
+      final candidate = await _withDuplicateCheck(
         _buildGroupedCandidate(members, group, aiSucceeded: aiSucceeded),
       );
+      _candidates.add(candidate);
     }
     _notify();
+  }
+
+  /// Flags [candidate] with the already-saved document (if any) that has
+  /// an attachment with content identical to one of its own -- checked
+  /// against the first matching attachment only, so a multi-page group
+  /// doesn't need to explain exactly which page matched. Surfaced as a
+  /// warning in the review list, not a dialog: [commit] processes a whole
+  /// batch in one pass with nothing to pause on per item, so the review
+  /// screen (where the user can still deselect it) is the only place this
+  /// can be acted on. Best-effort -- a lookup failure just leaves the
+  /// candidate unflagged rather than blocking the import.
+  Future<BulkImportCandidate> _withDuplicateCheck(
+    BulkImportCandidate candidate,
+  ) async {
+    for (final attachment in candidate.attachments) {
+      DocumentItem? match;
+      try {
+        match = await _documents.findDuplicateOf(attachment.path);
+      } catch (_) {
+        continue;
+      }
+      if (match != null) return candidate.copyWith(duplicateMatch: match);
+    }
+    return candidate;
   }
 
   BulkImportCandidate _buildGroupedCandidate(

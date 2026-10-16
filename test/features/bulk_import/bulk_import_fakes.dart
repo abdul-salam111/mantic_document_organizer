@@ -211,6 +211,20 @@ class FakeDocuments extends ChangeNotifier implements IDocumentRepository {
   @override
   Future<void> init() async {}
 
+  // No real files in this fake, so "identical content" is just "identical
+  // path" -- callers never read the file, only compare it for equality.
+  @override
+  Future<DocumentItem?> findDuplicateOf(
+    String path, {
+    String? excludeDocumentId,
+  }) async {
+    for (final document in documents) {
+      if (document.id == excludeDocumentId) continue;
+      if (document.filePaths.contains(path)) return document;
+    }
+    return null;
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

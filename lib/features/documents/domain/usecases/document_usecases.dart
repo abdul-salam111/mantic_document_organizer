@@ -48,4 +48,9 @@ class DocumentUseCases {
     matches.sort((a, b) => a.expiryDate!.compareTo(b.expiryDate!));
     return matches;
   }
+
+  Future<DocumentItem?> findDuplicateOf(
+    String path, {
+    String? excludeDocumentId,
+  }) => _repository.findDuplicateOf(path, excludeDocumentId: excludeDocumentId);
 }

@@ -88,6 +88,24 @@ class MemoryDocuments implements DocumentLocalDataSource {
       (_, d) => d.deletedAt != null && d.deletedAt!.isBefore(cutoff),
     );
   }
+
+  // No real files in this in-memory fake, so the "hash" is just the path
+  // itself -- callers only ever compare it for equality, never read it.
+  @override
+  Future<String?> hashAttachment(String path) async => path;
+  @override
+  Future<({String documentId, bool isTrashed})?> findAttachmentMatch(
+    String contentHash, {
+    String? excludeDocumentId,
+  }) async {
+    for (final document in rows.values) {
+      if (document.id == excludeDocumentId) continue;
+      if (document.filePaths.contains(contentHash)) {
+        return (documentId: document.id, isTrashed: document.isTrashed);
+      }
+    }
+    return null;
+  }
 }
 
 class ReminderSpy extends ExpiryNotificationService {
@@ -290,6 +308,37 @@ void main() {
     await documents.snoozeExpiryReminder('missing', const Duration(days: 3));
     expect(reminders.snoozed, isEmpty);
   });
+
+  test(
+    'finds the document that already has an identical attachment, excluding '
+    'the one specified and ignoring an unmatched path',
+    () async {
+      await documents.addDocument(document('a'));
+      final match = await documents.findDuplicateOf('/saved/a.jpg');
+      expect(match?.id, 'a');
+      expect(
+        await documents.findDuplicateOf(
+          '/saved/a.jpg',
+          excludeDocumentId: 'a',
+        ),
+        isNull,
+      );
+      expect(await documents.findDuplicateOf('/saved/nothing.jpg'), isNull);
+    },
+  );
+
+  test(
+    'a duplicate match still in trash is reported as trashed, never '
+    'restored implicitly',
+    () async {
+      await documents.addDocument(document('a'));
+      await documents.trashDocument('a');
+      final match = await documents.findDuplicateOf('/saved/a.jpg');
+      expect(match?.id, 'a');
+      expect(match?.isTrashed, isTrue);
+      expect(documents.documents, isEmpty);
+    },
+  );
 
   test('failed bulk trash retains recoverable state', () async {
     await documents.addDocument(document('a'));

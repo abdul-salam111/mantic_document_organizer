@@ -892,6 +892,25 @@ class AppLocalizationsEs extends AppLocalizations {
   String get draftRetry => 'Reintentar';
 
   @override
+  String get duplicateFoundTitle => 'Ya tienes este documento';
+
+  @override
+  String get duplicateFoundMessage =>
+      'Esta página parece idéntica a una que ya guardaste, mostrada abajo. Puedes abrirla, omitir esta página o conservar ambas.';
+
+  @override
+  String get duplicateFoundTrashed => 'Esta coincidencia está en la papelera';
+
+  @override
+  String get duplicateOpenExisting => 'Abrir el existente';
+
+  @override
+  String get duplicateSkipPage => 'Omitir esta página';
+
+  @override
+  String get duplicateKeepBoth => 'Conservar ambas';
+
+  @override
   String get readinessTitle => 'Documentos esenciales';
 
   @override

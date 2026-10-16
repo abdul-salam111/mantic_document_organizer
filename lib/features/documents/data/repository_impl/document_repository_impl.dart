@@ -204,4 +204,21 @@ class DocumentRepositoryImpl extends ChangeNotifier
     if (index == -1) return Future.value();
     return _bestEffort(() => _notifications.snooze(_documents[index], by));
   }
+
+  @override
+  Future<DocumentItem?> findDuplicateOf(
+    String path, {
+    String? excludeDocumentId,
+  }) async {
+    final hash = await _db.hashAttachment(path);
+    if (hash == null) return null;
+    final match = await _db.findAttachmentMatch(
+      hash,
+      excludeDocumentId: excludeDocumentId,
+    );
+    if (match == null) return null;
+    final pool = match.isTrashed ? _trashedDocuments : _documents;
+    final found = pool.where((d) => d.id == match.documentId);
+    return found.isEmpty ? null : found.first;
+  }
 }

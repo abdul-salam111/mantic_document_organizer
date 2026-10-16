@@ -1199,10 +1199,49 @@ class _DraftLifecycle extends StatefulWidget {
 class _DraftLifecycleState extends State<_DraftLifecycle>
     with WidgetsBindingObserver {
   bool _leaving = false;
+  String? _shownDuplicateFor;
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _maybeShowDuplicateSheet();
+  }
+
+  @override
+  void didUpdateWidget(covariant _DraftLifecycle oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _maybeShowDuplicateSheet();
+  }
+
+  /// [AddDocumentViewModel._runDuplicateCheckLoop] surfaces at most one
+  /// flagged attachment at a time -- this just needs to notice when it's a
+  /// *new* one (by path) and hasn't already had a sheet shown for it, since
+  /// every vm change rebuilds this widget whether or not that field
+  /// actually changed.
+  void _maybeShowDuplicateSheet() {
+    final path = widget.vm.duplicateAttachmentPath;
+    final match = widget.vm.duplicateMatch;
+    if (path == null || match == null || path == _shownDuplicateFor) return;
+    _shownDuplicateFor = path;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(_showDuplicateSheet(match));
+    });
+  }
+
+  Future<void> _showDuplicateSheet(DocumentItem match) async {
+    final resolution = await showModalBottomSheet<DuplicateResolution>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      backgroundColor: context.background,
+      builder: (_) => _DuplicateAttachmentSheet(match: match),
+    );
+    // No choice made (swipe-to-dismiss) defaults to keeping the page --
+    // never silently drop a capture just because the sheet was dismissed.
+    widget.vm.resolveDuplicate(resolution ?? DuplicateResolution.keepBoth);
+    if (resolution == DuplicateResolution.openExisting && mounted) {
+      context.pushNamed(RouteNames.documentViewer, extra: match);
+    }
   }
 
   @override
@@ -1240,6 +1279,107 @@ class _DraftLifecycleState extends State<_DraftLifecycle>
       child: widget.child,
     ),
   );
+}
+
+/// Shown when a newly added page's content exactly matches an attachment
+/// already saved elsewhere -- see [AddDocumentViewModel.resolveDuplicate].
+/// Never offers to delete anything; only to skip adding this new page, or
+/// to look at the match, or to keep both.
+class _DuplicateAttachmentSheet extends StatelessWidget {
+  final DocumentItem match;
+  const _DuplicateAttachmentSheet({required this.match});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return SafeArea(
+      child: Padding(
+        padding: const .fromLTRB(20, 4, 20, 24),
+        child: Column(
+          crossAxisAlignment: .stretch,
+          mainAxisSize: .min,
+          children: [
+            Text(l10n.duplicateFoundTitle, style: context.titleLarge),
+            heightBox(8),
+            Text(
+              l10n.duplicateFoundMessage,
+              style: context.bodySmall.copyWith(color: context.textSecondary),
+            ),
+            heightBox(16),
+            Container(
+              padding: const .all(12),
+              decoration: BoxDecoration(
+                color: context.surface,
+                borderRadius: .circular(14),
+                border: Border.all(color: context.border),
+              ),
+              child: Row(
+                children: [
+                  DocumentCoverThumbnail(
+                    document: match,
+                    color: context.primaryAccent,
+                    width: 44,
+                    height: 52,
+                    borderRadius: 6,
+                    iconSize: 20,
+                  ),
+                  widthBox(12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: .start,
+                      mainAxisSize: .min,
+                      children: [
+                        Text(
+                          match.title.trim().isEmpty
+                              ? l10n.readinessUntitled
+                              : match.title,
+                          maxLines: 2,
+                          overflow: .ellipsis,
+                          style: context.titleSmall,
+                        ),
+                        Text(match.category, style: context.labelSmall),
+                        if (match.isTrashed) ...[
+                          heightBox(4),
+                          Text(
+                            l10n.duplicateFoundTrashed,
+                            style: context.labelSmall.copyWith(
+                              color: context.errorAccent,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            heightBox(20),
+            CustomButton(
+              text: l10n.duplicateOpenExisting,
+              onPressed: () =>
+                  Navigator.of(context).pop(DuplicateResolution.openExisting),
+            ),
+            heightBox(10),
+            CustomButton(
+              text: l10n.duplicateSkipPage,
+              backgroundColor: context.surface,
+              borderColor: context.border,
+              textColor: context.textPrimary,
+              elevation: 0,
+              onPressed: () =>
+                  Navigator.of(context).pop(DuplicateResolution.skip),
+            ),
+            heightBox(10),
+            TextButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(DuplicateResolution.keepBoth),
+              child: Text(l10n.duplicateKeepBoth),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _DraftStatus extends StatelessWidget {

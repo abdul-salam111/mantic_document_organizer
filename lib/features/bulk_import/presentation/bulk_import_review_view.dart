@@ -521,6 +521,53 @@ class _CandidateCardState extends State<_CandidateCard> {
                       ),
                     ),
                     heightBox(14),
+                    if (c.duplicateMatch != null) ...[
+                      InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: () => AppNavigator.pushNamed(
+                          RouteNames.documentViewer,
+                          extra: c.duplicateMatch,
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: context.warning.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.content_copy_outlined,
+                                size: 16,
+                                color: context.warning,
+                              ),
+                              widthBox(6),
+                              Expanded(
+                                child: Text(
+                                  // Not localized here -- this file's other
+                                  // review-screen strings are already
+                                  // hardcoded English (see "Analyzing…",
+                                  // "Enter a title" above), so matching
+                                  // that existing convention rather than
+                                  // introducing the first l10n call on
+                                  // this one screen.
+                                  'Looks identical to "${c.duplicateMatch!.title.trim().isEmpty ? 'an untitled document' : c.duplicateMatch!.title}" you already saved. Tap to view it.',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: context.labelSmall.copyWith(
+                                    color: context.warning,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      heightBox(10),
+                    ],
                     if (c.state == CandidateProcessingState.processing) ...[
                       Row(
                         children: [

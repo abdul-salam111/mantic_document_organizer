@@ -20,6 +20,10 @@ import '../../../../../core/utils/shared_space_sync.dart';
 
 enum TagError { limitReached, tooLong, duplicate }
 
+/// How the user resolved a detected duplicate attachment -- see
+/// [AddDocumentViewModel.resolveDuplicate].
+enum DuplicateResolution { openExisting, skip, keepBoth }
+
 /// Where a freshly-added page's file should come from, chosen up front
 /// (the navbar's "+" button prompts for this before even opening the
 /// form) so [AddDocumentView] can trigger the matching picker
@@ -71,7 +75,11 @@ class AddDocumentViewModel extends ChangeNotifier {
   bool get hasDraft => _lastDraftSignature != null && !_completed;
   bool get draftsEnabled => _drafts != null && !isEditing;
   bool get canLeave =>
-      !isSaving && !isSavingDraft && !draftFailed && !_restoringDraft;
+      !isSaving &&
+      !isSavingDraft &&
+      !draftFailed &&
+      !_restoringDraft &&
+      duplicateMatch == null;
 
   DocumentDraft _snapshot() => DocumentDraft(
     document: DocumentItem(
@@ -551,6 +559,82 @@ class AddDocumentViewModel extends ChangeNotifier {
     _showAttachmentError = false;
     notifyListeners();
     unawaited(_runOcrAndAi(selection.items));
+    _queueDuplicateChecks(selection.items);
+  }
+
+  /// The attachment currently flagged as a possible duplicate, and the
+  /// document it matches -- non-null exactly while the view should show
+  /// the resolution prompt. Call [resolveDuplicate] to clear it.
+  String? duplicateAttachmentPath;
+  DocumentItem? duplicateMatch;
+
+  /// Every newly-added attachment still waiting to be hashed/checked --
+  /// shared by every call to [_queueDuplicateChecks] (one camera capture,
+  /// one gallery multi-select, etc. can each add to it) and drained by a
+  /// single running loop, so two picks made in quick succession can never
+  /// end up with two checks racing to set [duplicateMatch] at once.
+  final List<AttachmentItem> _pendingDuplicateChecks = [];
+  bool _duplicateCheckRunning = false;
+  Completer<void>? _duplicateResolved;
+
+  void _queueDuplicateChecks(List<AttachmentItem> newAttachments) {
+    _pendingDuplicateChecks.addAll(newAttachments);
+    if (_duplicateCheckRunning) return;
+    _duplicateCheckRunning = true;
+    unawaited(_runDuplicateCheckLoop());
+  }
+
+  /// Hashes and checks one pending attachment at a time against every
+  /// already-saved document's attachments, waiting for [resolveDuplicate]
+  /// before starting the next one -- so a multi-page capture never shows
+  /// more than one duplicate prompt stacked on top of another. Entirely
+  /// best-effort: a hashing/lookup failure just skips that attachment
+  /// rather than blocking the capture.
+  Future<void> _runDuplicateCheckLoop() async {
+    while (_pendingDuplicateChecks.isNotEmpty) {
+      if (_disposed || _completed) break;
+      final attachment = _pendingDuplicateChecks.removeAt(0);
+      DocumentItem? match;
+      try {
+        match = await _documentUseCases.findDuplicateOf(
+          attachment.path,
+          excludeDocumentId: _editingDocument?.id ?? _captureId,
+        );
+      } catch (_) {
+        continue;
+      }
+      if (_disposed || _completed || match == null) continue;
+      // The page may have been removed (or the capture already saved)
+      // while the hash/lookup was in flight.
+      if (!_attachments.contains(attachment)) continue;
+      duplicateAttachmentPath = attachment.path;
+      duplicateMatch = match;
+      notifyListeners();
+      final completer = Completer<void>();
+      _duplicateResolved = completer;
+      await completer.future;
+      if (_disposed) break;
+    }
+    _duplicateCheckRunning = false;
+  }
+
+  /// Applies the user's choice for whatever attachment
+  /// [duplicateAttachmentPath] currently points at. "Open existing" and
+  /// "Skip" both drop this page from the capture (it's either redundant or
+  /// the user is going to look at the original instead); "Keep both"
+  /// leaves it in place. Never deletes the existing document either way.
+  void resolveDuplicate(DuplicateResolution resolution) {
+    final path = duplicateAttachmentPath;
+    if (path == null) return;
+    if (resolution != DuplicateResolution.keepBoth) {
+      final toRemove = _attachments.where((a) => a.path == path);
+      if (toRemove.isNotEmpty) removeAttachment(toRemove.first);
+    }
+    duplicateAttachmentPath = null;
+    duplicateMatch = null;
+    notifyListeners();
+    _duplicateResolved?.complete();
+    _duplicateResolved = null;
   }
 
   Future<bool> pickFromCamera() async {
@@ -653,7 +737,7 @@ class AddDocumentViewModel extends ChangeNotifier {
   DocumentItem? savedDocument;
 
   Future<void> submit() async {
-    if (_isSaving) return;
+    if (_isSaving || duplicateMatch != null) return;
     _isSaving = true;
     notifyListeners();
     try {
@@ -714,6 +798,7 @@ class AddDocumentViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    _duplicateResolved?.complete();
     titleController.dispose();
     tagController.dispose();
     descriptionController.dispose();

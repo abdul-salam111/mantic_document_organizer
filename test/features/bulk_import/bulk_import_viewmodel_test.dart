@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mantic_doc_org/features/bulk_import/domain/entities/bulk_import_candidate.dart';
 import 'package:mantic_doc_org/features/bulk_import/domain/repositories/bulk_import_repository.dart';
 import 'package:mantic_doc_org/features/bulk_import/domain/repositories/gallery_discovery_repository.dart';
+import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
 import 'package:mantic_doc_org/features/documents/domain/entities/document_suggestion.dart';
 import 'bulk_import_fakes.dart';
 
@@ -42,6 +43,35 @@ void main() {
       expect(saved.isExpirable, true);
       expect(f.vm.candidates.single.id, 'b');
       expect(f.imports.discarded, 0);
+    },
+  );
+
+  test(
+    'a candidate matching an already-saved document is flagged but never '
+    'auto-removed from import',
+    () async {
+      f.documents.documents.add(
+        DocumentItem(
+          id: 'existing',
+          title: 'Existing receipt',
+          category: 'Bank',
+          categoryId: 'bank',
+          iconKey: 'file',
+          createdAt: DateTime(2026),
+          filePaths: ['/staged/a.jpg'],
+        ),
+      );
+      f.seedFound([candidate('a'), candidate('b')]);
+      await f.vm.discover();
+      final a = f.vm.candidates.firstWhere((c) => c.id == 'a');
+      final b = f.vm.candidates.firstWhere((c) => c.id == 'b');
+      expect(a.duplicateMatch?.id, 'existing');
+      expect(b.duplicateMatch, isNull);
+      // Flagged but still selected -- nothing is skipped automatically;
+      // only the user's own deselection would exclude it from commit.
+      expect(a.isSelected, true);
+      final result = await f.vm.commit();
+      expect(result.imported, 2);
     },
   );
 

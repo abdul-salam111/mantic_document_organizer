@@ -1102,6 +1102,30 @@
   "@draftRetry": {
     "description": "Button that retries a failed draft autosave"
   },
+  "duplicateFoundTitle": "You already have this",
+  "@duplicateFoundTitle": {
+    "description": "Title of the sheet shown when a newly added page exactly matches an attachment already saved in another document"
+  },
+  "duplicateFoundMessage": "This page looks identical to one already saved below. You can open it, skip adding this page, or keep both.",
+  "@duplicateFoundMessage": {
+    "description": "Explanation text in the duplicate-attachment sheet"
+  },
+  "duplicateFoundTrashed": "This match is in Trash",
+  "@duplicateFoundTrashed": {
+    "description": "Badge shown in the duplicate-attachment sheet when the matching document is currently in Trash"
+  },
+  "duplicateOpenExisting": "Open existing",
+  "@duplicateOpenExisting": {
+    "description": "Button in the duplicate-attachment sheet that opens the already-saved matching document and drops this new page"
+  },
+  "duplicateSkipPage": "Skip this page",
+  "@duplicateSkipPage": {
+    "description": "Button in the duplicate-attachment sheet that drops this new page without opening the match"
+  },
+  "duplicateKeepBoth": "Keep both",
+  "@duplicateKeepBoth": {
+    "description": "Button in the duplicate-attachment sheet that keeps the new page despite the match"
+  },
   "readinessTitle": "Document readiness",
   "readinessRetry": "Retry",
   "readinessAllExcluded": "All essentials marked not applicable",

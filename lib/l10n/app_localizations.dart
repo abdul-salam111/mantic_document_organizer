@@ -1446,6 +1446,42 @@ abstract class AppLocalizations {
   /// **'Retry'**
   String get draftRetry;
 
+  /// Title of the sheet shown when a newly added page exactly matches an attachment already saved in another document
+  ///
+  /// In en, this message translates to:
+  /// **'You already have this'**
+  String get duplicateFoundTitle;
+
+  /// Explanation text in the duplicate-attachment sheet
+  ///
+  /// In en, this message translates to:
+  /// **'This page looks identical to one already saved below. You can open it, skip adding this page, or keep both.'**
+  String get duplicateFoundMessage;
+
+  /// Badge shown in the duplicate-attachment sheet when the matching document is currently in Trash
+  ///
+  /// In en, this message translates to:
+  /// **'This match is in Trash'**
+  String get duplicateFoundTrashed;
+
+  /// Button in the duplicate-attachment sheet that opens the already-saved matching document and drops this new page
+  ///
+  /// In en, this message translates to:
+  /// **'Open existing'**
+  String get duplicateOpenExisting;
+
+  /// Button in the duplicate-attachment sheet that drops this new page without opening the match
+  ///
+  /// In en, this message translates to:
+  /// **'Skip this page'**
+  String get duplicateSkipPage;
+
+  /// Button in the duplicate-attachment sheet that keeps the new page despite the match
+  ///
+  /// In en, this message translates to:
+  /// **'Keep both'**
+  String get duplicateKeepBoth;
+
   /// No description provided for @readinessTitle.
   ///
   /// In en, this message translates to:

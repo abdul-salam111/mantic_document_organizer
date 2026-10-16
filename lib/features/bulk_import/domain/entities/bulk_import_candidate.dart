@@ -1,4 +1,5 @@
 import 'package:mantic_doc_org/features/documents/domain/entities/attachment_item.dart';
+import 'package:mantic_doc_org/features/documents/domain/entities/document_item.dart';
 
 enum CandidateProcessingState { queued, processing, ready, failed }
 
@@ -25,6 +26,13 @@ class BulkImportCandidate {
   final bool hasUserEditedExpiry;
   final String? importError;
 
+  /// The already-saved document (if any) that has an attachment with
+  /// content identical to one of this candidate's own -- a non-blocking
+  /// warning surfaced in the review list, never an automatic skip. The
+  /// user decides via the existing selection checkbox whether to still
+  /// import it (keeping both) or deselect it.
+  final DocumentItem? duplicateMatch;
+
   BulkImportCandidate({
     required this.id,
     required List<AttachmentItem> attachments,
@@ -43,6 +51,7 @@ class BulkImportCandidate {
     this.hasUserEditedDescription = false,
     this.hasUserEditedExpiry = false,
     this.importError,
+    this.duplicateMatch,
   }) : assert(
          attachments.isNotEmpty,
          'A candidate must have at least one attachment',
@@ -69,6 +78,8 @@ class BulkImportCandidate {
     String? importError,
     bool clearImportError = false,
     bool clearError = false,
+    DocumentItem? duplicateMatch,
+    bool clearDuplicateMatch = false,
   }) => BulkImportCandidate(
     id: id,
     attachments: attachments,
@@ -88,5 +99,8 @@ class BulkImportCandidate {
         hasUserEditedDescription ?? this.hasUserEditedDescription,
     hasUserEditedExpiry: hasUserEditedExpiry ?? this.hasUserEditedExpiry,
     importError: clearImportError ? null : importError ?? this.importError,
+    duplicateMatch: clearDuplicateMatch
+        ? null
+        : duplicateMatch ?? this.duplicateMatch,
   );
 }

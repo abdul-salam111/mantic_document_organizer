@@ -880,6 +880,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get draftRetry => 'إعادة المحاولة';
 
   @override
+  String get duplicateFoundTitle => 'لديك هذا المستند بالفعل';
+
+  @override
+  String get duplicateFoundMessage =>
+      'تبدو هذه الصفحة مطابقة لصفحة محفوظة بالفعل، موضحة أدناه. يمكنك فتحها أو تخطي هذه الصفحة أو الاحتفاظ بكليهما.';
+
+  @override
+  String get duplicateFoundTrashed => 'هذا التطابق موجود في سلة المحذوفات';
+
+  @override
+  String get duplicateOpenExisting => 'فتح المستند الحالي';
+
+  @override
+  String get duplicateSkipPage => 'تخطي هذه الصفحة';
+
+  @override
+  String get duplicateKeepBoth => 'الاحتفاظ بكليهما';
+
+  @override
   String get readinessTitle => 'جاهزية المستندات';
 
   @override
