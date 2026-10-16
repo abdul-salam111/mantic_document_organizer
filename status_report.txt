@@ -19,8 +19,8 @@ DONE
 
 1. Duplicate Import Prevention - An exact-content fingerprint check warns before saving a document that's already in the library, with the option to open the existing one, skip, or keep both. Covers both Add Document and Bulk Import; never deletes anything automatically.
 2. AI-Grouped Document Import - Grouping now runs in the background instead of blocking the screen, the review screen opens automatically once it's ready, imported photos are no longer silently dropped, and on-screen notifications are fixed.
+3. Import Progress Indicator - Saving confirmed documents shows a live "N of M saved" progress notification (Android progress bar) while it runs in the background, followed by a result notification.
 
 IN PROGRESS
 
-1. Import Progress Indicator - A progress bar so users can see which documents are still being saved during import. Background save tracking already exists (feeds a notification); not yet surfaced as a progress bar in the review screen itself.
-2. Marketing Video - Producing a promotional video for Dockitly.
+1. Marketing Video - Producing a promotional video for Dockitly.
