@@ -436,12 +436,22 @@ class _InputBar extends StatelessWidget {
                           hintStyle: context.bodyMedium.copyWith(
                             color: context.textSecondary,
                           ),
+                          // Inside the field (as a suffix) instead of its
+                          // own circle beside it -- that extra 50px was
+                          // what forced the field itself to wrap text to a
+                          // second line sooner than it needed to.
+                          suffixIconConstraints: const BoxConstraints(
+                            minWidth: 32,
+                            minHeight: 32,
+                          ),
+                          suffixIcon: Padding(
+                            padding: const .only(left: 4),
+                            child: _MicButton(vm: vm, onTap: onToggleMic),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                  widthBox(10),
-                  _MicButton(vm: vm, onTap: onToggleMic),
                   widthBox(10),
                   _SendButton(vm: vm, onTap: onSend),
                 ],
@@ -454,17 +464,19 @@ class _InputBar extends StatelessWidget {
   }
 }
 
-/// Toggles [AiAssistantViewModel.startListening]/[stopListening] — filled
-/// with [context.primary] and switched to the bold mic glyph while
-/// recording so it reads as "active", same treatment [_FavoriteButton]
-/// (home feature) gives its own outline/bold icon swap.
+/// Toggles [AiAssistantViewModel.startListening]/[stopListening] — lives
+/// inside the input field itself (as a [TextField] suffixIcon) rather than
+/// its own circle beside it, so idle it's just an icon with no background
+/// (it already sits on the field's own fill color); filled with
+/// [context.errorAccent] and switched to the bold mic glyph only once
+/// actively recording, so that state still reads as clearly "active".
 class _MicButton extends StatelessWidget {
   final AiAssistantViewModel vm;
   final VoidCallback onTap;
 
   const _MicButton({required this.vm, required this.onTap});
 
-  static const double _size = 40;
+  static const double _size = 32;
 
   @override
   Widget build(BuildContext context) {
@@ -478,7 +490,7 @@ class _MicButton extends StatelessWidget {
         width: _size,
         height: _size,
         decoration: BoxDecoration(
-          color: isListening ? context.errorAccent : context.surfaceElevated,
+          color: isListening ? context.errorAccent : context.transparent,
           shape: .circle,
         ),
         child: InkWell(
@@ -487,7 +499,7 @@ class _MicButton extends StatelessWidget {
           child: Center(
             child: Icon(
               isListening ? Iconsax.microphone5 : Iconsax.microphone,
-              size: 19,
+              size: 18,
               color: isListening ? context.white : context.textSecondary,
             ),
           ),
