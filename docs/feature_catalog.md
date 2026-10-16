@@ -65,24 +65,6 @@ Mantic is an offline-first document scanner/organizer: capture or import a docum
 
 **MVP scope:** As specified in F4 — durable session + candidates, a review queue independent of the notification that triggered it, safe retry/dismiss without deleting originals.
 
----
-
-### R5 — Warn on duplicate imports
-
-**User problem:** The same receipt or statement gets imported twice (re-shared from email, re-scanned by habit), and nothing tells the user — the library quietly accumulates clutter that undermines "organized."
-
-**Use case:** A bank statement PDF is shared into the app from an email client, then imported again months later from a downloads folder.
-
-**Proposed experience:** Compare exact file content via a local fingerprint at import time; if a match exists, offer "Open existing / Skip / Keep both" before the candidate is saved. Never auto-delete a suspected duplicate.
-
-**Current coverage:** **Missing entirely** — code-verified by exhaustive search; no fingerprint/hash/duplicate-check code exists anywhere in the import or save path. Matches `product_feature_roadmap.md` F6.
-
-**Priority and effort:** Medium value, medium effort — best sequenced after R4, since F6 explicitly depends on the review-inbox work for its UI integration.
-
-**MVP scope:** Exact-byte-match detection only (no fuzzy/OCR matching), surfaced at the existing confirmation step.
-
----
-
 ### R6 — Per-document backup status and an explicit restore flow
 
 **User problem:** A document that saved successfully on-device can be mistaken for one that's actually protected if the phone is lost — there's no way to check which specific documents are safe, and no labeled "recover my documents" action after reinstalling.
