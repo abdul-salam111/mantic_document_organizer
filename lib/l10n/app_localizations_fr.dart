@@ -822,6 +822,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de contacter l\'assistant IA — vérifiez votre connexion et réessayez.';
 
   @override
+  String get aiAssistantOfflineError =>
+      'La recherche IA nécessite une connexion internet. Reconnectez-vous et réessayez.';
+
+  @override
   String get comingSoon => 'Bientôt disponible';
 
   @override

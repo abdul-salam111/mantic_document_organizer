@@ -812,6 +812,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'I couldn\'t reach the AI assistant — check your connection and try again.';
 
   @override
+  String get aiAssistantOfflineError =>
+      'AI search needs an internet connection. Reconnect and try again.';
+
+  @override
   String get comingSoon => 'Coming soon';
 
   @override

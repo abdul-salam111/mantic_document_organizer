@@ -43,6 +43,13 @@ class AiChatService {
 
   AiChatService(this._dioHelper);
 
+  /// Lets a caller distinguish "you're offline" from "the server/call
+  /// failed" before even attempting [ask] — both would otherwise collapse
+  /// into the same `null` return (see class doc). Backed by
+  /// [DioHelper]'s cached connectivity check, the same primitive already
+  /// used for the mobile-data sync gate elsewhere in the app.
+  bool get isOffline => !_dioHelper.hasConnection;
+
   /// Same fast/cheap model as [AiDocumentService] — a short, direct answer
   /// doesn't need a larger/slower model. Verify this slug is still current
   /// at https://console.groq.com/docs/models if requests start failing.

@@ -205,6 +205,7 @@
   "aiAssistantExample2": "أرني فواتير الشهر الماضي",
   "aiAssistantExample3": "ما كانت قيمة آخر فاتورة كهرباء؟",
   "aiAssistantGenericError": "تعذّر الوصول إلى المساعد الذكي — تحقق من اتصالك وحاول مرة أخرى.",
+  "aiAssistantOfflineError": "يحتاج البحث بالذكاء الاصطناعي إلى اتصال بالإنترنت. أعد الاتصال وحاول مرة أخرى.",
   "comingSoon": "قريبًا",
   "comingSoonToast": "{name} — قريبًا",
   "pageNotFound": "الصفحة غير موجودة",

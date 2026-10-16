@@ -102,6 +102,7 @@ class _AiAssistantViewState extends State<AiAssistantView>
     // next time it's opened.
     final vm = sl<AiAssistantViewModel>();
     vm.failureText = AppLocalizations.of(context).aiAssistantGenericError;
+    vm.offlineText = AppLocalizations.of(context).aiAssistantOfflineError;
     return ChangeNotifierProvider.value(
       value: vm,
       child: UnfocusWrapper(

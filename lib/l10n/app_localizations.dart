@@ -1332,6 +1332,12 @@ abstract class AppLocalizations {
   /// **'I couldn\'t reach the AI assistant — check your connection and try again.'**
   String get aiAssistantGenericError;
 
+  /// AI Assistant screen fallback chat bubble shown specifically when the device is offline, instead of the generic error
+  ///
+  /// In en, this message translates to:
+  /// **'AI search needs an internet connection. Reconnect and try again.'**
+  String get aiAssistantOfflineError;
+
   /// Generic placeholder subtitle for an unbuilt screen
   ///
   /// In en, this message translates to:

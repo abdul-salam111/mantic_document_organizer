@@ -1014,6 +1014,10 @@
   "@aiAssistantGenericError": {
     "description": "AI Assistant screen fallback chat bubble shown when the AI call fails for any reason (offline, API error, bad response)"
   },
+  "aiAssistantOfflineError": "AI search needs an internet connection. Reconnect and try again.",
+  "@aiAssistantOfflineError": {
+    "description": "AI Assistant screen fallback chat bubble shown specifically when the device is offline, instead of the generic error"
+  },
   "comingSoon": "Coming soon",
   "@comingSoon": {
     "description": "Generic placeholder subtitle for an unbuilt screen"

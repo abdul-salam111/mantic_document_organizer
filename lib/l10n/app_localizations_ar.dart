@@ -810,6 +810,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذّر الوصول إلى المساعد الذكي — تحقق من اتصالك وحاول مرة أخرى.';
 
   @override
+  String get aiAssistantOfflineError =>
+      'يحتاج البحث بالذكاء الاصطناعي إلى اتصال بالإنترنت. أعد الاتصال وحاول مرة أخرى.';
+
+  @override
   String get comingSoon => 'قريبًا';
 
   @override

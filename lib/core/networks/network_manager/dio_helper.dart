@@ -68,6 +68,12 @@ class DioHelper {
     }
   }
 
+  /// The same cached connectivity status [_ensureConnected] checks
+  /// reactively before every request — exposed so a caller can do a
+  /// pre-flight check and show an offline-specific message instead of a
+  /// generic failure (see [AiChatService.isOffline]).
+  bool get hasConnection => _hasConnection;
+
   /// Stops the periodic connectivity poll. [DioHelper] is registered as
   /// an app-lifetime singleton with this wired up as its GetIt `dispose`
   /// callback (see core/di/injection_container.dart) specifically so

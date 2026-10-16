@@ -19,21 +19,6 @@ Mantic is an offline-first document scanner/organizer: capture or import a docum
 
 ## Recommendations
 
-### R1 — Remove the mandatory sign-in gate at first launch
-
-**User problem:** A new user installs the app expecting to use it immediately — the entire value proposition is offline-first, no-account document capture — but is blocked by a signup form before they can touch the camera.
-
-**Use case:** Someone wants to photograph a parking ticket before it's lost. They open the app for the first time and hit a mandatory account-creation screen instead of a camera button, with no way to skip it, and bounce.
-
-**Proposed experience:** Splash resolves to Home for every user, onboarded or not. Account creation only happens from "Set up backup" in Profile, matching the spec's own description of the flow.
-
-**Current coverage:** Regression, not a gap — **code-verified**. `lib/features/splash/viewmodel/splash_viewmodel.dart` routes a non-logged-in user to `Signin`, not `Home`, after onboarding (the code's own comment states *"Signup/login is mandatory past onboarding"*). The signin screen has no guest/skip path. This contradicts both `CLAUDE.md` ("No part of the core app should ever gate on a signed-in user") and the technical spec.
-
-**Priority and effort:** Highest-value fix on this list — it blocks every other improvement for every new user. Low-to-medium effort: it's a routing change (drop the `signin` branch in `resolveNextRoute()`), not new feature work.
-
-**MVP scope:** Splash always resolves to `onboarding` or `home`; nothing else changes.
-
----
 
 ### R3 — Make reminder snooze durable
 
@@ -81,21 +66,7 @@ Mantic is an offline-first document scanner/organizer: capture or import a docum
 
 ---
 
-### R7 — Tell the user when the AI assistant is failing because they're offline
 
-**User problem:** A generic error message after an AI assistant question doesn't distinguish "you're offline" from "the server is broken," undermining trust in an otherwise-reliable offline-first app.
-
-**Use case:** On a flight or with no signal, a user asks the assistant "when does my passport expire" and gets "something went wrong" instead of the offline-specific message the spec calls for.
-
-**Proposed experience:** Check connectivity before attempting the call (the app already has this primitive elsewhere) and show the spec's own "AI search needs an internet connection" state; reserve the generic error for genuine server failures.
-
-**Current coverage:** Missing this one distinction — **code-verified**. `lib/core/ai/ai_chat_service.dart` deliberately collapses offline/missing-API-key/server-error into one message (its own comment: *"all indistinguishable by design"*), while `dio_helper.dart` already has a cached connectivity check used elsewhere in the app (the mobile-data sync gate). **Separately flagged, assumption-level:** the assistant calls Groq's API directly rather than Anthropic's, which the spec names — may be a deliberate pivot, not necessarily a problem, but worth a product decision either way.
-
-**Priority and effort:** Low effort (reuse an existing primitive), medium value.
-
-**MVP scope:** One pre-flight connectivity check, one new user-facing string.
-
----
 
 ### R8 — Accessibility and RTL audit
 
@@ -110,12 +81,6 @@ Mantic is an offline-first document scanner/organizer: capture or import a docum
 **Priority and effort:** Medium effort, moderate-to-high value given RTL is an advertised capability already shipped in Settings, not aspirational.
 
 **MVP scope:** Start with the highest-traffic screens (Home, Add Document, Document Viewer) rather than a full-app pass.
-
----
-
-### R9 — Collections and redacted sharing (deferred, not re-specified)
-
-Both are already fully specified in `product_feature_roadmap.md` (F7, F8) with MVP scope and acceptance criteria, and the groundwork they depend on already exists (document references, category model, selective page export via `document_processing_repository_impl.dart`). No reason to rebuild those specs here — they're correctly sequenced last: collections behind audience validation (is personal/household the right focus, or does this app need to serve shared/task-based use?), redacted sharing behind dedicated export-verification work.
 
 ---
 

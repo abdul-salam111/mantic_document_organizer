@@ -205,6 +205,7 @@
   "aiAssistantExample2": "Muéstrame las facturas del mes pasado",
   "aiAssistantExample3": "¿Cuál fue mi última factura de electricidad?",
   "aiAssistantGenericError": "No pude contactar al asistente de IA — revisa tu conexión e inténtalo de nuevo.",
+  "aiAssistantOfflineError": "La búsqueda con IA necesita conexión a internet. Reconéctate e inténtalo de nuevo.",
   "comingSoon": "Próximamente",
   "comingSoonToast": "{name} — próximamente",
   "pageNotFound": "Página no encontrada",

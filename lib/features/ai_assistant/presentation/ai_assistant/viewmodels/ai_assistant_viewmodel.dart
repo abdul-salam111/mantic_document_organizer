@@ -19,12 +19,15 @@ class AiAssistantViewModel extends ChangeNotifier {
        _aiChatService = aiChatService,
        _speechToText = speechToText;
 
-  /// Set once by the view right after creation (from AppLocalizations) —
-  /// keeps this ViewModel free of BuildContext, same reason
-  /// AddDocumentViewModel never imports AppLocalizations either. Shown as
-  /// the assistant's reply whenever [AiChatService.ask] returns null
-  /// (offline, API error, bad response — all indistinguishable by design).
+  /// Both set once by the view right after creation (from
+  /// AppLocalizations) — keeps this ViewModel free of BuildContext, same
+  /// reason AddDocumentViewModel never imports AppLocalizations either.
+  /// [failureText] is shown whenever [AiChatService.ask] returns null for
+  /// any reason other than being offline (API error, bad response — still
+  /// indistinguishable from each other by design); [offlineText] is shown
+  /// instead when [AiChatService.isOffline] catches it first.
   String failureText = '';
+  String offlineText = '';
 
   final TextEditingController inputController = TextEditingController();
 
@@ -105,11 +108,16 @@ class AiAssistantViewModel extends ChangeNotifier {
     _isSending = true;
     notifyListeners();
 
-    final result = await _aiChatService.ask(
-      question: question,
-      documents: _documentUseCases.documents,
-      history: history,
-    );
+    // Checked before attempting the call so "you're offline" never has to
+    // be inferred from a generic failure — see AiChatService.isOffline.
+    final isOffline = _aiChatService.isOffline;
+    final result = isOffline
+        ? null
+        : await _aiChatService.ask(
+            question: question,
+            documents: _documentUseCases.documents,
+            history: history,
+          );
 
     _messages.add(
       result != null
@@ -123,7 +131,7 @@ class AiAssistantViewModel extends ChangeNotifier {
           : ChatMessage(
               id: generateLocalId(),
               role: ChatRole.assistant,
-              text: failureText,
+              text: isOffline ? offlineText : failureText,
               isError: true,
               createdAt: DateTime.now(),
             ),
