@@ -52,6 +52,28 @@ void main() {
     },
   );
 
+  test(
+    'png/gif are skipped by default but accepted with explicitPick -- a '
+    'screenshot-noise filter for passive discovery, not for a file the '
+    'user explicitly picked (seedFromSharedFiles/ShareIntentListener)',
+    () async {
+      final file = await source('photo.png');
+      final discovered = await imports.stage([
+        (path: file.path, name: 'photo.png'),
+      ], limit: 25);
+      expect(discovered.skipped, 1);
+      expect(discovered.candidates, isEmpty);
+
+      final picked = await imports.stage(
+        [(path: file.path, name: 'photo.png')],
+        limit: 25,
+        explicitPick: true,
+      );
+      expect(picked.skipped, 0);
+      expect(picked.candidates.single.title, 'photo');
+    },
+  );
+
   test('limit is enforced before extra files are copied', () async {
     final file = await source('valid.pdf');
     final result = await imports.stage(

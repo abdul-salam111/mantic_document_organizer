@@ -67,6 +67,7 @@ import '../../features/bulk_import/domain/usecases/bulk_import_usecases.dart';
 import '../../features/bulk_import/domain/usecases/gallery_discovery_usecases.dart';
 import '../background/auto_import_service.dart';
 import '../background/bulk_import_commit_service.dart';
+import '../background/bulk_import_seed_service.dart';
 import '../background/document_sync_background_service.dart';
 import '../local_storage/local_storage_exports.dart';
 
@@ -168,6 +169,8 @@ Future<void> coreDependencies() async {
     dispose: (service) => service.dispose(),
   );
   sl.registerLazySingleton(() => BulkImportCommitService(notifications: sl()));
+  sl.registerLazySingleton(() => BulkImportSeedNotifications(sl()));
+  sl.registerLazySingleton(() => BulkImportSeedService(notifications: sl()));
   sl.registerLazySingleton(() => ShareIntentService());
   sl.registerLazySingleton(() => GallerySaverService());
   sl.registerLazySingleton(

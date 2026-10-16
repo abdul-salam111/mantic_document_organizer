@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/background/bulk_import_seed_service.dart';
 import '../../../core/di/di_exports.dart';
 import '../../../core/constants/constants_exports.dart';
 import '../../../core/localization/localization_exports.dart';
@@ -20,6 +21,11 @@ import '../viewmodel/profile_viewmodel.dart';
 /// [AttachmentSourceSheet] (Camera/Gallery/Files) and
 /// [BulkImportViewModel.seedFromSharedFiles] rather than building either
 /// a new picker UI or a new grouping pipeline.
+///
+/// OCR + AI grouping is handed off to [BulkImportSeedService] right after
+/// picking rather than awaited here behind a blocking popup -- the user
+/// keeps using the app immediately; that service opens the review screen
+/// directly once grouping finishes (or surfaces a toast on failure).
 Future<void> _importMultipleDocuments(BuildContext context) async {
   final source = await AttachmentSourceSheet.show(context);
   if (source == null || !context.mounted) return;
@@ -29,26 +35,15 @@ Future<void> _importMultipleDocuments(BuildContext context) async {
     AttachmentSource.gallery => await processing.pickFromGallery(),
     AttachmentSource.file => await processing.pickFile(),
   };
-  if (selection.items.isEmpty || !context.mounted) return;
-  final dismiss = showLoadingPopup(
-    context,
-    message: 'Organizing your documents…',
-  );
+  if (selection.items.isEmpty) return;
   final vm = sl<BulkImportViewModel>();
-  final found = await vm.seedFromSharedFiles([
-    for (final attachment in selection.items) attachment.path,
-  ]);
-  await dismissLoadingPopup(dismiss);
-  if (!context.mounted) {
-    vm.dispose();
-    return;
-  }
-  if (!found) {
-    AppToastsUtils.error(vm.notice ?? 'Could not organize these files.');
-    vm.dispose();
-    return;
-  }
-  AppNavigator.pushNamed(RouteNames.bulkImportReview, extra: vm);
+  final paths = [for (final attachment in selection.items) attachment.path];
+  sl<BulkImportSeedService>().runInBackground(vm, paths);
+  AppToastsUtils.info(
+    paths.length == 1
+        ? 'Organizing 1 document in the background.'
+        : 'Organizing ${paths.length} documents in the background.',
+  );
 }
 
 class ProfileView extends StatelessWidget {

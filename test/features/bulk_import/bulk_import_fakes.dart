@@ -62,6 +62,7 @@ class FakeImports implements BulkImportRepository {
   Future<BulkPickResult> stage(
     List<({String? path, String name})> files, {
     required int limit,
+    bool explicitPick = false,
   }) async {
     this.limit = limit;
     stageCalls++;

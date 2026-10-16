@@ -49,6 +49,12 @@ class BulkImportLocalDataSource implements BulkImportRepository {
     // Document, which keeps its own separate extension list.
   ];
 
+  /// [supportedExtensions] plus the two formats excluded from it -- used
+  /// when staging files the user explicitly picked themselves (see
+  /// [stage]'s `explicitPick`), where that discovery-only noise filter
+  /// doesn't apply.
+  static const explicitPickExtensions = [...supportedExtensions, 'png', 'gif'];
+
   Future<Directory> _sessionDirectory() async {
     final root = await _rootDirectory();
     return Directory(p.join(root.path, 'import_staging', _sessionId));
@@ -79,7 +85,11 @@ class BulkImportLocalDataSource implements BulkImportRepository {
   Future<BulkPickResult> stage(
     List<({String? path, String name})> files, {
     required int limit,
+    bool explicitPick = false,
   }) async {
+    final allowedExtensions = explicitPick
+        ? explicitPickExtensions
+        : supportedExtensions;
     final candidates = <BulkImportCandidate>[];
     var skipped = 0;
     var overLimit = 0;
@@ -90,7 +100,7 @@ class BulkImportLocalDataSource implements BulkImportRepository {
       }
       final extension = p.extension(file.name).toLowerCase();
       if (file.path == null ||
-          !supportedExtensions.contains(extension.replaceFirst('.', ''))) {
+          !allowedExtensions.contains(extension.replaceFirst('.', ''))) {
         skipped++;
         continue;
       }

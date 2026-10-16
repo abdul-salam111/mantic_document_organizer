@@ -443,10 +443,14 @@ class BulkImportViewModel extends ChangeNotifier {
         return false;
       }
       if (_closed || _disposed) return false;
-      final staged = await _imports.stage([
-        for (final path in paths.take(maxSharedFiles))
-          (path: path, name: p.basename(path)),
-      ], limit: maxSharedFiles);
+      final staged = await _imports.stage(
+        [
+          for (final path in paths.take(maxSharedFiles))
+            (path: path, name: p.basename(path)),
+        ],
+        limit: maxSharedFiles,
+        explicitPick: true,
+      );
       if (_closed || _disposed) return false;
       final ocrCompleted = <BulkImportCandidate>[];
       for (final candidate in staged.candidates) {

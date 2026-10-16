@@ -7,7 +7,8 @@ class BulkImportUseCases {
   Future<BulkPickResult> stage(
     List<({String? path, String name})> files, {
     required int limit,
-  }) => _repository.stage(files, limit: limit);
+    bool explicitPick = false,
+  }) => _repository.stage(files, limit: limit, explicitPick: explicitPick);
   Future<List<String>> promote(BulkImportCandidate candidate) =>
       _repository.promote(candidate);
   Future<void> removeStaged(BulkImportCandidate candidate) =>
