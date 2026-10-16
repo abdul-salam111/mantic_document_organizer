@@ -27,7 +27,7 @@ class DocumentReadinessCard extends StatelessWidget {
             // presence against Home's background, instead of the flat
             // fill it had before that let it blend into the page.
             decoration: BoxDecoration(
-              borderRadius: .circular(18),
+              borderRadius: .circular(10),
               border: Border.all(color: context.border),
               boxShadow: [
                 BoxShadow(
@@ -39,7 +39,7 @@ class DocumentReadinessCard extends StatelessWidget {
             ),
             child: Material(
               color: context.categoryCardSurface,
-              borderRadius: .circular(18),
+              borderRadius: .circular(10),
               clipBehavior: .antiAlias,
               child: InkWell(
                 onTap: !vm.ready
