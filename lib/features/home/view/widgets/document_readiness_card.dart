@@ -19,88 +19,111 @@ class DocumentReadinessCard extends StatelessWidget {
     child: Consumer<ReadinessViewModel>(
       builder: (context, vm, _) {
         final l10n = AppLocalizations.of(context);
+        final isComplete = vm.total > 0 && vm.completed == vm.total;
         return Padding(
           padding: const .only(bottom: 14),
-          child: Material(
-            color: context.categoryCardSurface,
-            borderRadius: .circular(20),
-            clipBehavior: .antiAlias,
-            child: InkWell(
-              onTap: !vm.ready
-                  ? null
-                  : () => showModalBottomSheet<void>(
-                      context: context,
-                      isScrollControlled: true,
-                      showDragHandle: true,
-                      backgroundColor: context.background,
-                      builder: (_) => ChangeNotifierProvider.value(
-                        value: vm,
-                        child: const _ReadinessSheet(),
+          child: DecoratedBox(
+            // A soft shadow + hairline border give this card its own
+            // presence against Home's background, instead of the flat
+            // fill it had before that let it blend into the page.
+            decoration: BoxDecoration(
+              borderRadius: .circular(18),
+              border: Border.all(color: context.border),
+              boxShadow: [
+                BoxShadow(
+                  color: context.shadow,
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Material(
+              color: context.categoryCardSurface,
+              borderRadius: .circular(18),
+              clipBehavior: .antiAlias,
+              child: InkWell(
+                onTap: !vm.ready
+                    ? null
+                    : () => showModalBottomSheet<void>(
+                        context: context,
+                        isScrollControlled: true,
+                        showDragHandle: true,
+                        backgroundColor: context.background,
+                        builder: (_) => ChangeNotifierProvider.value(
+                          value: vm,
+                          child: const _ReadinessSheet(),
+                        ),
                       ),
-                    ),
-              child: Padding(
-                padding: const .all(18),
-                child: !vm.ready
-                    ? Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              l10n.readinessTitle,
-                              style: context.titleSmall,
+                child: Padding(
+                  padding: const .all(18),
+                  child: !vm.ready
+                      ? Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                l10n.readinessTitle,
+                                style: context.titleSmall,
+                              ),
                             ),
-                          ),
-                          if (vm.isLoading)
-                            const SizedBox.square(
-                              dimension: 22,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          else
-                            TextButton(
-                              onPressed: vm.init,
-                              child: Text(l10n.readinessRetry),
-                            ),
-                        ],
-                      )
-                    : Row(
-                        children: [
-                          _ReadinessRing(vm: vm),
-                          const SizedBox(width: 18),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: .start,
-                              children: [
-                                Text(
-                                  l10n.readinessTitle,
-                                  style: context.titleSmall.copyWith(
-                                    fontWeight: .w700,
+                            if (vm.isLoading)
+                              const SizedBox.square(
+                                dimension: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            else
+                              TextButton(
+                                onPressed: vm.init,
+                                child: Text(l10n.readinessRetry),
+                              ),
+                          ],
+                        )
+                      : Row(
+                          children: [
+                            _ReadinessRing(vm: vm, isComplete: isComplete),
+                            widthBox(18),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: .start,
+                                mainAxisSize: .min,
+                                children: [
+                                  Text(
+                                    l10n.readinessTitle,
+                                    style: context.titleSmall.copyWith(
+                                      fontWeight: .w800,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  vm.total == 0
-                                      ? l10n.readinessAllExcluded
-                                      : l10n.readinessCount(
-                                          vm.completed,
-                                          vm.total,
-                                        ),
-                                  style: context.bodySmall,
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  vm.total > 0 && vm.completed == vm.total
-                                      ? l10n.readinessComplete
-                                      : l10n.readinessReview,
-                                  style: context.labelSmall.copyWith(
-                                    color: context.primaryAccent,
+                                  heightBox(4),
+                                  Text(
+                                    vm.total == 0
+                                        ? l10n.readinessAllExcluded
+                                        : l10n.readinessCount(
+                                            vm.completed,
+                                            vm.total,
+                                          ),
+                                    style: context.bodySmall.copyWith(
+                                      color: context.textSecondary,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                  if (vm.total > 0) ...[
+                                    heightBox(10),
+                                    _ReadinessStatusBadge(
+                                      complete: isComplete,
+                                    ),
+                                  ],
+                                ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 4),
-                          const Icon(Icons.chevron_right, size: 18),
-                        ],
-                      ),
+                            widthBox(4),
+                            Icon(
+                              Icons.chevron_right,
+                              size: 20,
+                              color: context.textSecondary,
+                            ),
+                          ],
+                        ),
+                ),
               ),
             ),
           ),
@@ -110,9 +133,36 @@ class DocumentReadinessCard extends StatelessWidget {
   );
 }
 
+/// A small pill instead of plain colored text -- reads as a status at a
+/// glance rather than competing with the count line above it for
+/// attention.
+class _ReadinessStatusBadge extends StatelessWidget {
+  final bool complete;
+  const _ReadinessStatusBadge({required this.complete});
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Container(
+      padding: const .symmetric(horizontal: 9, vertical: 3),
+      decoration: BoxDecoration(
+        color: context.primaryAccent.withValues(alpha: 0.12),
+        borderRadius: .circular(20),
+      ),
+      child: Text(
+        complete ? l10n.readinessComplete : l10n.readinessReview,
+        style: context.labelSmall.copyWith(
+          color: context.primaryAccent,
+          fontWeight: .w700,
+        ),
+      ),
+    );
+  }
+}
+
 class _ReadinessRing extends StatelessWidget {
   final ReadinessViewModel vm;
-  const _ReadinessRing({required this.vm});
+  final bool isComplete;
+  const _ReadinessRing({required this.vm, required this.isComplete});
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -123,7 +173,7 @@ class _ReadinessRing extends StatelessWidget {
           : l10n.readinessCount(vm.completed, vm.total),
       child: ExcludeSemantics(
         child: SizedBox.square(
-          dimension: 72,
+          dimension: 76,
           // Animates the ring (and its percentage label) from whatever it
           // last showed to the new progress -- TweenAnimationBuilder
           // tracks the previous `end` itself, so a document being
@@ -139,10 +189,10 @@ class _ReadinessRing extends StatelessWidget {
                 SizedBox.expand(
                   child: CircularProgressIndicator(
                     value: value,
-                    strokeWidth: 6,
+                    strokeWidth: 7,
                     strokeCap: .round,
                     color: context.primaryAccent,
-                    backgroundColor: context.primary.withValues(alpha: 0.12),
+                    backgroundColor: context.primary.withValues(alpha: 0.1),
                   ),
                 ),
                 Padding(
@@ -150,10 +200,32 @@ class _ReadinessRing extends StatelessWidget {
                   child: FittedBox(
                     child: Text(
                       vm.total == 0 ? '—' : '${(value * 100).round()}%',
-                      style: context.titleMedium.copyWith(fontWeight: .w700),
+                      style: context.titleMedium.copyWith(fontWeight: .w800),
                     ),
                   ),
                 ),
+                // A small checkmark badge overlapping the ring's edge once
+                // every essential group is accounted for -- a brief moment
+                // of payoff instead of the ring just silently filling in.
+                if (isComplete)
+                  Positioned(
+                    right: 0,
+                    bottom: 2,
+                    child: Container(
+                      width: 20,
+                      height: 20,
+                      alignment: .center,
+                      decoration: BoxDecoration(
+                        color: context.primaryAccent,
+                        shape: .circle,
+                        border: Border.all(
+                          color: context.categoryCardSurface,
+                          width: 2,
+                        ),
+                      ),
+                      child: Icon(Icons.check, size: 12, color: context.white),
+                    ),
+                  ),
               ],
             ),
           ),
