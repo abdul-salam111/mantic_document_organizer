@@ -20,6 +20,11 @@ class DocumentReadinessCard extends StatelessWidget {
       builder: (context, vm, _) {
         final l10n = AppLocalizations.of(context);
         final isComplete = vm.total > 0 && vm.completed == vm.total;
+        // Nothing left to do -- stop taking up space on Home once every
+        // essential group is covered, rather than showing a permanent
+        // 100% card. It reappears on its own if a linked document is
+        // later trashed/unlinked and something becomes incomplete again.
+        if (vm.ready && isComplete) return const SizedBox.shrink();
         return Padding(
           padding: const .only(bottom: 14),
           child: DecoratedBox(
