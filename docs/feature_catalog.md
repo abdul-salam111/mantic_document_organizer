@@ -13,7 +13,7 @@
 
 Mantic is an offline-first document scanner/organizer: capture or import a document, let OCR and an AI pass suggest its category/title/expiry, store it locally in SQLite, then retrieve it by browsing categories, searching, or favorites. A backend exists only for two opt-in things — Google Drive-backed backup and AI feature calls — and is never supposed to gate core use. The stated audience hypothesis (per `product_feature_roadmap.md`) is individuals managing personal/household documents; that's not yet validated against real users.
 
-**Already implemented — not recommended again here:** camera/gallery capture, category-aware save flow, on-device OCR, AI-assisted category/title/expiry suggestion at save time, manual bulk import with AI grouping, drafts (SQLite-backed autosave/resume/discard), built-in and custom categories, favorites, trash (restore/purge), content search with filters, expiry reminders with configurable lead time and snooze, category/space sharing with invites and roles, document-level export/share (whole PDF, selected pages, images), Google Drive backup with sync-progress UI, an AI chat assistant over the document library, and settings for theme/language/biometric lock/mobile-data/reminder timing.
+**Already implemented — not recommended again here:** camera/gallery capture, category-aware save flow, on-device OCR, AI-assisted category/title/expiry suggestion at save time, manual bulk import with AI grouping, drafts (SQLite-backed autosave/resume/discard), built-in and custom categories, favorites, trash (restore/purge), content search with filters, expiry reminders with configurable lead time and snooze, category/space sharing with invites and roles, document-level export/share (whole PDF, selected pages, images), Google Drive backup with sync-progress UI, an AI chat assistant over the document library, settings for theme/language/biometric lock/mobile-data/reminder timing, and the Document Readiness checklist on Home.
 
 ---
 
@@ -32,22 +32,6 @@ Mantic is an offline-first document scanner/organizer: capture or import a docum
 **Priority and effort:** Highest-value fix on this list — it blocks every other improvement for every new user. Low-to-medium effort: it's a routing change (drop the `signin` branch in `resolveNextRoute()`), not new feature work.
 
 **MVP scope:** Splash always resolves to `onboarding` or `home`; nothing else changes.
-
----
-
-### R2 — Re-enable the Document Readiness card
-
-**User problem:** Users have no visibility into which important records (ID, proof of address, birth record, health, financial) they haven't captured yet, and only discover the gap when they urgently need one.
-
-**Use case:** Someone has scanned a few receipts and a utility bill but has no signal that they've never saved a copy of their passport until they need it at a border desk.
-
-**Proposed experience:** A progress card on Home (circular score, five essential-record groups); tapping it shows saved/missing status per group with an "Add document" action that pre-selects the right category. Exactly as already specced in `document_readiness.md`.
-
-**Current coverage:** **Fully implemented, just hidden** — code-verified. `lib/features/home/view/home_view.dart:104` has `// const DocumentReadinessCard(),` commented out. The feature itself (scoring policy, persistence, capture linking, tests) is complete per its own doc.
-
-**Priority and effort:** High value, near-zero effort — this is a flag flip plus a visual QA pass (large text, RTL, dark mode — already listed in the feature's own doc), not a build.
-
-**MVP scope:** Already done; uncomment and ship.
 
 ---
 
@@ -168,12 +152,11 @@ Ranked against the stated mission — organize smartly, with ease, reliably — 
 
 | Rank | Item | Mission fit | Priority / Effort |
 |---|---|---|---|
-| 1 | R2 — Re-enable Document Readiness | Directly: shows what's organized vs. missing | High value / near-zero effort |
-| 2 | R5 — Duplicate detection | Directly: a cluttered library isn't organized | Medium value / medium effort |
-| 3 | R4 — Persistent review inbox | Directly: unlocks a fully-built discovery feature currently dead in production | High value / medium–large effort |
-| 4 | R3 — Durable snooze | Reliability: fixes a live silent-failure bug | Medium value / medium effort |
-| 5 | R6 — Per-document backup status + restore | Reliability: trust in "is my library safe" | High value / medium–large effort |
-| 6 | R7 — AI offline messaging | Reliability: removes a confusing failure mode | Medium value / low effort |
+| 1 | R5 — Duplicate detection | Directly: a cluttered library isn't organized | Medium value / medium effort |
+| 2 | R4 — Persistent review inbox | Directly: unlocks a fully-built discovery feature currently dead in production | High value / medium–large effort |
+| 3 | R3 — Durable snooze | Reliability: fixes a live silent-failure bug | Medium value / medium effort |
+| 4 | R6 — Per-document backup status + restore | Reliability: trust in "is my library safe" | High value / medium–large effort |
+| 5 | R7 — AI offline messaging | Reliability: removes a confusing failure mode | Medium value / low effort |
 | — | R1 — Remove sign-in gate | Precondition — nothing above matters to a user blocked at the door | Highest value / low–medium effort |
 | — | R8 — Accessibility/RTL audit | Who can use the experience, not the experience itself | Medium value / medium effort |
 | Later | R9 — Collections, redacted sharing | Already specified; gated on validation work | Large effort |
@@ -181,8 +164,8 @@ Ranked against the stated mission — organize smartly, with ease, reliably — 
 ### The three to build next
 
 1. **Remove the mandatory sign-in gate (R1).** Every other improvement on this list is wasted on a user who never gets past signup — it's the cheapest fix here and the only one actively working against the app's own stated mission.
-2. **Re-enable Document Readiness (R2).** It's fully built and directly serves "organize smartly, with ease" — essentially a free win that should ship alongside #1, not after it.
-3. **Persist the auto-discovery review inbox (R4).** It's the one piece of debt standing between "a whole feature exists in code" and "that feature can be turned on" — highest leverage per unit of effort after the two near-zero-cost fixes above.
+2. **Duplicate detection (R5).** Directly serves "organize smartly" — a cluttered library isn't an organized one.
+3. **Persist the auto-discovery review inbox (R4).** It's the one piece of debt standing between "a whole feature exists in code" and "that feature can be turned on" — highest leverage per unit of effort after the near-zero-cost sign-in fix.
 
 ---
 
