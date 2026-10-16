@@ -3,6 +3,7 @@ import '../../../../core/di/di_exports.dart';
 import '../../../../core/localization/localization_exports.dart';
 import '../../../../core/theme/theme_exports.dart';
 import '../../../../core/utils/persist_action.dart';
+import '../../../../core/utils/utils_exports.dart';
 import '../../../../core/widgets/widgets_exports.dart';
 import '../../../../routes/routes_exports.dart';
 import '../../../documents/documents_domain_exports.dart' show DocumentItem;
@@ -10,6 +11,12 @@ import '../../domain/entities/document_readiness.dart';
 import '../../viewmodel/readiness_viewmodel.dart';
 import 'document_cover_thumbnail.dart';
 
+/// Matches the same compact card language as [DraftInbox]/Home's Expiring
+/// Soon banner -- small circular icon badge, title + chevron row, tinted
+/// pill background -- rather than standing out as a bigger, differently
+/// shaped block. The progress itself reads as a slim bar under the title
+/// (with the percentage called out as its own stat) instead of a large
+/// ring, so the card's height stays in the same family as its siblings.
 class DocumentReadinessCard extends StatelessWidget {
   const DocumentReadinessCard({super.key});
   @override
@@ -18,11 +25,15 @@ class DocumentReadinessCard extends StatelessWidget {
     child: Consumer<ReadinessViewModel>(
       builder: (context, vm, _) {
         final l10n = AppLocalizations.of(context);
+        final isComplete = vm.total > 0 && vm.completed == vm.total;
         return Padding(
           padding: const .only(bottom: 14),
           child: Material(
-            color: context.categoryCardSurface,
-            borderRadius: .circular(20),
+            color: Color.alphaBlend(
+              context.primary.withValues(alpha: 0.05),
+              context.categoryCardSurface,
+            ),
+            borderRadius: .circular(12),
             clipBehavior: .antiAlias,
             child: InkWell(
               onTap: !vm.ready
@@ -38,19 +49,23 @@ class DocumentReadinessCard extends StatelessWidget {
                       ),
                     ),
               child: Padding(
-                padding: const .all(18),
+                padding: const .symmetric(horizontal: 12, vertical: 10),
                 child: !vm.ready
                     ? Row(
                         children: [
+                          _ReadinessIconBadge(complete: false),
+                          widthBox(10),
                           Expanded(
                             child: Text(
                               l10n.readinessTitle,
-                              style: context.titleSmall,
+                              style: context.labelLarge.copyWith(
+                                fontWeight: .w700,
+                              ),
                             ),
                           ),
                           if (vm.isLoading)
                             const SizedBox.square(
-                              dimension: 22,
+                              dimension: 18,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           else
@@ -60,44 +75,63 @@ class DocumentReadinessCard extends StatelessWidget {
                             ),
                         ],
                       )
-                    : Row(
+                    : Column(
+                        crossAxisAlignment: .start,
                         children: [
-                          _ReadinessRing(vm: vm),
-                          const SizedBox(width: 18),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: .start,
-                              children: [
-                                Text(
+                          Row(
+                            children: [
+                              _ReadinessIconBadge(complete: isComplete),
+                              widthBox(10),
+                              Expanded(
+                                child: Text(
                                   l10n.readinessTitle,
-                                  style: context.titleSmall.copyWith(
+                                  style: context.labelLarge.copyWith(
                                     fontWeight: .w700,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
+                              ),
+                              widthBox(8),
+                              if (vm.total > 0)
+                                _AnimatedPercentLabel(progress: vm.progress),
+                            ],
+                          ),
+                          heightBox(10),
+                          _ReadinessBar(progress: vm.progress),
+                          heightBox(8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
                                   vm.total == 0
                                       ? l10n.readinessAllExcluded
                                       : l10n.readinessCount(
                                           vm.completed,
                                           vm.total,
                                         ),
-                                  style: context.bodySmall,
+                                  style: context.labelSmall.copyWith(
+                                    color: context.textSecondary,
+                                  ),
                                 ),
-                                const SizedBox(height: 6),
+                              ),
+                              if (vm.total > 0) ...[
                                 Text(
-                                  vm.total > 0 && vm.completed == vm.total
+                                  isComplete
                                       ? l10n.readinessComplete
                                       : l10n.readinessReview,
                                   style: context.labelSmall.copyWith(
                                     color: context.primaryAccent,
+                                    fontWeight: .w600,
                                   ),
                                 ),
+                                widthBox(4),
                               ],
-                            ),
+                              Icon(
+                                Icons.chevron_right,
+                                size: 16,
+                                color: context.textSecondary,
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 4),
-                          const Icon(Icons.chevron_right, size: 18),
                         ],
                       ),
               ),
@@ -109,57 +143,75 @@ class DocumentReadinessCard extends StatelessWidget {
   );
 }
 
-class _ReadinessRing extends StatelessWidget {
-  final ReadinessViewModel vm;
-  const _ReadinessRing({required this.vm});
+class _ReadinessIconBadge extends StatelessWidget {
+  final bool complete;
+  const _ReadinessIconBadge({required this.complete});
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Semantics(
-      label: l10n.readinessTitle,
-      value: vm.total == 0
-          ? l10n.readinessAllExcluded
-          : l10n.readinessCount(vm.completed, vm.total),
-      child: ExcludeSemantics(
-        child: SizedBox.square(
-          dimension: 72,
-          // Animates the ring (and its percentage label) from whatever it
-          // last showed to the new progress -- TweenAnimationBuilder
-          // tracks the previous `end` itself, so a document being
-          // saved/linked/excluded eases the ring forward instead of
-          // snapping, without needing an explicit AnimationController here.
-          child: TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0, end: vm.progress),
-            duration: const Duration(milliseconds: 700),
-            curve: Curves.easeOutCubic,
-            builder: (context, value, _) => Stack(
-              alignment: .center,
-              children: [
-                SizedBox.expand(
-                  child: CircularProgressIndicator(
-                    value: value,
-                    strokeWidth: 6,
-                    strokeCap: .round,
-                    color: context.primaryAccent,
-                    backgroundColor: context.primary.withValues(alpha: 0.12),
-                  ),
-                ),
-                Padding(
-                  padding: const .all(12),
-                  child: FittedBox(
-                    child: Text(
-                      vm.total == 0 ? '—' : '${(value * 100).round()}%',
-                      style: context.titleMedium.copyWith(fontWeight: .w700),
-                    ),
-                  ),
-                ),
-              ],
+  Widget build(BuildContext context) => Container(
+    width: 30,
+    height: 30,
+    alignment: .center,
+    decoration: BoxDecoration(
+      color: context.primary.withValues(alpha: 0.15),
+      shape: .circle,
+    ),
+    child: Icon(
+      complete ? Icons.verified_outlined : Icons.fact_check_outlined,
+      size: 16,
+      color: context.primaryAccent,
+    ),
+  );
+}
+
+/// The percentage read-out next to the title -- animates in step with
+/// [_ReadinessBar] below it (same tween/duration) so the number and the
+/// fill never visibly disagree mid-animation.
+class _AnimatedPercentLabel extends StatelessWidget {
+  final double progress;
+  const _AnimatedPercentLabel({required this.progress});
+  @override
+  Widget build(BuildContext context) => TweenAnimationBuilder<double>(
+    tween: Tween(begin: 0, end: progress),
+    duration: const Duration(milliseconds: 700),
+    curve: Curves.easeOutCubic,
+    builder: (context, value, _) => Text(
+      '${(value * 100).round()}%',
+      style: context.titleSmall.copyWith(
+        fontWeight: .w800,
+        color: context.primaryAccent,
+      ),
+    ),
+  );
+}
+
+/// A slim, full-width animated fill -- replaces the previous large ring so
+/// this card reads at a glance instead of needing its own visual weight
+/// class separate from Home's other compact cards.
+class _ReadinessBar extends StatelessWidget {
+  final double progress;
+  const _ReadinessBar({required this.progress});
+  @override
+  Widget build(BuildContext context) => TweenAnimationBuilder<double>(
+    tween: Tween(begin: 0, end: progress),
+    duration: const Duration(milliseconds: 700),
+    curve: Curves.easeOutCubic,
+    builder: (context, value, _) => ClipRRect(
+      borderRadius: .circular(4),
+      child: SizedBox(
+        width: double.infinity,
+        height: 7,
+        child: Stack(
+          children: [
+            ColoredBox(color: context.primary.withValues(alpha: 0.12)),
+            FractionallySizedBox(
+              widthFactor: value.clamp(0, 1),
+              child: ColoredBox(color: context.primaryAccent),
             ),
-          ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
 }
 
 String _groupTitle(AppLocalizations l10n, ReadinessGroup group) =>
