@@ -3,6 +3,7 @@ import '../../../../core/di/di_exports.dart';
 import '../../../../core/localization/localization_exports.dart';
 import '../../../../core/theme/theme_exports.dart';
 import '../../../../core/utils/persist_action.dart';
+import '../../../../core/utils/utils_exports.dart';
 import '../../../../core/widgets/widgets_exports.dart';
 import '../../../../routes/routes_exports.dart';
 import '../../../documents/documents_domain_exports.dart' show DocumentItem;
@@ -228,134 +229,27 @@ class _ReadinessSheet extends StatelessWidget {
             padding: const .fromLTRB(20, 0, 20, 24),
             children: [
               Text(l10n.readinessTitle, style: context.titleLarge),
-              const SizedBox(height: 8),
-              Text(
-                l10n.readinessExplanation,
-                style: context.bodySmall.copyWith(color: context.textSecondary),
-              ),
-              const SizedBox(height: 16),
+              heightBox(4),
               Text(
                 vm.total == 0
                     ? l10n.readinessAllExcluded
                     : l10n.readinessCount(vm.completed, vm.total),
-                style: context.titleSmall,
+                style: context.bodySmall.copyWith(color: context.textSecondary),
               ),
-              const SizedBox(height: 12),
+              heightBox(14),
               for (final item in vm.items) ...[
-                Container(
-                  padding: const .all(14),
-                  decoration: BoxDecoration(
-                    color: context.surface,
-                    borderRadius: .circular(16),
-                    border: Border.all(color: context.border),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: .start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            item.excluded
-                                ? Icons.remove_circle_outline
-                                : item.complete
-                                ? Icons.check_circle_outline
-                                : Icons.add_circle_outline,
-                            color: item.complete
-                                ? context.primaryAccent
-                                : context.textSecondary,
-                            size: 22,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              _groupTitle(l10n, item.group),
-                              style: context.titleSmall,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        _groupExamples(l10n, item.group),
-                        style: context.bodySmall.copyWith(
-                          color: context.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        item.excluded
-                            ? l10n.readinessNotApplicable
-                            : item.complete
-                            ? l10n.readinessSaved
-                            : l10n.readinessConsider,
-                        style: context.labelMedium.copyWith(
-                          color: item.complete
-                              ? context.primaryAccent
-                              : context.textSecondary,
-                        ),
-                      ),
-                      if (item.complete)
-                        TextButton.icon(
-                          onPressed: () => context.pushNamed(
-                            RouteNames.documentViewer,
-                            extra: item.document,
-                          ),
-                          icon: const Icon(
-                            Icons.description_outlined,
-                            size: 18,
-                          ),
-                          label: Text(
-                            item.document!.title.trim().isEmpty
-                                ? l10n.readinessUntitled
-                                : item.document!.title,
-                            maxLines: 2,
-                            overflow: .ellipsis,
-                          ),
-                        ),
-                      if (!item.excluded)
-                        Wrap(
-                          spacing: 8,
-                          children: [
-                            if (!item.complete)
-                              TextButton.icon(
-                                onPressed: vm.isLoading
-                                    ? null
-                                    : () => _add(context, vm, item.group),
-                                icon: const Icon(Icons.add, size: 18),
-                                label: Text(l10n.readinessAdd),
-                              ),
-                            TextButton(
-                              onPressed: vm.isLoading
-                                  ? null
-                                  : () => _choose(context, vm, item.group),
-                              child: Text(
-                                item.complete
-                                    ? l10n.readinessChange
-                                    : l10n.readinessChoose,
-                              ),
-                            ),
-                          ],
-                        ),
-                      TextButton(
-                        onPressed: vm.isLoading
-                            ? null
-                            : () => vm.setExcluded(item.group, !item.excluded),
-                        child: Text(
-                          item.excluded
-                              ? l10n.readinessInclude
-                              : l10n.readinessNotApplicable,
-                        ),
-                      ),
-                    ],
-                  ),
+                _ReadinessItemRow(
+                  vm: vm,
+                  item: item,
+                  onAdd: () => _add(context, vm, item.group),
+                  onChoose: () => _choose(context, vm, item.group),
                 ),
-                const SizedBox(height: 12),
+                heightBox(8),
               ],
-              Text(l10n.readinessAdditional, style: context.titleSmall),
-              const SizedBox(height: 6),
+              heightBox(10),
               Text(
                 l10n.readinessAdditionalExamples,
-                style: context.bodySmall.copyWith(color: context.textSecondary),
+                style: context.labelSmall.copyWith(color: context.textSecondary),
               ),
             ],
           ),
@@ -363,6 +257,249 @@ class _ReadinessSheet extends StatelessWidget {
       );
     },
   );
+}
+
+enum _ReadinessMenuAction { choose, exclude }
+
+/// One checklist line -- icon, title, and a single truncated subtitle, with
+/// at most one primary action visible (Add) and everything else (choose a
+/// different document, mark not applicable) behind an overflow menu, so an
+/// item never needs more than one row regardless of its state.
+class _ReadinessItemRow extends StatelessWidget {
+  final ReadinessViewModel vm;
+  final ReadinessItem item;
+  final VoidCallback onAdd;
+  final VoidCallback onChoose;
+  const _ReadinessItemRow({
+    required this.vm,
+    required this.item,
+    required this.onAdd,
+    required this.onChoose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final title = _groupTitle(l10n, item.group);
+
+    if (item.excluded) {
+      return _ReadinessRow(
+        icon: Icons.remove_circle_outline,
+        iconColor: context.textSecondary,
+        title: title,
+        titleColor: context.textSecondary,
+        subtitle: l10n.readinessNotApplicable,
+        trailing: TextButton(
+          onPressed: vm.isLoading
+              ? null
+              : () => vm.setExcluded(item.group, false),
+          child: Text(l10n.readinessInclude),
+        ),
+      );
+    }
+
+    if (item.complete) {
+      final document = item.document!;
+      return _ReadinessRow(
+        icon: Icons.check_circle,
+        iconColor: context.primaryAccent,
+        title: title,
+        onTap: () =>
+            context.pushNamed(RouteNames.documentViewer, extra: document),
+        subtitleWidget: Row(
+          children: [
+            Icon(
+              Icons.insert_drive_file_outlined,
+              size: 13,
+              color: context.textSecondary,
+            ),
+            widthBox(4),
+            Expanded(
+              child: Text(
+                document.title.trim().isEmpty
+                    ? l10n.readinessUntitled
+                    : document.title,
+                maxLines: 1,
+                overflow: .ellipsis,
+                style: context.labelSmall.copyWith(
+                  color: context.textSecondary,
+                ),
+              ),
+            ),
+          ],
+        ),
+        trailing: _ReadinessOverflowMenu(
+          vm: vm,
+          item: item,
+          onChoose: onChoose,
+        ),
+      );
+    }
+
+    return _ReadinessRow(
+      icon: Icons.radio_button_unchecked,
+      iconColor: context.textSecondary,
+      title: title,
+      subtitle: _groupExamples(l10n, item.group),
+      trailing: Row(
+        mainAxisSize: .min,
+        children: [
+          _AddChip(
+            label: l10n.readinessAdd,
+            onPressed: vm.isLoading ? null : onAdd,
+          ),
+          widthBox(2),
+          _ReadinessOverflowMenu(vm: vm, item: item, onChoose: onChoose),
+        ],
+      ),
+    );
+  }
+}
+
+/// Shared single-row shell for [_ReadinessItemRow]'s three states -- fixed
+/// icon + title + one-line subtitle + trailing action(s), so every item
+/// takes the same compact height regardless of which state it's in.
+class _ReadinessRow extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final Color? titleColor;
+  final String? subtitle;
+  final Widget? subtitleWidget;
+  final Widget trailing;
+  final VoidCallback? onTap;
+  const _ReadinessRow({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    this.titleColor,
+    this.subtitle,
+    this.subtitleWidget,
+    required this.trailing,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) => Material(
+    color: context.surface,
+    borderRadius: .circular(14),
+    clipBehavior: .antiAlias,
+    child: InkWell(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: context.border),
+          borderRadius: .circular(14),
+        ),
+        padding: const .symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: iconColor),
+            widthBox(10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: .start,
+                mainAxisSize: .min,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: .ellipsis,
+                    style: context.titleSmall.copyWith(
+                      color: titleColor,
+                      fontWeight: .w600,
+                    ),
+                  ),
+                  if (subtitleWidget != null) ...[
+                    const SizedBox(height: 2),
+                    subtitleWidget!,
+                  ] else if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle!,
+                      maxLines: 1,
+                      overflow: .ellipsis,
+                      style: context.labelSmall.copyWith(
+                        color: context.textSecondary,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            widthBox(6),
+            trailing,
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+/// Compact filled "Add" action -- the one primary action an incomplete
+/// item needs visible at a glance; everything else lives in
+/// [_ReadinessOverflowMenu] instead of stacking more buttons beside it.
+class _AddChip extends StatelessWidget {
+  final String label;
+  final VoidCallback? onPressed;
+  const _AddChip({required this.label, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) => TextButton.icon(
+    onPressed: onPressed,
+    icon: const Icon(Icons.add, size: 15),
+    label: Text(label),
+    style: TextButton.styleFrom(
+      backgroundColor: context.primary.withValues(alpha: 0.1),
+      foregroundColor: context.primaryAccent,
+      padding: const .symmetric(horizontal: 10, vertical: 6),
+      minimumSize: Size.zero,
+      tapTargetSize: .shrinkWrap,
+      shape: const StadiumBorder(),
+      textStyle: context.labelSmall.copyWith(fontWeight: .w600),
+    ),
+  );
+}
+
+/// "Use a saved document" / "Mark not applicable" -- secondary actions
+/// available for every non-excluded item, tucked behind one icon instead
+/// of two more always-visible buttons.
+class _ReadinessOverflowMenu extends StatelessWidget {
+  final ReadinessViewModel vm;
+  final ReadinessItem item;
+  final VoidCallback onChoose;
+  const _ReadinessOverflowMenu({
+    required this.vm,
+    required this.item,
+    required this.onChoose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return PopupMenuButton<_ReadinessMenuAction>(
+      icon: Icon(Icons.more_vert, size: 18, color: context.textSecondary),
+      padding: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(borderRadius: .circular(14)),
+      enabled: !vm.isLoading,
+      onSelected: (action) => switch (action) {
+        _ReadinessMenuAction.choose => onChoose(),
+        _ReadinessMenuAction.exclude => vm.setExcluded(item.group, true),
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: _ReadinessMenuAction.choose,
+          child: Text(
+            item.complete ? l10n.readinessChange : l10n.readinessChoose,
+          ),
+        ),
+        PopupMenuItem(
+          value: _ReadinessMenuAction.exclude,
+          child: Text(l10n.readinessNotApplicable),
+        ),
+      ],
+    );
+  }
 }
 
 class _SavedDocumentPicker extends StatefulWidget {
