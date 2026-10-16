@@ -123,28 +123,38 @@ class _ReadinessRing extends StatelessWidget {
       child: ExcludeSemantics(
         child: SizedBox.square(
           dimension: 72,
-          child: Stack(
-            alignment: .center,
-            children: [
-              SizedBox.expand(
-                child: CircularProgressIndicator(
-                  value: vm.progress,
-                  strokeWidth: 6,
-                  strokeCap: .round,
-                  color: context.primaryAccent,
-                  backgroundColor: context.primary.withValues(alpha: 0.12),
-                ),
-              ),
-              Padding(
-                padding: const .all(12),
-                child: FittedBox(
-                  child: Text(
-                    vm.total == 0 ? '—' : '${(vm.progress * 100).round()}%',
-                    style: context.titleMedium.copyWith(fontWeight: .w700),
+          // Animates the ring (and its percentage label) from whatever it
+          // last showed to the new progress -- TweenAnimationBuilder
+          // tracks the previous `end` itself, so a document being
+          // saved/linked/excluded eases the ring forward instead of
+          // snapping, without needing an explicit AnimationController here.
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: vm.progress),
+            duration: const Duration(milliseconds: 700),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, _) => Stack(
+              alignment: .center,
+              children: [
+                SizedBox.expand(
+                  child: CircularProgressIndicator(
+                    value: value,
+                    strokeWidth: 6,
+                    strokeCap: .round,
+                    color: context.primaryAccent,
+                    backgroundColor: context.primary.withValues(alpha: 0.12),
                   ),
                 ),
-              ),
-            ],
+                Padding(
+                  padding: const .all(12),
+                  child: FittedBox(
+                    child: Text(
+                      vm.total == 0 ? '—' : '${(value * 100).round()}%',
+                      style: context.titleMedium.copyWith(fontWeight: .w700),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
