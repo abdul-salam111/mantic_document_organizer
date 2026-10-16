@@ -1,88 +1,12 @@
-MANTIC DOCUMENT ORGANIZER - ENGINEERING STATUS REPORT
+MANTIC DOCUMENT ORGANIZER - STATUS REPORT
 Date: October 16, 2026
-Branch: new_features
 
+Documents can no longer be saved twice -- an exact-content check now warns and lets the
+user open the existing copy, skip, or keep both, across both Add Document and Bulk
+Import. The Document Readiness checklist is live on Home, redesigned into a cleaner
+single-row checklist, and now hides itself once complete. The AI assistant's mic button
+was moved inside the input field so typed text no longer wraps early. A product
+feature-review doc was added at docs/feature_catalog.md.
 
-SUMMARY
-
-This update covers the work completed since the October 15 report: duplicate-import
-prevention, the Document Readiness checklist going live on Home with a redesigned and
-polished presentation, a cleanup of the AI assistant's input bar, and a product-focused
-feature review document. All changes are committed and pushed to the new_features
-branch. The only item still outstanding is the marketing video, which is not an
-engineering task.
-
-
-CAPTURE AND IMPORT
-
-The app can no longer silently store the same document twice. A SHA-256 content
-fingerprint is now computed for every attachment, both going forward and backfilled
-in the background for documents already in the library, so an exact byte-for-byte
-match is recognized regardless of filename. This is checked in both places a document
-gets created: in Add Document, a newly captured or shared page that matches something
-already saved shows a sheet offering to open the existing document, skip the page, or
-keep both; in Bulk Import, a matching candidate is flagged inline in the review list
-with a tappable warning rather than a blocking dialog, since that screen commits a
-whole batch in one pass. Nothing is ever deleted automatically in either case.
-
-Separately, the earlier work moving AI-grouped import onto a background task is now
-confirmed complete: grouping no longer blocks the screen, the review screen opens
-automatically once grouping finishes, imported photos are no longer silently dropped,
-and the on-screen toast notifications were fixed. The import progress indicator is
-likewise already in place: BulkImportCommitNotifications drives a live "N of M saved"
-progress bar in the Android notification while confirmed documents save in the
-background, followed by a result notification once the batch finishes. This progress
-bar is Android-only; iOS currently shows no visible progress during the save, only the
-final result notification, which is worth a follow-up if cross-platform parity matters.
-
-
-DOCUMENT ORGANIZATION
-
-The Document Readiness checklist, which had been built but left commented out of Home,
-is now live. It was also substantially reworked along the way. The card itself was
-given its own visual presence with a soft shadow and border instead of blending flatly
-into the page, a bigger and more deliberate progress ring with a small checkmark badge
-that appears once every essential record group is covered, and a status pill instead of
-plain colored text. The checklist sheet it opens was simplified from a text-heavy block
-per item down to a single compact row each, with one primary "Add" action visible and
-everything else (choosing an existing document, marking a group not applicable) tucked
-behind an overflow menu. Once every essential group is satisfied the card now hides
-itself entirely rather than sitting on Home permanently at 100%, and it reappears on
-its own if a linked document is later trashed or unlinked.
-
-
-AI ASSISTANT
-
-The AI assistant's input bar had its microphone button moved from a separate circle
-beside the text field to a suffix icon inside the field itself. That circle was eating
-into the field's available width and pushing typed text to wrap onto a second line
-sooner than necessary; the field now has that width back, and the mic icon sits flush
-inside the field with no background of its own while idle, filling red only while
-actively recording.
-
-
-DOCUMENTATION
-
-A product-review document (docs/feature_catalog.md) was added, cataloguing what the app
-currently implements area by area with file references, and separately laying out
-prioritized recommendations for what to build next, each with its user problem, a
-concrete use case, the proposed experience, current coverage, and a minimal viable
-scope. It is kept up to date as items ship: items completed in this cycle, including
-Document Readiness and duplicate-import prevention, have already been moved out of the
-recommendations list and into the "already implemented" summary.
-
-
-QUALITY
-
-flutter analyze --fatal-infos is clean across the whole project. The full test suite
-was run after every change; the only failures present are the same ones already
-confirmed pre-existing on the base branch before this work began (auto_import_service_test.dart,
-widget_test.dart, and one layout assertion in tag_input_test.dart), none of which are
-related to anything changed here. New tests were added alongside the duplicate-detection
-work, covering both the repository-level lookup and the Bulk Import flagging behavior.
-
-
-OUTSTANDING
-
-The marketing video for Dockitly remains in progress; it is a production task, not a
-code change, and sits outside this report's engineering scope.
+flutter analyze is clean and all tests pass except pre-existing unrelated failures.
+Only the marketing video remains outstanding.
