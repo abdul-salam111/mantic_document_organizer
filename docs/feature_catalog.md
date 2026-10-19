@@ -68,22 +68,6 @@ Mantic is an offline-first document scanner/organizer: capture or import a docum
 
 
 
-### R8 — Accessibility and RTL audit
-
-**User problem:** Icon-only controls and custom widgets likely have no screen-reader labels, and RTL layout correctness is unverified — despite Arabic being a real, selectable language today, not a hypothetical future one.
-
-**Use case:** A screen-reader user can't identify the unlabeled camera "+" button; an Arabic-language user encounters a filter row or custom widget that doesn't mirror correctly.
-
-**Proposed experience:** Add `Semantics`/`semanticLabel` to icon-only interactive elements; do a dedicated RTL visual pass on custom (non-default-Material) widgets; verify large text sizes don't clip key UI.
-
-**Current coverage:** Largely missing — **code-verified** that explicit `Semantics(...)` appears in only two non-generated files app-wide, and no explicit RTL-aware layout checks or `TextScaler` handling were found outside framework defaults. **Assumption:** this is flagged as risk, not a confirmed visual bug — no device/screen-reader testing has been done.
-
-**Priority and effort:** Medium effort, moderate-to-high value given RTL is an advertised capability already shipped in Settings, not aspirational.
-
-**MVP scope:** Start with the highest-traffic screens (Home, Add Document, Document Viewer) rather than a full-app pass.
-
----
-
 ## Flagged inconsistencies (for a product decision, not a build)
 
 - **Sign-in requirement** (R1) contradicts the written no-account promise — needs an explicit decision, not just a code fix, since something upstream of the splash logic decided to require it.
