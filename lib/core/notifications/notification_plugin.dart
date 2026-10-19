@@ -30,7 +30,10 @@ class AppNotificationPlugin {
     _initialized = true;
     await plugin.initialize(
       settings: const InitializationSettings(
-        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        // Must be a flat white silhouette on transparent, not the
+        // full-color app icon -- see ic_notification.xml's own doc for
+        // why @mipmap/ic_launcher rendered as a tiny indistinct blob here.
+        android: AndroidInitializationSettings('ic_notification'),
         iOS: DarwinInitializationSettings(),
       ),
       onDidReceiveNotificationResponse: _responses.add,
