@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dockitly Account Deletion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme: light dark;
+    --bg:#F6F5F1;
+    --surface:#FFFFFF;
+    --surface-alt:#EFEEE7;
+    --text:#1B1E1C;
+    --text-muted:#62665F;
+    --border:#DEDCD1;
+    --accent:#2C4A6E;
+    --accent-soft:#E3EAF1;
+    --accent-contrast:#FFFFFF;
+    --ok:#2F6B4F;
+    --ok-soft:#E4EFE8;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#17191B;
+      --surface:#1F2224;
+      --surface-alt:#262A2C;
+      --text:#ECEDE9;
+      --text-muted:#9A9D96;
+      --border:#34373A;
+      --accent:#8CB0D6;
+      --accent-soft:#263544;
+      --accent-contrast:#10181F;
+      --ok:#7FBF9C;
+      --ok-soft:#1E2D25;
+    }
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    padding-inline:20px;
+    padding-block:48px 64px;
+    line-height:1.55;
+  }
+  img{max-width:100%;}
+  .wrap{max-width:640px;margin-inline:auto;}
+
+  header{display:flex;align-items:center;gap:12px;margin-bottom:40px;}
+  .mark{
+    width:40px;height:40px;flex:none;
+    border-radius:9px;
+    display:block;
+  }
+  .brand{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--text-muted);
+  }
+
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:700;
+    font-size:clamp(28px,6vw,38px);
+    line-height:1.08;
+    margin:0 0 10px;
+    text-wrap:balance;
+  }
+  .lede{
+    color:var(--text-muted);
+    font-size:16px;
+    max-width:48ch;
+    margin:0 0 44px;
+  }
+
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin:0 0 8px;
+  }
+  section{
+    padding-block:32px;
+    border-top:1px solid var(--border);
+  }
+  section:first-of-type{border-top:1px solid var(--border);}
+  h2{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:22px;
+    margin:0 0 16px;
+    text-wrap:balance;
+  }
+
+  ol.steps{list-style:none;margin:0 0 16px;padding:0;display:flex;flex-direction:column;gap:14px;}
+  ol.steps li{
+    display:flex;gap:14px;align-items:flex-start;
+    font-size:15px;
+  }
+  ol.steps li .n{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;font-weight:600;
+    color:var(--accent);
+    background:var(--accent-soft);
+    width:26px;height:26px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    flex:none;
+  }
+  .note{
+    font-size:14px;
+    color:var(--text-muted);
+    background:var(--surface-alt);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:12px 14px;
+    margin-top:4px;
+  }
+  .note strong{color:var(--text);}
+
+  p{margin:0 0 14px;font-size:15px;}
+  p:last-child{margin-bottom:0;}
+
+  .mailto{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:14px;font-weight:500;
+    color:var(--accent-contrast);
+    background:var(--accent);
+    padding:10px 16px;
+    border-radius:8px;
+    text-decoration:none;
+    margin:6px 0 18px;
+  }
+  .mailto:hover{filter:brightness(1.08);}
+
+  .manifest{
+    border:1px solid var(--border);
+    border-radius:12px;
+    overflow:hidden;
+    background:var(--surface);
+  }
+  .row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+    padding:14px 16px;
+    border-top:1px solid var(--border);
+  }
+  .row:first-child{border-top:none;}
+  .row .data{font-size:14px;font-weight:500;}
+  .row .outcome{font-size:13.5px;color:var(--text-muted);}
+  .row .outcome.deleted{color:var(--ok);font-weight:500;}
+  @media (max-width:480px){
+    .row{grid-template-columns:1fr;gap:4px;}
+  }
+
+  footer{
+    margin-top:40px;
+    padding-top:28px;
+    border-top:1px solid var(--border);
+    font-size:13px;
+    color:var(--text-muted);
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px 16px;
+    justify-content:space-between;
+  }
+  footer a{color:var(--accent);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img class="mark" src="dockitly-logo.png" alt="Dockitly">
+    <div class="brand">Dockitly</div>
+  </header>
+
+  <h1>Delete your account</h1>
+  <p class="lede">Two ways to permanently delete your Dockitly account and the data stored with it — from inside the app, or without installing it at all.</p>
+
+  <section>
+    <p class="eyebrow">Option 1 — in the app</p>
+    <h2>Delete from your device</h2>
+    <ol class="steps">
+      <li><span class="n">1</span><span>Open Dockitly and sign in to the account you want to delete.</span></li>
+      <li><span class="n">2</span><span>Go to the <strong>Profile</strong> tab.</span></li>
+      <li><span class="n">3</span><span>Tap <strong>Delete account</strong>.</span></li>
+      <li><span class="n">4</span><span>Confirm when prompted.</span></li>
+    </ol>
+    <div class="note"><strong>Takes effect immediately</strong> — no waiting period, no further action needed.</div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Option 2 — by email</p>
+    <h2>Request deletion without the app</h2>
+    <p>Can't sign in, or don't have the app installed? Email us from the address you used to sign up, with the subject line <strong>"Delete my Dockitly account"</strong>, and include the name on the account.</p>
+    <a class="mailto" href="mailto:care@ho.softronix.pk?subject=Delete%20my%20Dockitly%20account">care@ho.softronix.pk →</a>
+    <p>We process email requests within <strong>30 days</strong> and reply to confirm once your account and data have been removed.</p>
+  </section>
+
+  <section>
+    <p class="eyebrow">Data manifest</p>
+    <h2>What happens to your data</h2>
+    <div class="manifest">
+      <div class="row">
+        <div class="data">Account profile — name, email, login credentials</div>
+        <div class="outcome deleted">Deleted</div>
+      </div>
+      <div class="row">
+        <div class="data">Documents, categories &amp; tags synced via backup</div>
+        <div class="outcome deleted">Deleted</div>
+      </div>
+      <div class="row">
+        <div class="data">Shared categories &amp; pending invites</div>
+        <div class="outcome deleted">Removed — shared members lose access</div>
+      </div>
+      <div class="row">
+        <div class="data">Google Drive connection</div>
+        <div class="outcome">Disconnected. Files already copied to your own Drive stay there until you remove them yourself.</div>
+      </div>
+      <div class="row">
+        <div class="data">Documents kept only on your device</div>
+        <div class="outcome">Unaffected — remove them in the app, or uninstall the app, to erase local copies.</div>
+      </div>
+      <div class="row">
+        <div class="data">Records required for fraud prevention or law</div>
+        <div class="outcome">Kept only as long as legally required, then deleted.</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Dockitly — document organizer</span>
+    <span>Last updated 27 October 2026</span>
+  </footer>
+</div>
+</body>
+</html>
